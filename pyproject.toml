@@ -6,7 +6,7 @@ authors = [
     {name = "Daniil Pavlovich", email = "layred.dota2@mail.ru"}
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "aiohttp (>=3.13.3,<4.0.0)",
 ]
