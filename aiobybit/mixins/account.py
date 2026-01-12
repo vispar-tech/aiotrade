@@ -2,15 +2,45 @@
 
 from typing import Any, Dict
 
+from aiobybit.types import AccountType, MarginMode
+
 from ..protocols import HttpClientProtocol
 
 
 class AccountMixin:
     """Mixin for account endpoints."""
 
-    async def get_wallet_balance(self: HttpClientProtocol) -> Dict[str, Any]:
-        """Get wallet balance."""
-        raise NotImplementedError
+    async def get_wallet_balance(
+        self: HttpClientProtocol,
+        account_type: AccountType = "UNIFIED",
+        coin: str | None = None,
+    ) -> Dict[str, Any]:
+        """
+        Get wallet balance from Bybit API.
+
+        See:
+            https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+
+        Args:
+            account_type: Account type ("UNIFIED", "CONTRACT", "SPOT",
+                "FUND", "OPTION", "INVESTMENT"). Default is "UNIFIED".
+            coin: Optional. Single coin or comma-separated list
+                (e.g. "BTC,ETH,USDT"). If omitted, returns all coins.
+
+        Returns:
+            Dict with wallet balance response as received from Bybit API.
+
+        Raises:
+            Any exception raised by the underlying HTTP request.
+        """
+        params: Dict[str, Any] = {"accountType": account_type}
+        if coin:
+            params["coin"] = coin
+        return await self.get(
+            "/v5/account/wallet-balance",
+            params=params,
+            auth=True,
+        )
 
     async def get_transferable_amount(self: HttpClientProtocol) -> Dict[str, Any]:
         """Get transferable amount (Unified)."""
@@ -20,9 +50,25 @@ class AccountMixin:
         """Get transaction log (UTA)."""
         raise NotImplementedError
 
-    async def get_account_info(self: HttpClientProtocol) -> Dict[str, Any]:
-        """Get account info."""
-        raise NotImplementedError
+    async def get_account_info(
+        self: HttpClientProtocol,
+    ) -> Dict[str, Any]:
+        """
+        Get account info from Bybit API.
+
+        See:
+            https://bybit-exchange.github.io/docs/v5/account/account-info
+
+        Returns:
+            Dict with account info response as received from Bybit API.
+
+        Raises:
+            Any exception raised by the underlying HTTP request.
+        """
+        return await self.get(
+            "/v5/account/info",
+            auth=True,
+        )
 
     async def get_account_instruments_info(self: HttpClientProtocol) -> Dict[str, Any]:
         """Get account instruments info."""
@@ -58,9 +104,34 @@ class AccountMixin:
         """Set collateral coin."""
         raise NotImplementedError
 
-    async def set_margin_mode(self: HttpClientProtocol) -> Dict[str, Any]:
-        """Set margin mode."""
-        raise NotImplementedError
+    async def set_margin_mode(
+        self: HttpClientProtocol,
+        set_margin_mode: MarginMode,
+    ) -> Dict[str, Any]:
+        """
+        Set margin mode from Bybit API.
+
+        See:
+            https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+
+        Args:
+            set_margin_mode: Margin mode to set. One of:
+                - "ISOLATED_MARGIN": Isolated margin mode
+                - "REGULAR_MARGIN": Regular (cross) margin mode
+                - "PORTFOLIO_MARGIN": Portfolio margin mode
+
+        Returns:
+            Dict with set margin mode response as received from Bybit API.
+
+        Raises:
+            Any exception raised by the underlying HTTP request.
+        """
+        params = {"setMarginMode": set_margin_mode}
+        return await self.post(
+            "/v5/account/set-margin-mode",
+            params=params,
+            auth=True,
+        )
 
     async def set_spot_hedging(self: HttpClientProtocol) -> Dict[str, Any]:
         """Set spot hedging."""

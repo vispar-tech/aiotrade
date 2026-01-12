@@ -11,7 +11,7 @@ class HttpClientProtocol(Protocol):
         endpoint: str,
         params: Dict[str, Any] | None = None,
         headers: Dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> Dict[str, Any]:
         """Send a GET HTTP request."""
         ...
@@ -21,7 +21,7 @@ class HttpClientProtocol(Protocol):
         endpoint: str,
         params: Dict[str, Any] | None = None,
         headers: Dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> Dict[str, Any]:
         """Send a POST HTTP request."""
         ...
@@ -31,7 +31,7 @@ class HttpClientProtocol(Protocol):
         endpoint: str,
         params: Dict[str, Any] | None = None,
         headers: Dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> Dict[str, Any]:
         """Send a PUT HTTP request."""
         ...
@@ -41,7 +41,7 @@ class HttpClientProtocol(Protocol):
         endpoint: str,
         params: Dict[str, Any] | None = None,
         headers: Dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> Dict[str, Any]:
         """Send a DELETE HTTP request."""
         ...

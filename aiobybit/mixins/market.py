@@ -2,6 +2,8 @@
 
 from typing import Any, Dict, Literal, Optional
 
+from aiobybit.types import InstrumentStatus, SymbolType
+
 from ..protocols import HttpClientProtocol
 
 
@@ -69,9 +71,59 @@ class MarketMixin:
         """Get premium index price kline."""
         raise NotImplementedError
 
-    async def get_instruments_info(self: HttpClientProtocol) -> Dict[str, Any]:
-        """Get instruments info."""
-        raise NotImplementedError
+    async def get_instruments_info(
+        self: HttpClientProtocol,
+        category: Literal["spot", "linear", "inverse", "option"],
+        symbol: Optional[str] = None,
+        symbol_type: Optional[SymbolType] = None,
+        status: Optional[InstrumentStatus] = None,
+        base_coin: Optional[str] = None,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Get instruments info from Bybit API.
+
+        Query for the instrument specification of online trading pairs.
+
+        See:
+            https://bybit-exchange.github.io/docs/v5/market/instrument
+
+        Args:
+            category: Product type. One of: "spot", "linear", "inverse", "option"
+            symbol: Symbol name (e.g. "BTCUSDT"), uppercase only
+            symbol_type: Region to which the trading pair belongs
+                (for linear/inverse/spot)
+            status: Symbol status filter. One of: "Trading", "PreLaunch", "Delivering"
+            base_coin: Base coin, uppercase only (applies to linear/inverse/option)
+            limit: Limit for data size per page [1, 1000]. Default: 500
+            cursor: Cursor for pagination. Use nextPageCursor from response
+
+        Returns:
+            Dict with instruments info response as received from Bybit API.
+
+        Raises:
+            Any exception raised by the underlying HTTP request.
+        """
+        params: Dict[str, int | str] = {"category": category}
+
+        if symbol is not None:
+            params["symbol"] = symbol
+        if symbol_type is not None:
+            params["symbolType"] = symbol_type
+        if status is not None:
+            params["status"] = status
+        if base_coin is not None:
+            params["baseCoin"] = base_coin
+        if limit is not None:
+            params["limit"] = limit
+        if cursor is not None:
+            params["cursor"] = cursor
+
+        return await self.get(
+            "/v5/market/instruments-info",
+            params=params,
+        )
 
     async def get_orderbook(self: HttpClientProtocol) -> Dict[str, Any]:
         """Get orderbook."""

@@ -140,7 +140,7 @@ class BybitHttpClient:
         endpoint: str,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> dict[str, Any]:
         if self._session.closed:
             session_type = "shared" if self._shared_session else "individual"
@@ -217,7 +217,7 @@ class BybitHttpClient:
         endpoint: str,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> dict[str, Any]:
         """Async GET request."""
         return await self._async_request(
@@ -233,7 +233,7 @@ class BybitHttpClient:
         endpoint: str,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> dict[str, Any]:
         """Async POST request."""
         return await self._async_request(
@@ -249,7 +249,7 @@ class BybitHttpClient:
         endpoint: str,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> dict[str, Any]:
         """Async PUT request."""
         return await self._async_request(
@@ -265,7 +265,7 @@ class BybitHttpClient:
         endpoint: str,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
-        auth: bool = True,
+        auth: bool = False,
     ) -> dict[str, Any]:
         """Async DELETE request."""
         return await self._async_request(
