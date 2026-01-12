@@ -8,6 +8,8 @@ import time
 from types import TracebackType
 from typing import Any, Literal, Self
 
+import aiohttp
+
 from .session import BybitSessionManager
 
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
@@ -63,8 +65,6 @@ class BybitHttpClient:
             self._shared_session = True
         else:
             # Create individual session for this client
-            import aiohttp
-
             connector = aiohttp.TCPConnector(limit=50)
             self._session = aiohttp.ClientSession(
                 connector=connector,
