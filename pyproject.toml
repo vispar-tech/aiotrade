@@ -1,0 +1,95 @@
+[project]
+name = "aiobybit"
+version = "0.1.0"
+description = "Async Bybit API client"
+authors = [
+    {name = "Daniil Pavlovich", email = "layred.dota2@mail.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+dependencies = [
+    "aiohttp (>=3.13.3,<4.0.0)",
+]
+
+[tool.poetry]
+packages = [
+    { include = "aiobybit" }
+]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.14.11"
+mypy = "^1.19.1"
+pre-commit = "^4.5.1"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = false
+pretty = true
+show_error_codes = true
+implicit_reexport = false
+warn_unused_ignores = true
+warn_return_any = true
+namespace_packages = true
+files = ["aiobybit"]
+
+[tool.ruff]
+include = ["aiobybit/**/*.py"]
+line-length = 88
+fix = true
+unsafe-fixes = true
+exclude = ["debug"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+    "D",
+    "ANN",
+    "S",
+    "B",
+    "C",
+    "ISC",
+    "PIE",
+    "T",
+    "PYI",
+    "Q",
+    "RSE",
+    "RET",
+    "SLF",
+    "SIM",
+    "PTH",
+    "ERA",
+    "PLR",
+    "RUF",
+
+]
+ignore = [
+    "ANN401", # Need cause we work with dictionaries
+    "ANN101",
+    "ANN102"
+]
+fixable = ["ALL"]
+unfixable = []
+pydocstyle = { convention = "pep257", ignore-decorators = ["typing.overload"] }
+isort = { force-single-line = false, known-first-party = ["aiobybit"] }
+pylint = { allow-magic-value-types = ["int", "str", "float", "bytes"], max-args = 7 }
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "T201",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
