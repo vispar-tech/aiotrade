@@ -1,22 +1,22 @@
-"""High-performance cache for BybitHttpClient instances."""
+"""High-performance cache for BybitClient instances."""
 
 import asyncio
 import logging
 import time
 from typing import ClassVar, Dict, Optional
 
-from .http import BybitHttpClient
+from .client import BybitClient
 
 logger = logging.getLogger(__name__)
 
 _Key = tuple[str, str, bool, bool]
-_Val = tuple[BybitHttpClient, float]  # (client, expires_at)
+_Val = tuple[BybitClient, float]  # (client, expires_at)
 
 
 class BybitClientCache:
-    """Ultra-fast singleton cache for BybitHttpClient.
+    """Ultra-fast singleton cache for BybitClient.
 
-    Stores BybitHttpClient instances with TTL to prevent memory leaks.
+    Stores BybitClient instances with TTL to prevent memory leaks.
     Lock-free for maximum performance.
     """
 
@@ -46,8 +46,8 @@ class BybitClientCache:
         api_secret: str,
         demo: bool = False,
         testnet: bool = False,
-    ) -> Optional[BybitHttpClient]:
-        """Get cached BybitHttpClient instance or None."""
+    ) -> Optional[BybitClient]:
+        """Get cached BybitClient instance or None."""
         key = cls._make_key(api_key, api_secret, demo, testnet)
         entry = cls._cache.get(key)
         if entry is not None:
@@ -57,13 +57,13 @@ class BybitClientCache:
     @classmethod
     def add(
         cls,
-        client: BybitHttpClient,
+        client: BybitClient,
         api_key: str,
         api_secret: str,
         demo: bool = False,
         testnet: bool = False,
     ) -> None:
-        """Cache a BybitHttpClient, overwriting any existing for key."""
+        """Cache a BybitClient, overwriting any existing for key."""
         key = cls._make_key(api_key, api_secret, demo, testnet)
         expires_at = time.monotonic() + cls._lifetime_seconds
         cls._cache[key] = (client, expires_at)
@@ -77,9 +77,9 @@ class BybitClientCache:
         demo: bool = False,
         recv_window: int = 5000,
         referral_id: str | None = None,
-    ) -> BybitHttpClient:
+    ) -> BybitClient:
         """
-        Get BybitHttpClient from cache or create/cache it.
+        Get BybitClient from cache or create/cache it.
 
         Returns:
             Cached instance (possibly new).
@@ -89,7 +89,7 @@ class BybitClientCache:
         if entry is not None:
             return entry[0]
 
-        client = BybitHttpClient(
+        client = BybitClient(
             api_key=api_key,
             api_secret=api_secret,
             testnet=testnet,
