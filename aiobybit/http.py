@@ -2,13 +2,13 @@
 
 import hashlib
 import hmac
-import json
 import logging
 import time
 from types import TracebackType
 from typing import Any, Literal, Self
 
 import aiohttp
+import orjson
 
 from .session import BybitSessionManager
 
@@ -19,6 +19,16 @@ logger = logging.getLogger(__name__)
 
 DOMAIN_MAIN = "bybit"
 TLD_MAIN = "com"
+
+
+def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
+    masked: dict[str, Any] = {}
+    for k, v in headers.items():
+        if k in ("X-BAPI-API-KEY", "X-BAPI-SIGN"):
+            masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
+        else:
+            masked[k] = v
+    return masked
 
 
 class BybitHttpClient:
@@ -103,7 +113,7 @@ class BybitHttpClient:
             await self._session.close()
 
     def _generate_signature(
-        self, api_key: str, api_secret: str, payload: str, timestamp: str
+        self, api_key: str, api_secret: str, payload: str, timestamp: int
     ) -> str:
         """Bybit V5 signature (API v5).
 
@@ -112,28 +122,129 @@ class BybitHttpClient:
         - For GET: payload is the sorted query string.
         - For POST: payload is the plain JSON string.
         """
-        param_str = timestamp + api_key + str(self.recv_window) + payload
+        param_str = str(timestamp) + api_key + str(self.recv_window) + payload
         return hmac.new(
-            api_secret.encode("utf-8"),
+            bytes(api_secret, "utf-8"),
             param_str.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
 
     def _prepare_payload(self, method: HttpMethod, params: dict[str, Any]) -> str:
-        # Ensure certain params are always strings
-        string_params = {"qty", "price", "triggerPrice", "takeProfit", "stopLoss"}
-        for k in string_params:
-            if k in params and not isinstance(params[k], str):
-                params[k] = str(params[k])
+        def cast_values() -> None:
+            string_params = [
+                "qty",
+                "price",
+                "triggerPrice",
+                "takeProfit",
+                "stopLoss",
+            ]
+            integer_params = ["positionIdx"]
+            for key, value in params.items():
+                if key in string_params:
+                    if not isinstance(value, str):
+                        params[key] = str(value)
+                elif key in integer_params and not isinstance(value, int):
+                    params[key] = int(value)
+
         if method == "GET":
-            # For GET, sort and join non-None params into a query string
-            filtered = [(k, v) for k, v in params.items() if v is not None]
-            filtered.sort()
-            return "&".join(f"{k}={v}" for k, v in filtered)
-        # For POST/PUT/DELETE, return compact JSON (sorted keys, omit None)
-        sorted_params = {k: params[k] for k in sorted(params) if params[k] is not None}
+            return "&".join(
+                f"{k}={v}" for k, v in sorted(params.items()) if v is not None
+            )
+        cast_values()
+        sanitized = {k: params[k] for k in sorted(params) if params[k] is not None}
+        if not sanitized:
+            return "{}"
+        return orjson.dumps(sanitized, option=orjson.OPT_SORT_KEYS).decode("utf-8")
+
+    async def _build_request_args(
+        self,
+        method: HttpMethod,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        auth: bool = False,
+    ) -> tuple[
+        HttpMethod,
+        str,
+        dict[str, Any] | None,
+        dict[str, Any] | None,
+        dict[str, str],
+        int,
+        str | None,
+        dict[str, Any],
+    ]:
+        # Fast path: avoid unnecessary checks and recomputation
+        if self._session.closed:
+            session_type = "shared" if self._shared_session else "individual"
+            raise RuntimeError(
+                f"Session is closed ({session_type}). "
+                "Create a new BybitHttpClient instance."
+            )
+
+        # Prefer local assignment for micro-speed-up
+        params = params if params is not None else {}
+        headers = headers if headers is not None else {}
+
+        # Optimize timestamp retrieval
+        timestamp = int(time.time() * 10**3)
+
+        # Cheap check for referral
+        if self.referral_id is not None:
+            headers["Referer"] = self.referral_id
+
+        # Fast payload prep
+        req_payload = self._prepare_payload(method, params)
+
+        # Quickly handle signature/auth
+        if auth:
+            if not (self.api_key and self.api_secret):
+                raise ValueError(
+                    "API key and secret must be set for authenticated requests."
+                )
+            signature = self._generate_signature(
+                self.api_key, self.api_secret, req_payload, timestamp
+            )
+            headers.update(
+                {
+                    "X-BAPI-API-KEY": self.api_key,
+                    "X-BAPI-SIGN": signature,
+                    "X-BAPI-SIGN-TYPE": "2",
+                    "X-BAPI-TIMESTAMP": str(timestamp),
+                    "X-BAPI-RECV-WINDOW": str(self.recv_window),
+                }
+            )
+        else:
+            signature = None
+
+        url = f"{self.base_url}{endpoint}"
+
+        if method == "GET":
+            url = f"{url}?{req_payload}" if req_payload else url
+            req_params = None
+            req_json = None
+            payload = req_payload
+        else:
+            req_params = None
+            req_json = (
+                {k: v for k, v in params.items() if v is not None} if params else None
+            )
+            payload = req_payload
+
+        # Logging fast, avoid joining or formatting unnecessarily unless debug
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Making async %s request to %s with params: %s", method, url, params
+            )
+
         return (
-            json.dumps(sorted_params, separators=(",", ":")) if sorted_params else "{}"
+            method,
+            url,
+            req_params,
+            req_json,
+            headers,
+            timestamp,
+            payload,
+            params,
         )
 
     async def _async_request(
@@ -144,65 +255,31 @@ class BybitHttpClient:
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:
-        if self._session.closed:
-            session_type = "shared" if self._shared_session else "individual"
-            raise RuntimeError(
-                f"Session is closed ({session_type}). "
-                "Create a new BybitHttpClient instance.",
-            )
-        params = params or {}
-        payload: str | None = None
-        headers = headers or {}
-
-        # Add referral_id as Referer header if present
-        if self.referral_id:
-            headers["Referer"] = self.referral_id
-
-        timestamp = str(int(time.time() * 1000))
-        if auth:
-            if not self.api_key or not self.api_secret:
-                raise ValueError(
-                    "API key and secret must be set for authenticated requests."
-                )
-            payload = self._prepare_payload(method, params)
-            signature = self._generate_signature(
-                self.api_key, self.api_secret, payload, timestamp
-            )
-            headers.update(
-                {
-                    "X-BAPI-API-KEY": self.api_key,
-                    "X-BAPI-SIGN": signature,
-                    "X-BAPI-SIGN-TYPE": "1",
-                    "X-BAPI-TIMESTAMP": timestamp,
-                    "X-BAPI-RECV-WINDOW": str(self.recv_window),
-                },
-            )
-        url = f"{self.base_url}{endpoint}"
-        logger.debug(f"Making async {method} request to {url} with params: {params}")
-
-        req_params = params if method == "GET" and params else None
-        req_json = (
-            None
-            if method == "GET"
-            else {k: v for k, v in params.items() if v is not None}
-            if params
-            else None
-        )
+        (
+            method_val,
+            url,
+            req_params,
+            req_json,
+            headers_val,
+            timestamp,
+            payload,
+            params_orig,
+        ) = await self._build_request_args(method, endpoint, params, headers, auth)
 
         async with self._session.request(
-            method,
+            method_val,
             url,
             params=req_params,
             json=req_json,
-            headers=headers,
+            headers=headers_val,
         ) as resp:
             try:
                 resp.raise_for_status()
                 res_json: dict[str, Any] = await resp.json(content_type=None)
             except Exception:
                 logger.error(
-                    f"Request error: method={method}, url={url}, "
-                    f"params={params}, headers={headers}",
+                    f"Request error: method={method_val}, url={url}, "
+                    f"params={params_orig}, headers={_mask_headers(headers_val)}",
                 )
                 raise
             if res_json.get("retCode") == 10004:
@@ -217,7 +294,7 @@ class BybitHttpClient:
                     f"{self.recv_window!s}"
                     f"{payload or ''}"
                     f"'. "
-                    f"Params: {params}",
+                    f"Params: {params_orig}",
                 )
                 raise Exception(res_json.get("retMsg", "Unknown error"))
             return res_json
