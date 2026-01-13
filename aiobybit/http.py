@@ -26,8 +26,8 @@ class BybitHttpClient:
 
     def __init__(
         self,
-        api_key: str,
-        api_secret: str,
+        api_key: str | None = None,
+        api_secret: str | None = None,
         testnet: bool = False,
         demo: bool = False,
         recv_window: int = 5000,
@@ -102,7 +102,9 @@ class BybitHttpClient:
         if self._session and not self._session.closed:
             await self._session.close()
 
-    def _generate_signature(self, payload: str, timestamp: str) -> str:
+    def _generate_signature(
+        self, api_key: str, api_secret: str, payload: str, timestamp: str
+    ) -> str:
         """Bybit V5 signature (API v5).
 
         Signature is generated as:
@@ -110,9 +112,9 @@ class BybitHttpClient:
         - For GET: payload is the sorted query string.
         - For POST: payload is the plain JSON string.
         """
-        param_str = timestamp + self.api_key + str(self.recv_window) + payload
+        param_str = timestamp + api_key + str(self.recv_window) + payload
         return hmac.new(
-            self.api_secret.encode("utf-8"),
+            api_secret.encode("utf-8"),
             param_str.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
@@ -149,6 +151,7 @@ class BybitHttpClient:
                 "Create a new BybitHttpClient instance.",
             )
         params = params or {}
+        payload: str | None = None
         headers = headers or {}
 
         # Add referral_id as Referer header if present
@@ -157,8 +160,14 @@ class BybitHttpClient:
 
         timestamp = str(int(time.time() * 1000))
         if auth:
+            if not self.api_key or not self.api_secret:
+                raise ValueError(
+                    "API key and secret must be set for authenticated requests."
+                )
             payload = self._prepare_payload(method, params)
-            signature = self._generate_signature(payload, timestamp)
+            signature = self._generate_signature(
+                self.api_key, self.api_secret, payload, timestamp
+            )
             headers.update(
                 {
                     "X-BAPI-API-KEY": self.api_key,
@@ -197,11 +206,17 @@ class BybitHttpClient:
                 )
                 raise
             if res_json.get("retCode") == 10004:
-                payload = self._prepare_payload(method, params)
+                if self.api_key is None:
+                    pass
                 logger.error(
                     f"Bybit signature error (retCode 10004): {res_json.get('retMsg')}\n"
                     f"Origin string is: "
-                    f"'{timestamp + self.api_key + str(self.recv_window) + payload}'. "
+                    f"'"
+                    f"{timestamp or ''}"
+                    f"{self.api_key or ''}"
+                    f"{self.recv_window!s}"
+                    f"{payload or ''}"
+                    f"'. "
                     f"Params: {params}",
                 )
                 raise Exception(res_json.get("retMsg", "Unknown error"))
