@@ -182,7 +182,7 @@ async def main() -> None:
     print("Comparing individual sessions vs shared session")
 
     # Run benchmark
-    client_count = 10000
+    client_count = 100_000
     results = await benchmark_session_manager_scenarios(client_count)
 
     # Print summary

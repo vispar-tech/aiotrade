@@ -113,11 +113,7 @@ class BybitClientCache:
             Number of entries removed.
         """
         now = time.monotonic()
-        expired_keys = [
-            k
-            for k, (_, exp) in cls._cache.items()
-            if exp + cls._lifetime_seconds <= now
-        ]
+        expired_keys = [k for k, (_, exp) in cls._cache.items() if exp <= now]
         for k in expired_keys:
             del cls._cache[k]
         return len(expired_keys)

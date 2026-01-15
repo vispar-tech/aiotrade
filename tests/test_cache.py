@@ -212,7 +212,7 @@ def print_best_summary(results: dict[str, float]) -> None:
 
 async def main() -> None:
     """Run the main benchmark entry point."""
-    client_count = 10000
+    client_count = 10_000
 
     print("BybitClientCache Performance Benchmark")
     print("=" * 40)

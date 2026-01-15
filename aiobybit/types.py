@@ -20,9 +20,6 @@ TpSlTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
 TpSlMode = Literal["Full", "Partial"]
 TpSlOrderType = Literal["Market", "Limit"]
 
-# Position types
-PositionMode = Literal[0, 3]  # 0: Merged Single, 3: Both Sides
-
 
 class SetTradingStopParams(TypedDict, total=False):
     """Parameters for setting trading stop (TP/SL)."""
