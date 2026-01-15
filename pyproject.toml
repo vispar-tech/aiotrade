@@ -1,7 +1,7 @@
 [project]
-name = "aiobybit"
+name = "aiotrade"
 version = "0.1.0"
-description = "Async Bybit API client"
+description = "Async trading API clients"
 authors = [
     {name = "Daniil Pavlovich", email = "layred.dota2@mail.ru"}
 ]
@@ -14,13 +14,16 @@ dependencies = [
 
 [tool.poetry]
 packages = [
-    { include = "aiobybit" }
+    { include = "aiotrade" }
 ]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.14.11"
 mypy = "^1.19.1"
 pre-commit = "^4.5.1"
+pytest = "^9.0.2"
+anyio = "^4.12.1"
+
 
 [tool.mypy]
 python_version = "3.12"
@@ -32,10 +35,10 @@ implicit_reexport = false
 warn_unused_ignores = true
 warn_return_any = true
 namespace_packages = true
-files = ["aiobybit"]
+files = ["aiotrade"]
 
 [tool.ruff]
-include = ["aiobybit/**/*.py"]
+include = ["aiotrade/**/*.py"]
 line-length = 88
 fix = true
 unsafe-fixes = true
@@ -70,18 +73,20 @@ select = [
 ]
 ignore = [
     "ANN401", # Need cause we work with dictionaries
-    "ANN101",
-    "ANN102"
 ]
 fixable = ["ALL"]
 unfixable = []
 pydocstyle = { convention = "pep257", ignore-decorators = ["typing.overload"] }
-isort = { force-single-line = false, known-first-party = ["aiobybit"] }
+isort = { force-single-line = false, known-first-party = ["aiotrade"] }
 pylint = { allow-magic-value-types = ["int", "str", "float", "bytes"], max-args = 12 }
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = [
+"examples/*" = [
     "T201",
+    "ERA001"
+]
+"tests/*" = [
+    "S101"
 ]
 
 [tool.ruff.format]
@@ -90,6 +95,37 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = true
+
+[tool.pytest.ini_options]
+addopts = [
+    "-v",
+    "-s",
+    "--tb=short",
+    "--show-capture=stderr",
+    "--strict-markers",
+    "--strict-config",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "ignore:.*unclosed.*:ResourceWarning",
+    "ignore::DeprecationWarning:docxcompose.*",
+    "ignore::DeprecationWarning:pkg_resources",
+    "ignore::DeprecationWarning:setuptools.*",
+]
+
+anyio_mode = "auto"
+
+log_cli = true
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_level = "DEBUG"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+log_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_level = "DEBUG"
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

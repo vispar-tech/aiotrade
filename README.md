@@ -1,6 +1,6 @@
-# aiobybit
+# aiotrade
 
-High-performance async Bybit API client for Python with intelligent session and cache management.
+High-performance async trading API client for Python supporting BingX and Bybit exchanges with intelligent session and cache management.
 
 ## Architecture
 
@@ -8,15 +8,86 @@ The library uses a sophisticated architecture for optimal performance:
 
 ### Session Management
 
-- **Shared Session**: `BybitSessionManager` creates a single aiohttp session with high-performance connection pooling
+- **Shared Session**: `SharedSessionManager` creates a single aiohttp session with high-performance connection pooling
 - **Individual Sessions**: Clients automatically create individual sessions if shared session isn't initialized
 - **Connection Pooling**: Up to 2000 concurrent connections with smart distribution per host
 
 ### Client Caching
 
-- **TTL Cache**: `BybitClientCache` caches client instances with 10-minute lifetime
+- **TTL Cache**: `BingxClientsCache` and `BybitClientsCache` cache client instances with 10-minute lifetime
 - **Lock-Free**: No blocking operations for maximum performance
 - **Lazy Cleanup**: Expired entries removed on access, not proactively
+
+### Exchange Support
+
+#### BingX Client
+
+- **Spot Trading**: Complete spot market and account management
+- **Swap Trading**: Perpetual futures with leverage support
+- **Margin Futures**: Traditional futures with margin trading
+- **Demo Mode**: Test trading without real funds
+
+#### Bybit Client
+
+- **Unified Trading**: Spot, futures, and options in one interface
+- **Advanced Trading**: Position management, risk controls, and order types
+- **Testnet Support**: Full testnet environment for development
+
+#### Current implemented
+
+**Implemented BybitClient methods:**
+
+- batch_cancel_order
+- batch_place_order
+- cancel_all_orders
+- cancel_order
+- get_account_info
+- get_closed_pnl
+- get_instruments_info
+- get_kline
+- get_open_and_closed_orders
+- get_order_history
+- get_position_info
+- get_server_time
+- get_wallet_balance
+- place_order
+- set_leverage
+- set_margin_mode
+- set_trading_stop
+- switch_position_mode
+
+**Implemented BingxClient methods:**
+
+- cancel_all_spot_open_orders
+- cancel_all_swap_open_orders
+- cancel_spot_batch_orders
+- cancel_swap_batch_orders
+- change_swap_margin_type
+- close_swap_position
+- get_account_asset_overview
+- get_api_permissions
+- get_server_time
+- get_spot_account_assets
+- get_spot_klines
+- get_spot_open_orders
+- get_spot_order_details
+- get_spot_order_history
+- get_spot_symbols_like
+- get_spot_trade_details
+- get_swap_account_balance
+- get_swap_contracts
+- get_swap_klines
+- get_swap_leverage_and_available_positions
+- get_swap_margin_type
+- get_swap_open_orders
+- get_swap_order_details
+- get_swap_order_history
+- get_swap_position_history
+- get_swap_position_mode
+- get_swap_positions
+- place_swap_order
+- set_swap_leverage
+- set_swap_position_mode
 
 ## Installation
 
@@ -29,67 +100,82 @@ poetry add aiobybit
 ### Option 1: Shared Session (Recommended for Production)
 
 ```python
-from aiobybit import BybitSessionManager, BybitHttpClient
+from aiotrade import SharedSessionManager, BingxClient, BybitClient
 
 # Initialize shared session at startup (once per application)
-BybitSessionManager.setup(max_connections=2000)
+SharedSessionManager.setup(max_connections=2000)
 
-# Create clients - they automatically use the shared session
-client1 = BybitHttpClient(api_key="key1", api_secret="secret1")
-client2 = BybitHttpClient(api_key="key2", api_secret="secret2")
+# Create clients for different exchanges - they automatically use the shared session
+bingx_client = BingxClient(api_key="bingx_key", api_secret="bingx_secret", demo=True)
+bybit_client = BybitClient(api_key="bybit_key", api_secret="bybit_secret", testnet=True)
 
 try:
     # Use clients for API calls
-    result1 = await client1.get("/v5/market/tickers", {"category": "spot"})
-    result2 = await client2.get("/v5/market/tickers", {"category": "linear"})
+    bingx_assets = await bingx_client.get_spot_account_assets()
+    bybit_tickers = await bybit_client.get_tickers(category="spot")
 finally:
     # Close shared session at shutdown
-    await BybitSessionManager.close()
+    await SharedSessionManager.close()
 ```
 
 ### Option 2: Individual Sessions
 
 ```python
-from aiobybit import BybitHttpClient
+from aiotrade import BingxClient, BybitClient
 
-# Client creates its own session automatically
-async with BybitHttpClient(api_key="your_key", api_secret="your_secret") as client:
-    result = await client.get("/v5/market/tickers", {"category": "spot"})
-    print(result)
+# BingX client with individual session
+async with BingxClient(api_key="your_key", api_secret="your_secret", demo=True) as client:
+    assets = await client.get_spot_account_assets()
+    print(f"BingX assets: {assets}")
+
+# Bybit client with individual session
+async with BybitClient(api_key="your_key", api_secret="your_secret", testnet=True) as client:
+    tickers = await client.get_tickers(category="spot")
+    print(f"Bybit tickers: {tickers}")
 ```
 
 ### Option 3: Cached Clients
 
 ```python
-from aiobybit import BybitClientCache
+from aiotrade import BingxClientsCache, BybitClientsCache
 
-# Get cached client (creates new if doesn't exist)
-client = BybitClientCache.get_or_create(
+# Get cached BingX client (creates new if doesn't exist)
+bingx_client = BingxClientsCache.get_or_create(
+    api_key="your_key",
+    api_secret="your_secret",
+    demo=True
+)
+
+# Get cached Bybit client
+bybit_client = BybitClientsCache.get_or_create(
     api_key="your_key",
     api_secret="your_secret",
     testnet=True
 )
 
-# Use client (session management is automatic)
-async with client:
-    result = await client.get("/v5/market/tickers", {"category": "spot"})
+# Use clients (session management is automatic)
+async with bingx_client:
+    assets = await bingx_client.get_spot_account_assets()
+
+async with bybit_client:
+    tickers = await bybit_client.get_tickers(category="spot")
 
 # Same parameters return the same cached instance
-cached_client = BybitClientCache.get_or_create(
+cached_bingx = BingxClientsCache.get_or_create(
     api_key="your_key",
     api_secret="your_secret",
-    testnet=True
+    demo=True
 )
-assert client is cached_client  # True
+assert bingx_client is cached_bingx  # True
 ```
 
 ## Session Behavior
 
-| Scenario                             | Session Type              | When Used              |
-| ------------------------------------ | ------------------------- | ---------------------- |
-| `BybitSessionManager.setup()` called | Shared session            | All clients            |
-| No shared session initialized        | Individual session        | Each client            |
-| Cached clients                       | Depends on initialization | Cached per credentials |
+| Scenario                              | Session Type              | When Used              |
+| ------------------------------------- | ------------------------- | ---------------------- |
+| `SharedSessionManager.setup()` called | Shared session            | All clients            |
+| No shared session initialized         | Individual session        | Each client            |
+| Cached clients                        | Depends on initialization | Cached per credentials |
 
 ## Cache Features
 
@@ -99,26 +185,59 @@ assert client is cached_client  # True
 - **Background Cleanup**: Optional periodic cleanup task
 
 ```python
-# Configure cache lifetime
-BybitClientCache.configure(lifetime_seconds=1800)  # 30 minutes
+# Configure cache lifetime for each exchange
+BingxClientsCache.configure(lifetime_seconds=1800)  # 30 minutes
+BybitClientsCache.configure(lifetime_seconds=1800)  # 30 minutes
 
 # Start background cleanup
-cleanup_task = BybitClientCache.create_cleanup_task(interval_seconds=300)
+bingx_cleanup = BingxClientsCache.create_cleanup_task(interval_seconds=300)
+bybit_cleanup = BybitClientsCache.create_cleanup_task(interval_seconds=300)
 
 # Manual cleanup
-removed_count = BybitClientCache.cleanup_expired()
+bingx_removed = BingxClientsCache.cleanup_expired()
+bybit_removed = BybitClientsCache.cleanup_expired()
 ```
 
 ## API Methods
 
-All HTTP methods supported with automatic authentication:
+### BingX Client Methods
 
 ```python
-# GET request
-result = await client.get("/v5/market/tickers", {"category": "spot"})
+from aiotrade import BingxClient
 
-# POST request
-result = await client.post("/v5/order/create", {
+client = BingxClient(api_key="your_key", api_secret="your_secret", demo=True)
+
+# Market data
+server_time = await client.get_server_time()
+
+# Spot trading
+assets = await client.get_spot_account_assets()
+tickers = await client.get_spot_tickers()
+
+# Swap trading (perpetual futures)
+await client.place_swap_order({
+    "symbol": "BTC-USDT",
+    "side": "BUY",
+    "positionSide": "BOTH",
+    "type": "MARKET",
+    "quantity": 0.001
+})
+```
+
+### Bybit Client Methods
+
+```python
+from aiotrade import BybitClient
+
+client = BybitClient(api_key="your_key", api_secret="your_secret", testnet=True)
+
+# Market data
+server_time = await client.get_server_time()
+tickers = await client.get_tickers(category="spot")
+klines = await client.get_kline("BTCUSDT", "1h", category="linear")
+
+# Trading
+await client.place_order({
     "category": "linear",
     "symbol": "BTCUSDT",
     "side": "Buy",
