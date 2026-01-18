@@ -1,11 +1,11 @@
 """Swap trading mixins for BingX API client."""
 
-from ._account import AccountMixin as SwapAccountMixin
-from ._market import MarketMixin as SwapMarketMixin
-from ._trade import TradeMixin as SwapTradeMixin
+from ._account import AccountMixin
+from ._market import MarketMixin
+from ._trade import TradeMixin
 
 
-class SwapMixin(SwapAccountMixin, SwapMarketMixin, SwapTradeMixin):
+class SwapMixin(AccountMixin, MarketMixin, TradeMixin):
     """Combined swap mixin with all swap trading functionality."""
 
 

@@ -1,12 +1,12 @@
 """Spot trading mixins for BingX API client."""
 
-from ._account import AccountMixin as SpotAccountMixin
-from ._market import MarketMixin as SpotMarketMixin
-from ._trade import TradeMixin as SpotTradeMixin
-from ._wallet import WalletMixin as SpotWalletMixin
+from ._account import AccountMixin
+from ._market import MarketMixin
+from ._trade import TradeMixin
+from ._wallet import WalletMixin
 
 
-class SpotMixin(SpotAccountMixin, SpotMarketMixin, SpotTradeMixin, SpotWalletMixin):
+class SpotMixin(AccountMixin, MarketMixin, TradeMixin, WalletMixin):
     """Combined spot mixin with all spot trading functionality."""
 
 

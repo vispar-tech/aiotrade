@@ -6,14 +6,24 @@ from typing import Any, Dict, List, Tuple
 
 from aiotrade import BybitClient
 
+# Constants for clients and requests per client
+NUM_CLIENTS = 10
+REQUESTS_PER_CLIENT = 3
+
 
 async def main() -> None:
-    """Benchmark test: create 10 clients, each making 3 requests to get server time."""
-    print("Starting multiclient benchmark: 10 clients making 3 requests each...")
+    """
+    Benchmark test: create NUM_CLIENTS clients
+    each making REQUESTS_PER_CLIENT requests to get server time.
+    """
+    print(
+        f"Starting multiclient benchmark: {NUM_CLIENTS} clients "
+        f"making {REQUESTS_PER_CLIENT} requests each..."
+    )
 
-    # Create 10 clients for testnet (no authentication required for this endpoint)
+    # Create NUM_CLIENTS clients for testnet (no authentication required)
     clients: List[BybitClient] = []
-    for _ in range(10):
+    for _ in range(NUM_CLIENTS):
         client = BybitClient(
             api_key="",
             api_secret="",
@@ -33,7 +43,7 @@ async def main() -> None:
             async with client:
                 # Create tasks for parallel execution of a single client's requests
                 client_tasks: List[Tuple[int, asyncio.Task[Dict[str, Any]]]] = []
-                for request_idx in range(3):
+                for request_idx in range(REQUESTS_PER_CLIENT):
                     task = asyncio.create_task(client.get_server_time())
                     client_tasks.append((request_idx, task))
 
@@ -43,13 +53,14 @@ async def main() -> None:
                         response = await task
                         results.append(response)
                         print(
-                            f"Client {client_idx + 1}/10, "
-                            f"Request {request_idx + 1}/3: OK"
+                            f"Client {client_idx + 1}/{NUM_CLIENTS}, "
+                            f"Request {request_idx + 1}/{REQUESTS_PER_CLIENT}: OK"
                         )
                     except Exception as e:
                         print(
-                            f"Client {client_idx + 1}/10, "
-                            f"Request {request_idx + 1}/3: ERROR - {e}"
+                            f"Client {client_idx + 1}/{NUM_CLIENTS}, "
+                            f"Request {request_idx + 1}/{REQUESTS_PER_CLIENT}: "
+                            f"ERROR - {e}"
                         )
 
         task = asyncio.create_task(make_requests(client_idx, client))
@@ -60,12 +71,13 @@ async def main() -> None:
 
     end_time = time.time()
     elapsed = end_time - start_time
+    total_requests = NUM_CLIENTS * REQUESTS_PER_CLIENT
 
     print("\nMulticlient benchmark completed:")
     print(f"Total requests: {len(results)}")
     print(f"Total time: {elapsed:.2f} seconds")
-    print(f"Average per request: {elapsed / 30:.4f} seconds")
-    print(f"Requests per second: {30 / elapsed:.4f}")
+    print(f"Average per request: {elapsed / total_requests:.4f} seconds")
+    print(f"Requests per second: {total_requests / elapsed:.4f}")
 
     if results:
         # Show sample response

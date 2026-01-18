@@ -1,26 +1,43 @@
 """Tests for BingX API authentication and spot account assets."""
 
 import asyncio
+import json
 import os
-from typing import Any, Dict
+from typing import Any
 
 from aiotrade import BingxClient
 from aiotrade.types.bingx import PlaceSwapOrderParams, TpSlStruct
 
+# Set this to True to actually place a swap order in the real API test
+PLACE_ORDER = False
 
-async def print_spot_account_assets(client: BingxClient) -> Dict[str, Any] | None:
+
+async def print_spot_account_assets(client: BingxClient) -> None:
     """Fetch and print BingX spot account assets."""
     print("\n📊 Fetching BingX spot account assets...")
     try:
         result = await client.get_spot_account_assets()
         print("✅ Spot account assets retrieved successfully!")
-        print(f"Full response:\n{result}\n")
+        try:
+            # Pretty-print only the "data" section if possible
+            pretty_resp = json.dumps(result.get("data"), indent=2, ensure_ascii=False)
+            print(f"Full response:\n{pretty_resp}\n")
+        except Exception:
+            print(f"Full response:\n{result}\n")
 
-        balances = result.get("data", {}).get("balances", [])
+        balances: list[dict[str, Any]] | None = result.get("data", {}).get(
+            "balances", None
+        )
+        if balances is None:
+            print(
+                "⚠️ Warning: Unexpected balances value -- expected a list but got:",
+                type(balances),
+            )
+            return
 
-        if not balances:
+        if len(balances) == 0:
             print("No asset balances found in response.")
-            return result
+            return
 
         print(f"Found {len(balances)} asset balances:")
         for asset in balances[:5]:
@@ -28,10 +45,9 @@ async def print_spot_account_assets(client: BingxClient) -> Dict[str, Any] | Non
             free = asset.get("free", "0")
             locked = asset.get("locked", "0")
             print(f"   {asset_name}: free={free}, locked={locked}")
-        return result
+
     except Exception as e:
         print(f"❌ Error retrieving spot account assets: {e}")
-        return None
 
 
 async def print_server_time(client: BingxClient) -> None:
@@ -40,7 +56,11 @@ async def print_server_time(client: BingxClient) -> None:
     try:
         result = await client.get_server_time()
         print("✅ Server time retrieved successfully!")
-        print(f"Server time response: {result}")
+        try:
+            pretty_resp = json.dumps(result.get("data"), indent=2, ensure_ascii=False)
+            print(f"Server time response: {pretty_resp}")
+        except Exception:
+            print(f"Server time response: {result}")
     except Exception as e:
         print(f"❌ Error retrieving server time: {e}")
 
@@ -52,6 +72,7 @@ async def test_bingx_spot_assets_and_time() -> None:
 
     if not api_key or not api_secret:
         print("❌ Missing BINGX_API_KEY or BINGX_API_SECRET environment variables.")
+        print("Skipping real API test - this is expected in CI/test environments")
         return
 
     demo = os.getenv("BINGX_DEMO", "false").lower() == "true"
@@ -66,28 +87,46 @@ async def test_bingx_spot_assets_and_time() -> None:
         demo=demo,
     )
 
-    try:
-        await print_spot_account_assets(client)
-        await print_server_time(client)
-        await client.place_swap_order(
-            PlaceSwapOrderParams(
-                symbol="BTC-USDT",
-                side="BUY",
-                position_side="BOTH",
-                order_type="MARKET",
-                quantity=0.005,
-                take_profit=TpSlStruct(
-                    order_type="TAKE_PROFIT_MARKET",
-                    price=100_000,
-                    stop_price=100_000,
-                    working_type="MARK_PRICE",
-                ),
-            )
-        )
+    await print_spot_account_assets(client)
+    await print_server_time(client)
 
-    finally:
-        await client.close()
+    if PLACE_ORDER:
+        try:
+            result = await client.place_swap_order(
+                PlaceSwapOrderParams(
+                    symbol="BTC-USDT",
+                    side="BUY",
+                    position_side="BOTH",
+                    order_type="MARKET",
+                    quantity=0.005,
+                    take_profit=TpSlStruct(
+                        order_type="TAKE_PROFIT_MARKET",
+                        price=100_000,
+                        stop_price=100_000,
+                        working_type="MARK_PRICE",
+                    ),
+                )
+            )
+            print("✅ Swap order placed successfully:")
+            try:
+                pretty_data = json.dumps(
+                    result.get("data"), indent=2, ensure_ascii=False
+                )
+                print(pretty_data)
+            except Exception:
+                print(result)
+        except Exception as e:
+            print(f"❌ Error placing swap order: {e}")
+    else:
+        print("💡 Skipping swap order placement (PLACE_ORDER=False)")
+
+    await client.close()
 
 
 if __name__ == "__main__":
+    print("Real BingX API authentication test")
+    print(
+        "Note: This test makes real API calls and "
+        "requires BINGX_API_KEY/BINGX_API_SECRET env vars"
+    )
     asyncio.run(test_bingx_spot_assets_and_time())

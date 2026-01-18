@@ -5,6 +5,7 @@ from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bingx import (
     MarginMode,
     PlaceSwapOrderParams,
+    PositionSide,
     SwapOrderType,
     TpSlStruct,
 )
@@ -57,7 +58,10 @@ class TradeMixin:
             if value is None:
                 continue
             mapped_key = field_mapping.get(key, key)
-            # Refactored handling for take_profit and stop_loss mapping
+            # Ensure client_order_id is lowercased if present (bingx.py line 59)
+            if key in {"reduce_only", "close_position"}:
+                order_data[mapped_key] = str(value).lower()
+                continue
             if key in {"take_profit", "stop_loss"} and isinstance(value, dict):
                 struct: TpSlStruct = value  # type: ignore
                 order_data[mapped_key] = json.dumps(
@@ -311,7 +315,7 @@ class TradeMixin:
     async def set_swap_leverage(
         self: "HttpClientProtocol",
         symbol: str,
-        side: str,
+        side: PositionSide,
         leverage: int,
     ) -> Dict[str, Any]:
         """
@@ -323,7 +327,7 @@ class TradeMixin:
 
         Args:
             symbol (str): Trading pair symbol (e.g., "BTC-USDT"), must include a hyphen.
-            side (str): Leverage side, e.g., "LONG", "SHORT", or "BOTH".
+            side (PositionSide): Leverage side, e.g., "LONG", "SHORT", or "BOTH".
             leverage (int): Leverage value.
 
 

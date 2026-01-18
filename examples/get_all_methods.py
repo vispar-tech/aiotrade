@@ -74,14 +74,37 @@ def implemented_methods(client_cls: type) -> List[str]:
     return sorted(set(filtered_methods))
 
 
+def pretty_print_methods(title: str, methods: List[str]) -> None:
+    print(f"\n{title}")
+    if not methods:
+        print("  (none found)")
+        return
+
+    # Make it look like a nice compact table: 3 columns if possible
+    cols = 2
+    rows = (len(methods) + cols - 1) // cols
+    maxlen = max((len(m) for m in methods), default=0) + 2
+    table: list[list[str]] = []
+    for r in range(rows):
+        row: list[str] = []
+        for c in range(cols):
+            idx = r + c * rows
+            if idx < len(methods):
+                row.append(methods[idx])
+            else:
+                row.append("")
+        table.append(row)
+    for row in table:
+        print(" " + "".join(m.ljust(maxlen) for m in row))
+
+
 def main() -> None:
-    """Print all implemented BybitClient and BingxClient public method names."""
-    print("Implemented BybitClient methods:")
-    for method in implemented_methods(BybitClient):
-        print(f" - {method}")
-    print("\nImplemented BingxClient methods:")
-    for method in implemented_methods(BingxClient):
-        print(f" - {method}")
+    """Print all implemented public method names in a nice table."""
+    bybit_methods = implemented_methods(BybitClient)
+    bingx_methods = implemented_methods(BingxClient)
+
+    pretty_print_methods(f"BybitClient methods ({len(bybit_methods)}):", bybit_methods)
+    pretty_print_methods(f"BingxClient methods ({len(bingx_methods)}):", bingx_methods)
 
 
 if __name__ == "__main__":

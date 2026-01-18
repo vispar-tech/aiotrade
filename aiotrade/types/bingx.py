@@ -68,7 +68,7 @@ class PlaceSwapOrderParams(TypedDict, total=False):
     # For trailing orders; Maximum: 1
     price_rate: NotRequired[float]
     # Stop loss setting, only STOP_MARKET/STOP
-    working_type: NotRequired[str]
+    working_type: NotRequired[TriggerPriceType]
     # Take-profit order (accepts a TpSlStruct dict, or stringified JSON)
     take_profit: NotRequired[TpSlStruct]
     # Stop-loss order (accepts a TpSlStruct dict, or stringified JSON)

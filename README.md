@@ -18,76 +18,37 @@ The library uses a sophisticated architecture for optimal performance:
 - **Lock-Free**: No blocking operations for maximum performance
 - **Lazy Cleanup**: Expired entries removed on access, not proactively
 
-### Exchange Support
+#### Implemented methods
 
-#### BingX Client
+```text
+BybitClient methods (18):
+    batch_cancel_order          get_order_history
+    batch_place_order           get_position_info
+    cancel_all_orders           get_server_time
+    cancel_order                get_wallet_balance
+    get_account_info            place_order
+    get_closed_pnl              set_leverage
+    get_instruments_info        set_margin_mode
+    get_kline                   set_trading_stop
+    get_open_and_closed_orders  switch_position_mode
 
-- **Spot Trading**: Complete spot market and account management
-- **Swap Trading**: Perpetual futures with leverage support
-- **Margin Futures**: Traditional futures with margin trading
-- **Demo Mode**: Test trading without real funds
-
-#### Bybit Client
-
-- **Unified Trading**: Spot, futures, and options in one interface
-- **Advanced Trading**: Position management, risk controls, and order types
-- **Testnet Support**: Full testnet environment for development
-
-#### Current implemented
-
-**Implemented BybitClient methods:**
-
-- batch_cancel_order
-- batch_place_order
-- cancel_all_orders
-- cancel_order
-- get_account_info
-- get_closed_pnl
-- get_instruments_info
-- get_kline
-- get_open_and_closed_orders
-- get_order_history
-- get_position_info
-- get_server_time
-- get_wallet_balance
-- place_order
-- set_leverage
-- set_margin_mode
-- set_trading_stop
-- switch_position_mode
-
-**Implemented BingxClient methods:**
-
-- cancel_all_spot_open_orders
-- cancel_all_swap_open_orders
-- cancel_spot_batch_orders
-- cancel_swap_batch_orders
-- change_swap_margin_type
-- close_swap_position
-- get_account_asset_overview
-- get_api_permissions
-- get_server_time
-- get_spot_account_assets
-- get_spot_klines
-- get_spot_open_orders
-- get_spot_order_details
-- get_spot_order_history
-- get_spot_symbols_like
-- get_spot_trade_details
-- get_swap_account_balance
-- get_swap_contracts
-- get_swap_klines
-- get_swap_leverage_and_available_positions
-- get_swap_margin_type
-- get_swap_open_orders
-- get_swap_order_details
-- get_swap_order_history
-- get_swap_position_history
-- get_swap_position_mode
-- get_swap_positions
-- place_swap_order
-- set_swap_leverage
-- set_swap_position_mode
+BingxClient methods (30):
+    cancel_all_spot_open_orders                get_spot_trade_details
+    cancel_all_swap_open_orders                get_swap_account_balance
+    cancel_spot_batch_orders                   get_swap_contracts
+    cancel_swap_batch_orders                   get_swap_klines
+    change_swap_margin_type                    get_swap_leverage_and_available_positions
+    close_swap_position                        get_swap_margin_type
+    get_account_asset_overview                 get_swap_open_orders
+    get_api_permissions                        get_swap_order_details
+    get_server_time                            get_swap_order_history
+    get_spot_account_assets                    get_swap_position_history
+    get_spot_klines                            get_swap_position_mode
+    get_spot_open_orders                       get_swap_positions
+    get_spot_order_details                     place_swap_order
+    get_spot_order_history                     set_swap_leverage
+    get_spot_symbols_like                      set_swap_position_mode
+```
 
 ## Installation
 

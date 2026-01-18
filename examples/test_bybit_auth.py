@@ -1,30 +1,60 @@
 """Tests for Bybit API authentication and wallet balance."""
 
 import asyncio
+import json
 import os
-from typing import Any, Dict
+from typing import Any
 
 from aiotrade import BybitClient
-from aiotrade.types.bybit import AccountType, PlaceOrderParams
+from aiotrade.types.bybit import PlaceOrderParams
+
+# Set this to True to actually place a test order in the real API test
+PLACE_ORDER = False
 
 
-async def print_wallet_balance(client: BybitClient) -> Dict[str, Any] | None:
-    """Fetch and print wallet balance summary."""
-    print("\n📊 Fetching wallet balance...")
+async def print_wallet_balance(client: BybitClient) -> None:
+    """Fetch and print Bybit wallet balance summary."""
+    print("\n📊 Fetching Bybit wallet balance...")
     try:
-        account_type: AccountType = "UNIFIED"
-        result = await client.get_wallet_balance(account_type=account_type, coin="USDT")
+        result = await client.get_wallet_balance(account_type="UNIFIED", coin="USDT")
         print("✅ Wallet balance retrieved successfully!")
-        print(f"Full response:\n{result}")
+        try:
+            pretty_resp = json.dumps(result.get("result"), indent=2, ensure_ascii=False)
+            print(f"Full response:\n{pretty_resp}\n")
+        except Exception:
+            print(f"Full response:\n{result}\n")
 
-        result_obj = result.get("result", {})
-        accounts = result_obj.get("list", [])
+        accounts: list[dict[str, Any]] | None = result.get("result", {}).get(
+            "list", None
+        )
+        if accounts is None:
+            print(
+                "⚠️ Warning: Unexpected accounts value -- expected a list but got:",
+                type(accounts),
+            )
+            return
+
+        if not accounts:
+            print("No account types found in response.")
+            return
+
         print(f"Found {len(accounts)} account types")
         for account in accounts[:3]:
             account_type = account.get("accountType", "Unknown")
             total_wallet_balance = account.get("totalWalletBalance", "0")
             print(f"   {account_type}: wallet = {total_wallet_balance}")
-            coins = account.get("coin", [])
+
+            coins: list[dict[str, Any]] | None = account.get("coin", None)
+            if coins is None:
+                print(
+                    "      ⚠️ Warning: Unexpected coins value -- "
+                    "expected a list but got:",
+                    type(coins),
+                )
+                continue
+
+            if not coins:
+                print("      No coins found in response.")
             if coins:
                 print("      Coins:")
                 for coin in coins[:3]:
@@ -35,28 +65,39 @@ async def print_wallet_balance(client: BybitClient) -> Dict[str, Any] | None:
                         f"         {coin_name}: wallet_balance={coin_balance}, "
                         f"equity={coin_equity}"
                     )
-        return result
+
     except Exception as e:
         print(f"❌ Error retrieving wallet balance: {e}")
-        return None
 
 
 async def print_open_positions(client: BybitClient) -> None:
-    """Fetch and print open positions summary."""
+    """Fetch and print Bybit open positions summary."""
     print("\n📈 Fetching open positions...")
     try:
-        positions_resp = await client.get_position_info(
-            category="linear",
-            settle_coin="USDT",
-            limit=200,
+        resp = await client.get_position_info(
+            category="linear", settle_coin="USDT", limit=200
         )
         print("✅ Open positions retrieved successfully!")
-        print(f"Full positions response:\n{positions_resp}")
+        try:
+            pretty_resp = json.dumps(resp.get("result"), indent=2, ensure_ascii=False)
+            print(f"Full positions response:\n{pretty_resp}\n")
+        except Exception:
+            print(f"Full positions response:\n{resp}\n")
 
-        pos_result_obj = positions_resp.get("result", {})
-        pos_list = pos_result_obj.get("list", [])
-        print(f"Found {len(pos_list)} open positions")
-        for pos in pos_list[:3]:
+        positions = resp.get("result", {}).get("list", None)
+        if positions is None:
+            print(
+                "⚠️ Warning: No open positions found in the response "
+                "(positions is None)."
+            )
+            return
+
+        if len(positions) == 0:
+            print("No open positions found in response.")
+            return
+
+        print(f"Found {len(positions)} open positions")
+        for pos in positions[:3]:
             symbol = pos.get("symbol", "???")
             side = pos.get("side", "?")
             size = pos.get("size", pos.get("positionSize", "0"))
@@ -72,13 +113,14 @@ async def print_open_positions(client: BybitClient) -> None:
         print(f"❌ Error retrieving open positions: {e}")
 
 
-async def test_wallet_balance_and_positions() -> None:
-    """Test wallet balance and open positions retrieval using environment variables."""
+async def test_bybit_wallet_and_positions() -> None:
+    """Test Bybit wallet balance and open positions using environment variables."""
     api_key = os.getenv("BYBIT_API_KEY")
     api_secret = os.getenv("BYBIT_API_SECRET")
 
     if not api_key or not api_secret:
-        print("❌ Missing BYBIT_API_KEY or BYBIT_API_SECRET environment variables")
+        print("❌ Missing BYBIT_API_KEY or BYBIT_API_SECRET environment variables.")
+        print("Skipping real API test - this is expected in CI/test environments")
         return
 
     demo = os.getenv("BYBIT_DEMO", "false").lower() == "true"
@@ -96,30 +138,40 @@ async def test_wallet_balance_and_positions() -> None:
         testnet=testnet,
     )
 
-    try:
-        await print_wallet_balance(client)
-        await print_open_positions(client)
+    await print_wallet_balance(client)
+    await print_open_positions(client)
 
-        await client.batch_place_order(
-            "linear",
-            [
-                PlaceOrderParams(
-                    symbol="BTCUSDT",
-                    side="Buy",
-                    # is_leverage=1,
-                    order_type="Market",
-                    # tpsl_mode="Full",
-                    qty=0.016,
-                    # take_profit=99139.95,
-                    # stop_loss=93820.24,
-                    # order_link_id="js_baa926e2e507480d865c",
-                )
-            ],
-        )
+    if PLACE_ORDER:
+        try:
+            result = await client.batch_place_order(
+                "linear",
+                [
+                    PlaceOrderParams(
+                        symbol="BTCUSDT",
+                        side="Buy",
+                        order_type="Market",
+                        qty=0.001,
+                    )
+                ],
+            )
+            print("✅ Order placed successfully:")
+            try:
+                pretty_data = json.dumps(result, indent=2, ensure_ascii=False)
+                print(pretty_data)
+            except Exception:
+                print(result)
+        except Exception as e:
+            print(f"❌ Error placing order: {e}")
+    else:
+        print("💡 Skipping order placement (PLACE_ORDER=False)")
 
-    finally:
-        await client.close()
+    await client.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(test_wallet_balance_and_positions())
+    print("Real Bybit API authentication test")
+    print(
+        "Note: This test makes real API calls and "
+        "requires BYBIT_API_KEY/BYBIT_API_SECRET env vars"
+    )
+    asyncio.run(test_bybit_wallet_and_positions())

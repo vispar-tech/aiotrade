@@ -181,8 +181,6 @@ class BingxHttpClient(HttpClient):
                 params,
             )
 
-        print(req_json)  # noqa: T201
-
         return (req_headers, req_url, None, req_json, None)
 
     async def _async_request(

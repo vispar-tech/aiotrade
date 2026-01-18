@@ -167,10 +167,8 @@ class BybitHttpClient(HttpClient):
 
         if method == "GET":
             req_url = f"{req_url}?{req_payload}" if req_payload else req_url
-            req_params = None
             req_json = None
         else:
-            req_params = None
             req_json = {k: params[k] for k in sorted(params) if params[k] is not None}
 
         # Logging fast, avoid joining or formatting unnecessarily unless debug
@@ -179,7 +177,7 @@ class BybitHttpClient(HttpClient):
                 "Making async %s request to %s with params: %s", method, req_url, params
             )
 
-        return (req_headers, req_url, req_params, req_json, None)
+        return (req_headers, req_url, None, req_json, None)
 
     async def _async_request(
         self,
