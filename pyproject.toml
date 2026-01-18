@@ -1,6 +1,6 @@
 [project]
 name = "aiotrade"
-version = "0.1.0"
+version = "0.2.0"
 description = "Async trading API clients"
 authors = [
     {name = "Daniil Pavlovich", email = "layred.dota2@mail.ru"}
