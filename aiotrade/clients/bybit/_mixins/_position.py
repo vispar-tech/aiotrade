@@ -64,8 +64,8 @@ class PositionMixin:
         self: HttpClientProtocol,
         category: Literal["linear", "inverse"],
         symbol: str,
-        buy_leverage: int,
-        sell_leverage: int,
+        buy_leverage: float,
+        sell_leverage: float,
     ) -> Dict[str, Any]:
         """
         Set leverage from Bybit API.
