@@ -76,7 +76,7 @@ class BingxHttpClient(HttpClient):
         Returns a tuple: (payload_for_signature, url_encoded_payload_for_query)
         """
         # Always work with a sorted list of (k, v) tuples
-        if method == "GET":
+        if method in ["GET", "DELETE"]:
             sorted_items = sorted(params.items())
             params_str = "&".join(f"{k}={v}" for k, v in sorted_items)
             params_str = (
@@ -107,7 +107,7 @@ class BingxHttpClient(HttpClient):
         # For non-GET: mutate params and build simple k=v string for signature
         params["timestamp"] = timestamp
         sorted_items = sorted(params.items())
-        params_str = "&".join(f"{k}={v}" for k, v in sorted_items)
+        params_str = "&".join(f"{k}={v!s}" for k, v in sorted_items)
         return params_str, None
 
     async def _build_request_args(
@@ -154,7 +154,6 @@ class BingxHttpClient(HttpClient):
                 raise ValueError(
                     "API key and API secret must be set for authenticated requests."
                 )
-
             signature = self._generate_signature(self.api_secret, req_payload)
         else:
             signature = None
