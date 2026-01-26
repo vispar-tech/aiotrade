@@ -207,7 +207,7 @@ class BybitHttpClient(HttpClient):
                 resp.raise_for_status()
                 res_json: dict[str, Any] = await resp.json(content_type=None)
                 if res_json.get("retCode") != 0:
-                    raise ExchangeResponseError(res_json)
+                    raise ExchangeResponseError("bybit", res_json)
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(

@@ -76,7 +76,7 @@ class BingxHttpClient(HttpClient):
         Returns a tuple: (payload_for_signature, url_encoded_payload_for_query)
         """
         # Always work with a sorted list of (k, v) tuples
-        if method in ["GET", "DELETE"]:
+        if method == "GET":
             sorted_items = sorted(params.items())
             params_str = "&".join(f"{k}={v}" for k, v in sorted_items)
             params_str = (
@@ -179,7 +179,6 @@ class BingxHttpClient(HttpClient):
                 base_req_url,
                 params,
             )
-
         return (req_headers, req_url, None, req_json, None)
 
     async def _async_request(
@@ -197,7 +196,6 @@ class BingxHttpClient(HttpClient):
             req_json,
             req_data,
         ) = await self._build_request_args(method, endpoint, params, headers, auth)
-
         async with self._session.request(
             method,
             req_url,
@@ -210,7 +208,7 @@ class BingxHttpClient(HttpClient):
                 resp.raise_for_status()
                 res_json: dict[str, Any] = await resp.json(content_type=None)
                 if res_json.get("code") != 0:
-                    raise ExchangeResponseError(res_json)
+                    raise ExchangeResponseError("bingx", res_json)
             except Exception as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(

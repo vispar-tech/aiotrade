@@ -32,6 +32,9 @@ Usage example:
     await SharedSessionManager.close()
 """
 
+from importlib.metadata import version as get_version
+
+from ._errors import ExchangeResponseError
 from ._session import SharedSessionManager
 from .caches import BingxClientsCache, BybitClientsCache
 from .clients import BingxClient, BybitClient
@@ -41,5 +44,9 @@ __all__ = [
     "BingxClientsCache",
     "BybitClient",
     "BybitClientsCache",
+    "ExchangeResponseError",
     "SharedSessionManager",
 ]
+
+
+__version__ = get_version("aiotrade-sdk")

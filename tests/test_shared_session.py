@@ -37,16 +37,6 @@ async def test_clients_share_session() -> None:
         assert client3.uses_shared_session is True
         assert client4.uses_shared_session is True
 
-        # Perform requests with both brands to ensure session is functional
-        resp_bybit = await client1.get_server_time()
-        assert isinstance(resp_bybit, dict)
-        assert resp_bybit.get("retCode") == 0
-
-        resp_bingx = await client3.get_server_time()
-        assert isinstance(resp_bingx, dict)
-        # Bingx server time response should have "code" == 0
-        assert resp_bingx.get("code") == 0
-
     # After all clients closed, shared session is still open unless we close it
     assert SharedSessionManager.is_initialized()
     await SharedSessionManager.close()

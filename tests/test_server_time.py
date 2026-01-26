@@ -2,9 +2,12 @@
 
 import logging
 
+import pytest
+
 from aiotrade.clients import BingxClient, BybitClient
 
 
+@pytest.mark.external
 async def test_bybit_get_server_time() -> None:
     """Test retrieving Bybit server time and validate its structure."""
     async with BybitClient() as client:
@@ -25,6 +28,7 @@ async def test_bybit_get_server_time() -> None:
         assert isinstance(server_time.get("time"), int)
 
 
+@pytest.mark.external
 async def test_bingx_get_server_time() -> None:
     """Test retrieving BingX server time and validate its structure."""
     async with BingxClient() as client:

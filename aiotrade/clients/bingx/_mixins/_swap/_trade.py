@@ -1,6 +1,8 @@
 import json
 from typing import Any, Dict, Literal, Optional
 
+import orjson
+
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bingx import (
     MarginMode,
@@ -58,7 +60,6 @@ class TradeMixin:
             if value is None:
                 continue
             mapped_key = field_mapping.get(key, key)
-            # Ensure client_order_id is lowercased if present (bingx.py line 59)
             if key in {"reduce_only", "close_position"}:
                 order_data[mapped_key] = str(value).lower()
                 continue
@@ -73,6 +74,77 @@ class TradeMixin:
         return await self.post(
             "/openApi/swap/v2/trade/order",
             params=order_data,
+            auth=True,
+        )
+
+    async def place_swap_batch_orders(
+        self: "HttpClientProtocol", batch_orders: list[PlaceSwapOrderParams]
+    ) -> Dict[str, Any]:
+        """
+        Place multiple swap orders (batch).
+
+        Endpoint: POST /openApi/swap/v2/trade/batchOrders
+
+        See:
+            https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
+
+        Args:
+            batch_orders: List[PlaceSwapOrderParams] - Up to 5 order dicts.
+
+        Returns:
+            Dict: The API response.
+        """
+        field_mapping = {
+            "symbol": "symbol",
+            "order_type": "type",
+            "side": "side",
+            "position_side": "positionSide",
+            "reduce_only": "reduceOnly",
+            "price": "price",
+            "quantity": "quantity",
+            "quote_order_qty": "quoteOrderQty",
+            "stop_price": "stopPrice",
+            "price_rate": "priceRate",
+            "working_type": "workingType",
+            "take_profit": "takeProfit",
+            "stop_loss": "stopLoss",
+            "client_order_id": "clientOrderId",
+            "time_in_force": "timeInForce",
+            "close_position": "closePosition",
+            "activation_price": "activationPrice",
+            "stop_guaranteed": "stopGuaranteed",
+            "position_id": "positionId",
+        }
+
+        def serialize_order(params: PlaceSwapOrderParams) -> Dict[str, Any]:
+            order: Dict[str, Any] = {}
+            for key, value in params.items():
+                if value is None:
+                    continue
+                mapped_key = field_mapping.get(key, key)
+                if key in {"reduce_only", "close_position"}:
+                    order[mapped_key] = str(value).lower()
+                    continue
+                if key in {"take_profit", "stop_loss"} and isinstance(value, dict):
+                    struct: TpSlStruct = value  # type: ignore
+                    order[mapped_key] = json.dumps(
+                        {field_mapping.get(k, k): v for k, v in struct.items()}
+                    )
+                    continue
+                order[mapped_key] = value
+            return order
+
+        if not (1 <= len(batch_orders) <= 5):
+            raise ValueError("batch_orders must contain between 1 and 5 orders.")
+
+        batch_order_data = [serialize_order(order) for order in batch_orders]
+        payload = {
+            "batchOrders": orjson.dumps(batch_order_data).decode(),
+        }
+
+        return await self.post(
+            "/openApi/swap/v2/trade/batchOrders",
+            params=payload,
             auth=True,
         )
 
@@ -244,9 +316,9 @@ class TradeMixin:
             "symbol": symbol,
         }
         if order_id_list is not None:
-            params["orderIdList"] = order_id_list
+            params["orderIdList"] = orjson.dumps(order_id_list).decode()
         if client_order_id_list is not None:
-            params["clientOrderIdList"] = client_order_id_list
+            params["clientOrderIdList"] = orjson.dumps(client_order_id_list).decode()
 
         return await self.delete(
             "/openApi/swap/v2/trade/batchOrders",

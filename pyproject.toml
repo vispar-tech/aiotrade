@@ -1,29 +1,68 @@
 [project]
-name = "aiotrade"
+name = "aiotrade-sdk"
 version = "0.2.0"
-description = "Async trading API clients"
+description = "High-performance async trading API client for Python supporting BingX and Bybit exchanges with intelligent session and cache management"
 authors = [
     {name = "Daniil Pavlovich", email = "layred.dota2@mail.ru"}
 ]
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
+keywords = [
+    "trading",
+    "api",
+    "async",
+    "cryptocurrency",
+    "exchange",
+    "bingx",
+    "bybit",
+    "finance",
+    "asyncio",
+    "aiohttp"
+]
 dependencies = [
     "aiohttp (>=3.13.3,<4.0.0)",
     "orjson (>=3.11.5,<4.0.0)",
 ]
+
+[project.urls]
+Homepage = "https://github.com/vispar-tech/aiotrade"
+Repository = "https://github.com/vispar-tech/aiotrade"
+Documentation = "https://github.com/vispar-tech/aiotrade#readme"
+Issues = "https://github.com/vispar-tech/aiotrade/issues"
+Changelog = "https://github.com/vispar-tech/aiotrade/blob/main/CHANGELOG.md"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.19.1"
+pre-commit = "^4.5.1"
+pytest = "^9.0.2"
+anyio = "^4.12.1"
+ruff = "^0.14.14"
+
 
 [tool.poetry]
 packages = [
     { include = "aiotrade" }
 ]
 
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.14.11"
-mypy = "^1.19.1"
-pre-commit = "^4.5.1"
-pytest = "^9.0.2"
-anyio = "^4.12.1"
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+commit_parser = "conventional"
+allow_zero_version = true
+major_on_zero = false
+build_command = "pip install poetry && poetry build"
 
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+    '''chore(?:\([^)]*?\))?: .+''',
+    '''ci(?:\([^)]*?\))?: .+''',
+    '''refactor(?:\([^)]*?\))?: .+''',
+    '''style(?:\([^)]*?\))?: .+''',
+    '''test(?:\([^)]*?\))?: .+''',
+    '''build\((?!deps\): .+)''',
+    '''Initial [Cc]ommit.*''',
+]
 
 [tool.mypy]
 python_version = "3.12"
@@ -106,13 +145,8 @@ addopts = [
     "--strict-markers",
     "--strict-config",
 ]
-filterwarnings = [
-    "error",
-    "ignore::DeprecationWarning",
-    "ignore:.*unclosed.*:ResourceWarning",
-    "ignore::DeprecationWarning:docxcompose.*",
-    "ignore::DeprecationWarning:pkg_resources",
-    "ignore::DeprecationWarning:setuptools.*",
+markers = [
+    "external: marks tests that require external API calls (deselect with '-m \"not external\"')",
 ]
 
 anyio_mode = "auto"

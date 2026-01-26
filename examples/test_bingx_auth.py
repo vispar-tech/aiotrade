@@ -155,7 +155,7 @@ async def print_swap_positions(client: BingxClient) -> None:  # noqa: C901, PLR0
 
                     if trail_price_rate not in [None, ""]:
                         try:
-                            percent = float(trail_price_rate) * 100
+                            percent = float(trail_price_rate) * 100  # type: ignore
                             price_info = f"priceRate={percent:.2f}%"
                         except Exception:
                             price_info = (
