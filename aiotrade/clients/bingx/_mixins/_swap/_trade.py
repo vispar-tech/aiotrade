@@ -536,3 +536,45 @@ class TradeMixin:
             params=params,
             auth=True,
         )
+
+    async def get_swap_full_orders(
+        self: "HttpClientProtocol",
+        symbol: str | None = None,
+        order_id: int | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
+        limit: int = 500,
+    ) -> Dict[str, Any]:
+        """
+        Query all swap orders (history and open) for BingX.
+
+        GET /openApi/swap/v1/trade/fullOrder
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
+
+        Args:
+            symbol (str, optional): Trading pair symbol. If None, query all pairs.
+            order_id (int, optional): Return orders after this ID.
+            start_time (int, optional): Start time (ms).
+            end_time (int, optional): End time (ms).
+            limit (int, optional): Results to return. Default 500, max 1000.
+
+        Returns:
+            Dict[str, Any]: API response containing list of full orders.
+        """
+        params: Dict[str, Any] = {}
+        if symbol:
+            params["symbol"] = symbol
+        if order_id is not None:
+            params["orderId"] = order_id
+        if start_time is not None:
+            params["startTime"] = start_time
+        if end_time is not None:
+            params["endTime"] = end_time
+        params["limit"] = limit
+
+        return await self.get(
+            "/openApi/swap/v1/trade/fullOrder",
+            params=params,
+            auth=True,
+        )
