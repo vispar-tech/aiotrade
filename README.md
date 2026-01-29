@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![Python versions](https://img.shields.io/pypi/pyversions/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![CI](https://github.com/vispar-tech/aiotrade/actions/workflows/ci.yml/badge.svg)](https://github.com/vispar-tech/aiotrade/actions/workflows/ci.yml) [![Release](https://github.com/vispar-tech/aiotrade/actions/workflows/release.yml/badge.svg)](https://github.com/vispar-tech/aiotrade/actions/workflows/release.yml)
+[![Release](https://github.com/vispar-tech/aiotrade/actions/workflows/release.yml/badge.svg)](https://github.com/vispar-tech/aiotrade/actions/workflows/release.yml)
 
 High-performance async trading API client for Python supporting BingX and Bybit exchanges with intelligent session and cache management.
 

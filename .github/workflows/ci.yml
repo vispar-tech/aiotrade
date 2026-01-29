@@ -1,4 +1,4 @@
-name: ci
+name: 🚦 Continuous Integration
 
 on:
   push:
@@ -11,35 +11,39 @@ concurrency:
 
 jobs:
   quality:
+    name: 🧪 Quality Checks
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
+      - name: 📦 Install Poetry
         run: pipx install poetry
 
-      - name: Cache dependencies
+      - name: 💾 Cache Poetry dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
+      - name: 📥 Install dependencies
         run: |
           poetry install --with dev
 
-      - name: Format check
+      - name: 🎨 Format check (Ruff)
         run: poetry run ruff format --check .
 
-      - name: Lint
+      - name: 🧹 Lint (Ruff)
         run: poetry run ruff check .
 
-      - name: Type check
+      - name: 🔍 Type check (MyPy)
         run: poetry run mypy .
 
-      - name: Test
+      - name: 🧪 Run Tests (Pytest)
         run: poetry run pytest -m "not external"
