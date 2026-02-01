@@ -60,9 +60,6 @@ class TradeMixin:
             if value is None:
                 continue
             mapped_key = field_mapping.get(key, key)
-            if key in {"reduce_only", "close_position"}:
-                order_data[mapped_key] = str(value).lower()
-                continue
             if key in {"take_profit", "stop_loss"} and isinstance(value, dict):
                 struct: TpSlStruct = value  # type: ignore
                 order_data[mapped_key] = json.dumps(
@@ -122,9 +119,6 @@ class TradeMixin:
                 if value is None:
                     continue
                 mapped_key = field_mapping.get(key, key)
-                if key in {"reduce_only", "close_position"}:
-                    order[mapped_key] = str(value).lower()
-                    continue
                 if key in {"take_profit", "stop_loss"} and isinstance(value, dict):
                     struct: TpSlStruct = value  # type: ignore
                     order[mapped_key] = json.dumps(

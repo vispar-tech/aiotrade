@@ -118,6 +118,7 @@ unfixable = []
 pydocstyle = { convention = "pep257", ignore-decorators = ["typing.overload"] }
 isort = { force-single-line = false, known-first-party = ["aiotrade"] }
 pylint = { allow-magic-value-types = ["int", "str", "float", "bytes"], max-args = 12 }
+mccabe = { max-complexity = 12}
 
 [tool.ruff.lint.per-file-ignores]
 "examples/*" = [

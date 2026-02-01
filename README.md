@@ -12,29 +12,40 @@ The library uses a sophisticated architecture for optimal performance:
 
 ### Session Management
 
-- **Shared Session**: `SharedSessionManager` creates a single aiohttp session with high-performance connection pooling
-- **Individual Sessions**: Clients automatically create individual sessions if shared session isn't initialized
-- **Connection Pooling**: Up to 2000 concurrent connections with smart distribution per host
+-   **Shared Session**: `SharedSessionManager` creates a single aiohttp session with high-performance connection pooling
+-   **Individual Sessions**: Clients automatically create individual sessions if shared session isn't initialized
+-   **Connection Pooling**: Up to 2000 concurrent connections with smart distribution per host
 
 ### Client Caching
 
-- **TTL Cache**: `BingxClientsCache` and `BybitClientsCache` cache client instances with 10-minute lifetime
-- **Lock-Free**: No blocking operations for maximum performance
-- **Lazy Cleanup**: Expired entries removed on access, not proactively
+-   **TTL Cache**: `BingxClientsCache` and `BybitClientsCache` cache client instances with 10-minute lifetime
+-   **Lock-Free**: No blocking operations for maximum performance
+-   **Lazy Cleanup**: Expired entries removed on access, not proactively
 
 #### Implemented methods
 
 ```text
-BybitClient methods (18):
-    batch_cancel_order          get_order_history
-    batch_place_order           get_position_info
-    cancel_all_orders           get_server_time
-    cancel_order                get_wallet_balance
-    get_account_info            place_order
-    get_closed_pnl              set_leverage
-    get_instruments_info        set_margin_mode
-    get_kline                   set_trading_stop
-    get_open_and_closed_orders  switch_position_mode
+BybitClient methods (40):
+    batch_cancel_order                     get_smp_group_id
+    batch_place_order                      get_trade_behaviour_setting
+    batch_set_collateral_coin              get_transaction_log
+    cancel_all_orders                      get_transferable_amount
+    cancel_order                           get_wallet_balance
+    get_account_info                       manual_borrow
+    get_account_instruments_info           manual_repay
+    get_borrow_history                     manual_repay_without_asset_conversion
+    get_closed_pnl                         place_order
+    get_coin_greeks                        repay_liability
+    get_collateral_info                    reset_mmp
+    get_dcp_info                           set_collateral_coin
+    get_fee_rate                           set_leverage
+    get_instruments_info                   set_limit_price_behaviour
+    get_kline                              set_margin_mode
+    get_mmp_state                          set_mmp
+    get_open_and_closed_orders             set_spot_hedging
+    get_order_history                      set_trading_stop
+    get_position_info                      switch_position_mode
+    get_server_time                        upgrade_to_unified_account_pro
 
 BingxClient methods (30):
     cancel_all_spot_open_orders                get_spot_trade_details
@@ -144,10 +155,10 @@ assert bingx_client is cached_bingx  # True
 
 ## Cache Features
 
-- **Automatic TTL**: 10 minutes default, configurable
-- **Memory Safe**: Prevents client accumulation
-- **High Performance**: Lock-free operations
-- **Background Cleanup**: Optional periodic cleanup task
+-   **Automatic TTL**: 10 minutes default, configurable
+-   **Memory Safe**: Prevents client accumulation
+-   **High Performance**: Lock-free operations
+-   **Background Cleanup**: Optional periodic cleanup task
 
 ```python
 # Configure cache lifetime for each exchange
@@ -213,9 +224,9 @@ await client.place_order({
 
 ## Requirements
 
-- Python >= 3.12
-- aiohttp
-- High-performance connection pooling for production use
+-   Python >= 3.12
+-   aiohttp
+-   High-performance connection pooling for production use
 
 ## Performance Tips
 
