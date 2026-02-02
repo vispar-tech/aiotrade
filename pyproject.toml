@@ -1,6 +1,6 @@
 [project]
 name = "aiotrade-sdk"
-version = "0.2.0"
+version = "0.2.1"
 description = "High-performance async trading API client for Python supporting BingX and Bybit exchanges with intelligent session and cache management"
 authors = [
     {name = "Daniil Pavlovich", email = "layred.dota2@mail.ru"}

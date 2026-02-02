@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.2.1 (2026-02-02)
+
+### Bug Fixes
+
+- **dependencies**: :wrench: update Python version constraints in pyproject.toml and poetry.lock to
+  support Python 4.0
+  ([`22060ee`](https://github.com/vispar-tech/aiotrade/commit/22060ee989ae43d1de09a321c300f13777b1f275))
+
+
 ## v0.2.0 (2026-02-01)
 
 ### Features
