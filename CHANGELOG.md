@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.2 (2026-02-07)
+
+### Bug Fixes
+
+- **bybit**: :wrench: add order_filter to field mapping in TradeMixin
+  ([`15243c1`](https://github.com/vispar-tech/aiotrade/commit/15243c1f39db356a08f353063daaaf05157a0957))
+
+
 ## v0.3.1 (2026-02-07)
 
 ### Bug Fixes
