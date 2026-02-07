@@ -53,6 +53,7 @@ class TradeMixin:
             "sl_limit_price": "slLimitPrice",
             "tp_order_type": "tpOrderType",
             "sl_order_type": "slOrderType",
+            "order_filter": "orderFilter",
         }
         for typed_key, api_key in field_mapping.items():
             v = params.get(typed_key)
@@ -360,6 +361,7 @@ class TradeMixin:
             "sl_limit_price": "slLimitPrice",
             "tp_order_type": "tpOrderType",
             "sl_order_type": "slOrderType",
+            "order_filter": "orderFilter",
         }
 
         # Fields needing string conversion
