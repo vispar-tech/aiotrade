@@ -197,7 +197,6 @@ class BingxHttpClient(HttpClient):
             req_json,
             req_data,
         ) = await self._build_request_args(method, endpoint, params, headers, auth)
-        print(req_url, req_json)  # noqa: T201
         async with self._session.request(
             method,
             req_url,

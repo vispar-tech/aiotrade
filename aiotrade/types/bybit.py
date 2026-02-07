@@ -14,11 +14,16 @@ Side = Literal["Buy", "Sell"]
 PlaceOrderType = Literal["Market", "Limit"]
 MarketUnit = Literal["baseCoin", "quoteCoin"]
 OrderPriceTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
-TimeInForce = Literal["GTC", "IOC", "FOK"]
+TimeInForce = Literal["PostOnly", "GTC", "IOC", "FOK"]
 PositionIdx = Literal[0, 1, 2]
 TpSlTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
 TpSlMode = Literal["Full", "Partial"]
 TpSlOrderType = Literal["Market", "Limit"]
+OrderFilter = Literal[
+    "Order",
+    "tpslOrder",
+    "StopOrder",
+]
 
 UTATransLogType = Literal[
     "TRANSFER_IN",
@@ -336,3 +341,12 @@ class PlaceOrderParams(TypedDict):
     # Spot: Market when you set stop_loss,
     # Limit when you set both stop_loss and sl_limit_price.
     sl_order_type: NotRequired[TpSlOrderType]
+
+    # orderFilter is an optional string parameter.
+    # If not provided, orders are returned by default.
+    # Valid values for spot orders:
+    #   "Order" - regular order
+    #   "tpslOrder" - Spot TP/SL order (assets are occupied before triggering)
+    #   "StopOrder" - Spot conditional order (assets occupied only after trigger)
+    # Applies to spot only.
+    order_filter: NotRequired[OrderFilter]

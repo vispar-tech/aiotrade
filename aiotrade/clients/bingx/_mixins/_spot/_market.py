@@ -10,7 +10,7 @@ class MarketMixin:
     for spot trading.
     """
 
-    async def get_spot_symbols_like(
+    async def get_spot_symbols(
         self: "HttpClientProtocol",
         symbol: Optional[str] = None,
     ) -> Dict[str, Any]:
