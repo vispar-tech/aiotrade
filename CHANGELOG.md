@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.1 (2026-02-07)
+
+### Bug Fixes
+
+- **bingx**: :wrench: update method names and enhance order parameters
+  ([`d9516c0`](https://github.com/vispar-tech/aiotrade/commit/d9516c06fbcdc45734d3a270348ebb5c908c94e8))
+
+
 ## v0.3.0 (2026-02-07)
 
 ### Features
