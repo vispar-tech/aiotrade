@@ -68,7 +68,7 @@ class BingxHttpClient(HttpClient):
         ).hexdigest()
 
     def _prepare_payload(
-        self, method: HttpMethod, params: dict[str, Any], timestamp: int
+        self, in_url: bool, params: dict[str, Any], timestamp: int
     ) -> tuple[str, str | None]:
         """
         Prepare BingX payload and URL-encoded payload, as per exchange rules.
@@ -76,7 +76,7 @@ class BingxHttpClient(HttpClient):
         Returns a tuple: (payload_for_signature, url_encoded_payload_for_query)
         """
         # Always work with a sorted list of (k, v) tuples
-        if method == "GET":
+        if in_url:
             sorted_items = sorted(params.items())
             params_str = "&".join(f"{k}={v}" for k, v in sorted_items)
             params_str = (
@@ -147,7 +147,8 @@ class BingxHttpClient(HttpClient):
 
         # Set recv window from cls
         params["recvWindow"] = self.recv_window
-        req_payload, req_url_params = self._prepare_payload(method, params, timestamp)
+        in_url = method == "GET" or "/openApi/spot/" in endpoint
+        req_payload, req_url_params = self._prepare_payload(in_url, params, timestamp)
 
         if auth:
             if not (self.api_key and self.api_secret):
@@ -160,7 +161,7 @@ class BingxHttpClient(HttpClient):
 
         base_req_url = f"{self.base_url}{endpoint}"
 
-        if method == "GET":
+        if in_url:
             req_url = f"{base_req_url}?{req_url_params}"
             if signature:
                 req_url += f"&signature={signature}"
@@ -196,6 +197,7 @@ class BingxHttpClient(HttpClient):
             req_json,
             req_data,
         ) = await self._build_request_args(method, endpoint, params, headers, auth)
+        print(req_url, req_json)  # noqa: T201
         async with self._session.request(
             method,
             req_url,

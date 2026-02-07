@@ -27,6 +27,14 @@ SwapOrderType = Literal[
     "TRAILING_STOP_MARKET",
     "TRAILING_TP_SL",
 ]
+SpotOrderType = Literal[
+    "MARKET",
+    "LIMIT",
+    "TAKE_STOP_LIMIT",
+    "TAKE_STOP_MARKET",
+    "TRIGGER_LIMIT",
+    "TRIGGER_MARKET",
+]
 TpSlOrderType = Literal["STOP", "TAKE_PROFIT", "STOP_MARKET", "TAKE_PROFIT_MARKET"]
 OrderSide = Literal["SELL", "BUY"]
 PositionSide = Literal["BOTH", "LONG", "SHORT"]
@@ -85,3 +93,26 @@ class PlaceSwapOrderParams(TypedDict, total=False):
     stop_guaranteed: NotRequired[StopGuaranteed]
     # Required when closing in Separate Isolated mode
     position_id: NotRequired[int]
+
+
+class PlaceSpotOrderParams(TypedDict, total=False):
+    """Request parameters for placing a spot order on BingX."""
+
+    # Trading pair symbol, with hyphen (e.g. "BTC-USDT")
+    symbol: str
+    # Order side, either "BUY" or "SELL"
+    side: OrderSide
+    # Type of order, e.g. MARKET, LIMIT, etc.
+    order_type: SpotOrderType
+    # Trigger price for stop-limit or stop-market orders
+    stop_price: NotRequired[float]
+    # Order quantity in base asset
+    quantity: NotRequired[float]
+    # Order quantity in quote asset (for MARKET/quote order)
+    quote_order_qty: NotRequired[float]
+    # Price for limit order types
+    price: NotRequired[float]
+    # Custom user order ID
+    new_client_order_id: NotRequired[str]
+    # Time in force, e.g. "GTC", "IOC", "FOK", "PostOnly"
+    time_in_force: NotRequired[TimeInForce]

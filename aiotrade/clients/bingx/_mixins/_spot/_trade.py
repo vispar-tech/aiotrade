@@ -1,6 +1,7 @@
 from typing import Any, Dict, Literal, Optional
 
 from aiotrade._protocols import HttpClientProtocol
+from aiotrade.types.bingx import PlaceSpotOrderParams
 
 
 class TradeMixin:
@@ -9,6 +10,47 @@ class TradeMixin:
     This mixin provides methods for placing and managing trades
     in spot markets.
     """
+
+    async def place_spot_order(
+        self: HttpClientProtocol,
+        params: PlaceSpotOrderParams,
+    ) -> Dict[str, Any]:
+        """
+        Place an order on the BingX spot market.
+
+        Endpoint:
+            POST /openApi/spot/v1/trade/order
+
+        Docs:
+            https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order
+
+        Parameters:
+            order (SpotOrderRequest): Order request parameters.
+
+        Returns:
+            dict: Response from the API.
+        """
+        field_mapping = {
+            "symbol": "symbol",
+            "order_type": "type",
+            "side": "side",
+            "price": "price",
+            "quantity": "quantity",
+            "quote_order_qty": "quoteOrderQty",
+            "stop_price": "stopPrice",
+            "new_client_order_id": "newClientOrderId",
+            "time_in_force": "timeInForce",
+        }
+
+        order_data: Dict[str, Any] = {}
+        for key, value in params.items():
+            if value is None:
+                continue
+            order_data[field_mapping.get(key, key)] = value
+
+        return await self.post(
+            "/openApi/spot/v1/trade/order", params=order_data, auth=True
+        )
 
     async def get_spot_order_history(
         self: HttpClientProtocol,

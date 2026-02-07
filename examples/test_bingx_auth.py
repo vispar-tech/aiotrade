@@ -6,7 +6,10 @@ import os
 from typing import Any
 
 from aiotrade import BingxClient
-from aiotrade.types.bingx import PlaceSwapOrderParams, TpSlStruct
+from aiotrade.types.bingx import (
+    PlaceSwapOrderParams,
+    TpSlStruct,
+)
 
 # Set this to True to actually place a swap order in the real API test
 PLACE_ORDER = False
