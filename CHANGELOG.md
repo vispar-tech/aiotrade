@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.0 (2026-02-07)
+
+### Features
+
+- **bingx**: :sparkles: add place_spot_order method and update payload preparation logic
+  ([`0adf3c1`](https://github.com/vispar-tech/aiotrade/commit/0adf3c1a98e891631d97212a2a5322819c499580))
+
+
 ## v0.2.1 (2026-02-02)
 
 ### Bug Fixes
