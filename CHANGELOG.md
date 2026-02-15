@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.0 (2026-02-15)
+
+### Features
+
+- **bybit**: :sparkles: add UserMixin with API key info endpoint
+  ([`de6d84d`](https://github.com/vispar-tech/aiotrade/commit/de6d84d8f8d6723fd1136cddb65981f070817f42))
+
+
 ## v0.3.2 (2026-02-07)
 
 ### Bug Fixes
