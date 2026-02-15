@@ -1,11 +1,11 @@
 """Bybit client package."""
 
 from ._http import BybitHttpClient
-from ._mixins import AccountMixin, MarketMixin, PositionMixin, TradeMixin
+from ._mixins import AccountMixin, MarketMixin, PositionMixin, TradeMixin, UserMixin
 
 
 class BybitClient(
-    BybitHttpClient, AccountMixin, TradeMixin, MarketMixin, PositionMixin
+    BybitHttpClient, AccountMixin, TradeMixin, MarketMixin, PositionMixin, UserMixin
 ):
     """ByBit Trading API Client with all available methods."""
 
