@@ -208,7 +208,7 @@ class BingxHttpClient(HttpClient):
             try:
                 resp.raise_for_status()
                 res_json: dict[str, Any] = await resp.json(content_type=None)
-                if res_json.get("code") != 0:
+                if res_json.get("code") not in (None, 0):
                     raise ExchangeResponseError("bingx", res_json)
             except Exception as err:
                 if logger.isEnabledFor(logging.ERROR):
