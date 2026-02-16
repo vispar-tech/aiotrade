@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.1 (2026-02-16)
+
+### Bug Fixes
+
+- **bingx**: :wrench: improve error handling for API response in BingxHttpClient
+  ([`5d8d848`](https://github.com/vispar-tech/aiotrade/commit/5d8d8487d3b7b06021f401361da4d684679c9c80))
+
+
 ## v0.4.0 (2026-02-15)
 
 ### Features
