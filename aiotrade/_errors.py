@@ -28,15 +28,18 @@ class ExchangeResponseError(Exception):
         super().__init__(self.message)
 
     def __str__(self) -> str:
-        parts = [f"ExchangeResponseError: {self.message}"]
-        parts.append(f"Exchange: {self.exchange}")
+        fields = [
+            f"ExchangeResponseError: {self.message}",
+            f"Exchange: {self.exchange}",
+        ]
         if self.code is not None:
-            parts.append(f"Code: {self.code}")
+            fields.append(f"Code: {self.code}")
         if self.resp:
-            parts.append(f"Response: {self._format_response(self.resp)}")
-        return "\n".join(parts)
+            fields.append(f"Response: {self._format_response(self.resp)}")
+        return " ".join(fields)
 
     def __repr__(self) -> str:
+        # Do not add \n in representation
         return (
             f"{self.__class__.__name__}"
             f"(message={self.message!r}, code={self.code!r}, "
