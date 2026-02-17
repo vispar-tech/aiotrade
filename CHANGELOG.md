@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.5.0 (2026-02-17)
+
+### Features
+
+- **bingx**: :sparkles: add get_account_uid method to SubMixin
+  ([`3c4f9fd`](https://github.com/vispar-tech/aiotrade/commit/3c4f9fdf3adf2a69e7f6f69a2739daf7e456d1b9))
+
+- **clients**: :sparkles: add copy trading and risk limit APIs
+  ([`0f34d70`](https://github.com/vispar-tech/aiotrade/commit/0f34d70c142022ed6933921e19a89ee3dbb3008c))
+
+
 ## v0.4.1 (2026-02-16)
 
 ### Bug Fixes
