@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-02-17)
+
+### Bug Fixes
+
+- **trade**: :wrench: update get_swap_position_history method parameters
+  ([`dc62c61`](https://github.com/vispar-tech/aiotrade/commit/dc62c614c1065528a6486293564dd7732e427a19))
+
+### Features
+
+- **http**: :sparkles: add decode_str method for URL decoding
+  ([`0120a8e`](https://github.com/vispar-tech/aiotrade/commit/0120a8ee525408c63e7e34e45b4ca8e32eadb38b))
+
+
 ## v0.5.0 (2026-02-17)
 
 ### Features
