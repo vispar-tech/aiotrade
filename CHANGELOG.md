@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.7.1 (2026-02-17)
+
+### Bug Fixes
+
+- **errors**: :wrench: improve string representation of ExchangeResponseError
+  ([`02f9f8a`](https://github.com/vispar-tech/aiotrade/commit/02f9f8a336d329fa9726375906e8dce709b2f56a))
+
+
 ## v0.7.0 (2026-02-17)
 
 ### Features
