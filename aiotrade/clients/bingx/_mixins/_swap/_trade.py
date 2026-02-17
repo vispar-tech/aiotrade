@@ -323,10 +323,10 @@ class TradeMixin:
     async def get_swap_position_history(
         self: "HttpClientProtocol",
         symbol: str,
+        start_ts: int,
+        end_ts: int,
         currency: Optional[Literal["USDC", "USDT"]] = None,
         position_id: Optional[int] = None,
-        start_ts: Optional[int] = None,
-        end_ts: Optional[int] = None,
         page_index: Optional[int] = None,
         page_size: Optional[int] = None,
     ) -> Dict[str, Any]:
@@ -358,15 +358,14 @@ class TradeMixin:
         """
         params: Dict[str, Any] = {
             "symbol": symbol,
+            "startTs": start_ts,
+            "endTs": end_ts,
         }
+
         if currency is not None:
             params["currency"] = currency
         if position_id is not None:
             params["positionId"] = position_id
-        if start_ts is not None:
-            params["startTs"] = start_ts
-        if end_ts is not None:
-            params["endTs"] = end_ts
         if page_index is not None:
             params["pageIndex"] = page_index
         if page_size is not None:
