@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.7.0 (2026-02-17)
+
+### Features
+
+- **docs**: :sparkles: update README and method names for clarity
+  ([`61344d6`](https://github.com/vispar-tech/aiotrade/commit/61344d646e22993f229d61973e785810883578d6))
+
+
 ## v0.6.0 (2026-02-17)
 
 ### Bug Fixes
