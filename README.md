@@ -12,57 +12,68 @@ The library uses a sophisticated architecture for optimal performance:
 
 ### Session Management
 
--   **Shared Session**: `SharedSessionManager` creates a single aiohttp session with high-performance connection pooling
--   **Individual Sessions**: Clients automatically create individual sessions if shared session isn't initialized
--   **Connection Pooling**: Up to 2000 concurrent connections with smart distribution per host
+- **Shared Session**: `SharedSessionManager` creates a single aiohttp session with high-performance connection pooling
+- **Individual Sessions**: Clients automatically create individual sessions if shared session isn't initialized
+- **Connection Pooling**: Up to 2000 concurrent connections with smart distribution per host
 
 ### Client Caching
 
--   **TTL Cache**: `BingxClientsCache` and `BybitClientsCache` cache client instances with 10-minute lifetime
--   **Lock-Free**: No blocking operations for maximum performance
--   **Lazy Cleanup**: Expired entries removed on access, not proactively
+- **TTL Cache**: `BingxClientsCache` and `BybitClientsCache` cache client instances with 10-minute lifetime
+- **Lock-Free**: No blocking operations for maximum performance
+- **Lazy Cleanup**: Expired entries removed on access, not proactively
 
 #### Implemented methods
 
 ```text
-BybitClient methods (40):
-    batch_cancel_order                     get_smp_group_id
-    batch_place_order                      get_trade_behaviour_setting
-    batch_set_collateral_coin              get_transaction_log
-    cancel_all_orders                      get_transferable_amount
-    cancel_order                           get_wallet_balance
+BybitClient methods (43):
+    batch_cancel_order                     get_server_time
+    batch_place_order                      get_smp_group_id
+    batch_set_collateral_coin              get_trade_behaviour_setting
+    cancel_all_orders                      get_transaction_log
+    cancel_order                           get_transferable_amount
+    decode_str                             get_wallet_balance
     get_account_info                       manual_borrow
     get_account_instruments_info           manual_repay
-    get_borrow_history                     manual_repay_without_asset_conversion
-    get_closed_pnl                         place_order
-    get_coin_greeks                        repay_liability
-    get_collateral_info                    reset_mmp
-    get_dcp_info                           set_collateral_coin
-    get_fee_rate                           set_leverage
-    get_instruments_info                   set_limit_price_behaviour
-    get_kline                              set_margin_mode
-    get_mmp_state                          set_mmp
-    get_open_and_closed_orders             set_spot_hedging
-    get_order_history                      set_trading_stop
-    get_position_info                      switch_position_mode
-    get_server_time                        upgrade_to_unified_account_pro
+    get_api_key_info                       manual_repay_without_asset_conversion
+    get_borrow_history                     place_order
+    get_closed_pnl                         repay_liability
+    get_coin_greeks                        reset_mmp
+    get_collateral_info                    set_collateral_coin
+    get_dcp_info                           set_leverage
+    get_fee_rate                           set_limit_price_behaviour
+    get_instruments_info                   set_margin_mode
+    get_kline                              set_mmp
+    get_mmp_state                          set_spot_hedging
+    get_open_and_closed_orders             set_trading_stop
+    get_order_history                      switch_position_mode
+    get_position_info                      upgrade_to_unified_account_pro
+    get_risk_limit
 
-BingxClient methods (30):
-    cancel_all_spot_open_orders                get_spot_trade_details
-    cancel_all_swap_open_orders                get_swap_account_balance
-    cancel_spot_batch_orders                   get_swap_contracts
-    cancel_swap_batch_orders                   get_swap_klines
-    change_swap_margin_type                    get_swap_leverage_and_available_positions
-    close_swap_position                        get_swap_margin_type
-    get_account_asset_overview                 get_swap_open_orders
-    get_api_permissions                        get_swap_order_details
-    get_server_time                            get_swap_order_history
-    get_spot_account_assets                    get_swap_position_history
-    get_spot_klines                            get_swap_position_mode
-    get_spot_open_orders                       get_swap_positions
-    get_spot_order_details                     place_swap_order
+BingxClient methods (48):
+    cancel_all_spot_open_orders                get_spot_profit_details
+    cancel_all_swap_open_orders                get_spot_profit_overview
+    cancel_spot_batch_orders                   get_spot_symbols
+    cancel_swap_batch_orders                   get_spot_trade_details
+    change_swap_margin_type                    get_swap_account_balance
+    close_perpetual_trader_position_by_order   get_swap_contracts
+    close_swap_position                        get_swap_full_orders
+    decode_str                                 get_swap_klines
+    get_account_asset_overview                 get_swap_leverage_and_available_positions
+    get_account_uid                            get_swap_margin_type
+    get_api_permissions                        get_swap_open_orders
+    get_perpetual_copy_trading_pairs           get_swap_order_details
+    get_perpetual_current_trader_order         get_swap_order_history
+    get_perpetual_personal_trading_overview    get_swap_position_history
+    get_perpetual_profit_details               get_swap_position_mode
+    get_perpetual_profit_overview              get_swap_positions
+    get_server_time                            place_spot_order
+    get_spot_account_assets                    place_swap_batch_orders
+    get_spot_history_orders                    place_swap_order
+    get_spot_klines                            sell_spot_asset_by_order
+    get_spot_open_orders                       set_perpetual_commission_rate
+    get_spot_order_details                     set_perpetual_trader_tpsl_by_order
     get_spot_order_history                     set_swap_leverage
-    get_spot_symbols_like                      set_swap_position_mode
+    get_spot_personal_trading_overview         set_swap_position_mode
 ```
 
 ## Installation
@@ -155,10 +166,10 @@ assert bingx_client is cached_bingx  # True
 
 ## Cache Features
 
--   **Automatic TTL**: 10 minutes default, configurable
--   **Memory Safe**: Prevents client accumulation
--   **High Performance**: Lock-free operations
--   **Background Cleanup**: Optional periodic cleanup task
+- **Automatic TTL**: 10 minutes default, configurable
+- **Memory Safe**: Prevents client accumulation
+- **High Performance**: Lock-free operations
+- **Background Cleanup**: Optional periodic cleanup task
 
 ```python
 # Configure cache lifetime for each exchange
@@ -224,9 +235,9 @@ await client.place_order({
 
 ## Requirements
 
--   Python >= 3.12
--   aiohttp
--   High-performance connection pooling for production use
+- Python >= 3.12
+- aiohttp
+- High-performance connection pooling for production use
 
 ## Performance Tips
 

@@ -36,7 +36,7 @@ class SpotMixin:
             auth=True,
         )
 
-    async def get_personal_trading_overview(
+    async def get_spot_personal_trading_overview(
         self: HttpClientProtocol,
     ) -> Dict[str, Any]:
         """
@@ -55,7 +55,7 @@ class SpotMixin:
             auth=True,
         )
 
-    async def get_profit_overview(
+    async def get_spot_profit_overview(
         self: HttpClientProtocol,
     ) -> Dict[str, Any]:
         """
@@ -74,7 +74,7 @@ class SpotMixin:
             auth=True,
         )
 
-    async def get_profit_details(
+    async def get_spot_profit_details(
         self: HttpClientProtocol,
         page_index: int,
         page_size: int,
@@ -113,7 +113,7 @@ class SpotMixin:
             auth=True,
         )
 
-    async def get_history_orders(
+    async def get_spot_history_orders(
         self: HttpClientProtocol,
         page_index: int,
         page_size: int,

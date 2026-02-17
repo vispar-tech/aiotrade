@@ -10,14 +10,14 @@ class PerpetualMixin:
     This mixin provides methods for managing perpetual copytrading operations.
     """
 
-    async def get_current_trader_order(
+    async def get_perpetual_current_trader_order(
         self: HttpClientProtocol,
         symbol: str,
         offset: int = 0,
         limit: int = 20,
     ) -> Dict[str, Any]:
         """
-        Get current trader's order (copy position).
+        Get current trader's order (copy position) for perpetual contracts.
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Trader%E2%80%99s%20current%20order
@@ -41,12 +41,12 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def close_trader_position_by_order(
+    async def close_perpetual_trader_position_by_order(
         self: HttpClientProtocol,
         position_id: int,
     ) -> Dict[str, Any]:
         """
-        Close trader position by order number.
+        Close trader perpetual position by order number.
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Traders%20close%20positions%20according%20to%20the%20order%20number
@@ -66,14 +66,14 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def set_trader_tpsl_by_order(
+    async def set_perpetual_trader_tpsl_by_order(
         self: HttpClientProtocol,
         position_id: int,
         take_profit_mark_price: float,
         stop_loss_mark_price: float,
     ) -> Dict[str, Any]:
         """
-        Set take-profit and stop-loss for position by order number.
+        Set take-profit and stop-loss for perpetual position by order number.
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Traders%20set%20take%20profit%20and%20stop%20loss%20based%20on%20order%20numbers
@@ -97,12 +97,12 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def get_personal_trading_overview(
+    async def get_perpetual_personal_trading_overview(
         self: HttpClientProtocol,
         day_size: Literal[7, 30, 90, 180] | None = None,
     ) -> Dict[str, Any]:
         """
-        Get trader's copy trading overview (cumulative profits, gains, etc).
+        Get perpetual trader's copy trading overview (cumulative profits, gains, etc).
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Trader%20Detail
@@ -123,11 +123,11 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def get_profit_overview(
+    async def get_perpetual_profit_overview(
         self: HttpClientProtocol,
     ) -> Dict[str, Any]:
         """
-        Get trader's profit overview (cumulative profit, gains, etc).
+        Get perpetual trader's profit overview (cumulative profit, gains, etc).
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Profit%20Overview
@@ -140,7 +140,7 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def get_profit_details(
+    async def get_perpetual_profit_details(
         self: HttpClientProtocol,
         page_index: int,
         page_size: int,
@@ -148,7 +148,7 @@ class PerpetualMixin:
         end_time: int | None = None,
     ) -> Dict[str, Any]:
         """
-        Get trader's profit details (paginated).
+        Get perpetual trader's profit details (paginated).
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Profit%20Details
@@ -177,12 +177,12 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def set_commission_rate(
+    async def set_perpetual_commission_rate(
         self: HttpClientProtocol,
         new_commission: int,
     ) -> Dict[str, Any]:
         """
-        Set trader's commission rate.
+        Set perpetual trader's commission rate.
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Set%20Commission%20Rate
@@ -202,12 +202,12 @@ class PerpetualMixin:
             auth=True,
         )
 
-    async def get_copy_trading_pairs(
+    async def get_perpetual_copy_trading_pairs(
         self: HttpClientProtocol,
         contract_type: Literal["SFUTURES", "PFUTURES"],
     ) -> Dict[str, Any]:
         """
-        Get supported copy trading pairs.
+        Get supported perpetual copy trading pairs.
 
         See:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Trader%20Gets%20Copy%20Trading%20Pairs
