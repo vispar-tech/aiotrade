@@ -4,6 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import Any, Self
+from urllib.parse import unquote
 
 import aiohttp
 
@@ -200,3 +201,15 @@ class HttpClient(ABC):
             headers=headers,
             auth=auth,
         )
+
+    def decode_str(self, s: str) -> str:
+        """
+        Decode a URL-encoded string.
+
+        Args:
+            s (str): The URL-encoded string to decode.
+
+        Returns:
+            str: The decoded string.
+        """
+        return unquote(s)
