@@ -1,11 +1,24 @@
 """BingX client package."""
 
 from ._http import BingxHttpClient
-from ._mixins import AccountMixin, CommonMixin, FuturesMixin, SpotMixin, SwapMixin
+from ._mixins import (
+    AccountMixin,
+    CommonMixin,
+    CopyTradingMixin,
+    FuturesMixin,
+    SpotMixin,
+    SwapMixin,
+)
 
 
 class BingxClient(
-    BingxHttpClient, AccountMixin, FuturesMixin, SpotMixin, SwapMixin, CommonMixin
+    BingxHttpClient,
+    AccountMixin,
+    FuturesMixin,
+    SpotMixin,
+    SwapMixin,
+    CommonMixin,
+    CopyTradingMixin,
 ):
     """BingX Trading API Client with all available methods."""
 

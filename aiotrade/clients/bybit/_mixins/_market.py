@@ -154,9 +154,38 @@ class MarketMixin:
         """Get insurance pool."""
         raise NotImplementedError
 
-    async def get_risk_limit(self: HttpClientProtocol) -> Dict[str, Any]:
-        """Get risk limit."""
-        raise NotImplementedError
+    async def get_risk_limit(
+        self: HttpClientProtocol,
+        category: Literal["linear", "inverse"],
+        symbol: str | None = None,
+        cursor: str | None = None,
+    ) -> Dict[str, Any]:
+        """
+        Query for the risk limit margin parameters.
+
+        Covers: USDT contract / USDC contract / Inverse contract
+
+        See:
+            https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
+        Args:
+            category: Product type ("linear" or "inverse"). Required.
+            symbol: Optional. Symbol name (e.g., "BTCUSDT", uppercase).
+            cursor: Optional. Cursor token for pagination.
+
+        Returns:
+            Dict with risk limit information response from Bybit.
+        """
+        params: dict[str, str] = {"category": category}
+        if symbol is not None:
+            params["symbol"] = symbol
+        if cursor is not None:
+            params["cursor"] = cursor
+
+        return await self.get(
+            "/v5/market/risk-limit",
+            params=params,
+        )
 
     async def get_delivery_price(self: HttpClientProtocol) -> Dict[str, Any]:
         """Get delivery price."""
