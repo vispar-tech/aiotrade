@@ -1,5 +1,6 @@
 """BingX client package."""
 
+from ._helpers import BingxHelpers
 from ._http import BingxHttpClient
 from ._mixins import (
     AccountMixin,
@@ -53,6 +54,8 @@ class BingxClient(
 
         """
         super().__init__(api_key, api_secret, demo, recv_window)
+
+        self.helpers = BingxHelpers
 
 
 __all__ = ["BingxClient"]

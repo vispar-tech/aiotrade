@@ -1,5 +1,6 @@
 """Bybit client package."""
 
+from ._helpers import BybitHelpers
 from ._http import BybitHttpClient
 from ._mixins import AccountMixin, MarketMixin, PositionMixin, TradeMixin, UserMixin
 
@@ -46,6 +47,9 @@ class BybitClient(
 
         """
         super().__init__(api_key, api_secret, testnet, demo, recv_window, referral_id)
+
+        # Utility class for helper methods
+        self.helpers = BybitHelpers
 
 
 __all__ = ["BybitClient"]
