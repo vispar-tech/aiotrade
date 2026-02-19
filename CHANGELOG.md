@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.8.0 (2026-02-19)
+
+### Features
+
+- **clients**: :sparkles: integrate helper classes into BingX and Bybit clients
+  ([`bc420ba`](https://github.com/vispar-tech/aiotrade/commit/bc420ba118b8705a612986a540ea7ac76288c7f7))
+
+
 ## v0.7.1 (2026-02-17)
 
 ### Bug Fixes
