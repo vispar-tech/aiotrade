@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.9.0 (2026-02-23)
+
+### Features
+
+- **okx**: :sparkles: add OKX exchange client support
+  ([`f0024d3`](https://github.com/vispar-tech/aiotrade/commit/f0024d350265d4c84534be077a92bec5e91d1ead))
+
+
 ## v0.8.0 (2026-02-19)
 
 ### Features
