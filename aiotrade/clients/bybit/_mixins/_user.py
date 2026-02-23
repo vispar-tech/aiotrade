@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 
@@ -8,7 +8,7 @@ class UserMixin:
 
     async def get_api_key_info(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get API Key information.
 

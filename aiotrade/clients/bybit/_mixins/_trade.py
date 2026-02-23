@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
+from aiotrade.clients._utils import remap, to_str_fields
 from aiotrade.types.bybit import (
     CancelOrderParams,
     GetOrderHistoryParams,
@@ -15,7 +16,7 @@ class TradeMixin:
         self: HttpClientProtocol,
         category: Literal["linear", "inverse", "spot", "option"],
         params: PlaceOrderParams,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Place an order from Bybit API.
 
@@ -28,39 +29,47 @@ class TradeMixin:
         Returns:
             Dict with order creation response containing orderId and orderLinkId.
         """
-        api_params: Dict[str, Any] = {"category": category}
-        fields_to_str = {"qty", "price", "trigger_price", "take_profit", "stop_loss"}
-        field_mapping = {
-            "symbol": "symbol",
-            "is_leverage": "isLeverage",
-            "side": "side",
-            "order_type": "orderType",
-            "qty": "qty",
-            "market_unit": "marketUnit",
-            "price": "price",
-            "trigger_price": "triggerPrice",
-            "trigger_by": "triggerBy",
-            "time_in_force": "timeInForce",
-            "position_idx": "positionIdx",
-            "order_link_id": "orderLinkId",
-            "take_profit": "takeProfit",
-            "stop_loss": "stopLoss",
-            "tp_trigger_by": "tpTriggerBy",
-            "sl_trigger_by": "slTriggerBy",
-            "reduce_only": "reduceOnly",
-            "tpsl_mode": "tpslMode",
-            "tp_limit_price": "tpLimitPrice",
-            "sl_limit_price": "slLimitPrice",
-            "tp_order_type": "tpOrderType",
-            "sl_order_type": "slOrderType",
-            "order_filter": "orderFilter",
-        }
-        for typed_key, api_key in field_mapping.items():
-            v = params.get(typed_key)
-            if v is not None:
-                if typed_key in fields_to_str:
-                    v = str(v)
-                api_params[api_key] = v
+        remapped_params = remap(
+            params,
+            {
+                "symbol": "symbol",
+                "is_leverage": "isLeverage",
+                "side": "side",
+                "order_type": "orderType",
+                "qty": "qty",
+                "market_unit": "marketUnit",
+                "price": "price",
+                "trigger_price": "triggerPrice",
+                "trigger_by": "triggerBy",
+                "time_in_force": "timeInForce",
+                "position_idx": "positionIdx",
+                "order_link_id": "orderLinkId",
+                "take_profit": "takeProfit",
+                "stop_loss": "stopLoss",
+                "tp_trigger_by": "tpTriggerBy",
+                "sl_trigger_by": "slTriggerBy",
+                "reduce_only": "reduceOnly",
+                "tpsl_mode": "tpslMode",
+                "tp_limit_price": "tpLimitPrice",
+                "sl_limit_price": "slLimitPrice",
+                "tp_order_type": "tpOrderType",
+                "sl_order_type": "slOrderType",
+                "order_filter": "orderFilter",
+            },
+        )
+        api_params = {"category": category}
+        api_params.update(
+            to_str_fields(
+                remapped_params,
+                {
+                    "qty",
+                    "price",
+                    "triggerPrice",
+                    "takeProfit",
+                    "stopLoss",
+                },
+            )
+        )
         return await self.post("/v5/order/create", params=api_params, auth=True)
 
     async def amend_order(self: HttpClientProtocol) -> None:
@@ -74,7 +83,7 @@ class TradeMixin:
         order_id: str | None = None,
         order_link_id: str | None = None,
         order_filter: Literal["Order", "tpslOrder", "StopOrder"] | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Cancel a single order.
 
@@ -128,7 +137,7 @@ class TradeMixin:
         | None = None,
         limit: int | None = None,
         cursor: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get open and closed orders from Bybit API.
 
@@ -148,7 +157,7 @@ class TradeMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        api_params: Dict[str, str | int] = {"category": category}
+        api_params: dict[str, str | int] = {"category": category}
         if symbol is not None:
             api_params["symbol"] = symbol
         if base_coin is not None:
@@ -190,7 +199,7 @@ class TradeMixin:
         ]
         | None = None,
         stop_order_type: Literal["Stop"] | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Cancel all active orders for the given category and optional filters.
 
@@ -218,13 +227,13 @@ class TradeMixin:
                 stops).
 
         Returns:
-            Dict[str, Any]: API response from cancelling all active orders.
+            dict[str, Any]: API response from cancelling all active orders.
 
         Raises:
             ValueError: If required parameters are missing.
             Exception: Any exception raised by the underlying HTTP request.
         """
-        api_params: Dict[str, str] = {"category": category}
+        api_params: dict[str, str] = {"category": category}
 
         # Validations for requirements
         if category in ("linear", "inverse") and not (
@@ -257,7 +266,7 @@ class TradeMixin:
         self: HttpClientProtocol,
         category: Literal["linear", "inverse", "spot", "option"],
         params: GetOrderHistoryParams | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get order history from Bybit API.
 
@@ -283,29 +292,27 @@ class TradeMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        api_params: Dict[str, Any] = {"category": category}
+        api_params: dict[str, Any] = {"category": category}
 
         if params:
-            # Map TypedDict fields to API parameter names
-            field_mapping = {
-                "symbol": "symbol",
-                "base_coin": "baseCoin",
-                "settle_coin": "settleCoin",
-                "order_id": "orderId",
-                "order_link_id": "orderLinkId",
-                "order_filter": "orderFilter",
-                "order_status": "orderStatus",
-                "start_time": "startTime",
-                "end_time": "endTime",
-                "limit": "limit",
-                "cursor": "cursor",
-            }
-
-            # Add non-None parameters
-            for field_name, api_name in field_mapping.items():
-                value = params.get(field_name)
-                if value is not None:
-                    api_params[api_name] = value
+            api_params.update(
+                remap(
+                    params,
+                    {
+                        "symbol": "symbol",
+                        "base_coin": "baseCoin",
+                        "settle_coin": "settleCoin",
+                        "order_id": "orderId",
+                        "order_link_id": "orderLinkId",
+                        "order_filter": "orderFilter",
+                        "order_status": "orderStatus",
+                        "start_time": "startTime",
+                        "end_time": "endTime",
+                        "limit": "limit",
+                        "cursor": "cursor",
+                    },
+                )
+            )
 
         return await self.get(
             "/v5/order/history",
@@ -320,8 +327,8 @@ class TradeMixin:
     async def batch_place_order(
         self: HttpClientProtocol,
         category: str,
-        orders: List[PlaceOrderParams],
-    ) -> Dict[str, Any]:
+        orders: list[PlaceOrderParams],
+    ) -> dict[str, Any]:
         """
         Batch place multiple orders.
 
@@ -338,45 +345,37 @@ class TradeMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        field_mapping = {
-            "symbol": "symbol",
-            "is_leverage": "isLeverage",
-            "side": "side",
-            "order_type": "orderType",
-            "qty": "qty",
-            "market_unit": "marketUnit",
-            "price": "price",
-            "trigger_price": "triggerPrice",
-            "trigger_by": "triggerBy",
-            "time_in_force": "timeInForce",
-            "position_idx": "positionIdx",
-            "order_link_id": "orderLinkId",
-            "take_profit": "takeProfit",
-            "stop_loss": "stopLoss",
-            "tp_trigger_by": "tpTriggerBy",
-            "sl_trigger_by": "slTriggerBy",
-            "reduce_only": "reduceOnly",
-            "tpsl_mode": "tpslMode",
-            "tp_limit_price": "tpLimitPrice",
-            "sl_limit_price": "slLimitPrice",
-            "tp_order_type": "tpOrderType",
-            "sl_order_type": "slOrderType",
-            "order_filter": "orderFilter",
-        }
-
-        # Fields needing string conversion
-        fields_to_str = {"qty", "price", "trigger_price", "take_profit", "stop_loss"}
-
-        api_orders: List[Dict[str, Any]] = []
-        for order in orders:
-            api_order: Dict[str, Any] = {}
-            for typed_key, api_key in field_mapping.items():
-                value = order.get(typed_key)
-                if value is not None:
-                    if typed_key in fields_to_str:
-                        value = str(value)
-                    api_order[api_key] = value
-            api_orders.append(api_order)
+        remapped_orders = remap(
+            orders,
+            {
+                "symbol": "symbol",
+                "is_leverage": "isLeverage",
+                "side": "side",
+                "order_type": "orderType",
+                "qty": "qty",
+                "market_unit": "marketUnit",
+                "price": "price",
+                "trigger_price": "triggerPrice",
+                "trigger_by": "triggerBy",
+                "time_in_force": "timeInForce",
+                "position_idx": "positionIdx",
+                "order_link_id": "orderLinkId",
+                "take_profit": "takeProfit",
+                "stop_loss": "stopLoss",
+                "tp_trigger_by": "tpTriggerBy",
+                "sl_trigger_by": "slTriggerBy",
+                "reduce_only": "reduceOnly",
+                "tpsl_mode": "tpslMode",
+                "tp_limit_price": "tpLimitPrice",
+                "sl_limit_price": "slLimitPrice",
+                "tp_order_type": "tpOrderType",
+                "sl_order_type": "slOrderType",
+                "order_filter": "orderFilter",
+            },
+        )
+        api_orders = to_str_fields(
+            remapped_orders, {"qty", "price", "triggerPrice", "takeProfit", "stopLoss"}
+        )
 
         data = {
             "category": category,
@@ -395,8 +394,8 @@ class TradeMixin:
     async def batch_cancel_order(
         self: HttpClientProtocol,
         category: Literal["linear", "option", "spot", "inverse"],
-        orders: List[CancelOrderParams],
-    ) -> Dict[str, Any]:
+        orders: list[CancelOrderParams],
+    ) -> dict[str, Any]:
         """
         Batch cancel multiple orders from Bybit API.
 
@@ -431,7 +430,7 @@ class TradeMixin:
                 )
 
         # Convert CancelOrderParams to API format
-        request_data: List[Dict[str, str]] = []
+        request_data: list[dict[str, str]] = []
         for order in orders:
             order_dict = {"symbol": order["symbol"]}
             order_id = order.get("order_id")
@@ -443,7 +442,7 @@ class TradeMixin:
 
             request_data.append(order_dict)
 
-        params: Dict[str, str | List[Dict[str, str]]] = {
+        params: dict[str, str | list[dict[str, str]]] = {
             "category": category,
             "request": request_data,
         }

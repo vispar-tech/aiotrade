@@ -43,6 +43,7 @@ TimeInForce = Literal["PostOnly", "GTC", "IOC", "FOK"]
 StopGuaranteed = Literal["true", "false", "cutfee"]
 
 
+# todo: use camel case direct here
 class TpSlStruct(TypedDict, total=False):
     """Structured dict for takeProfit/stopLoss fields."""
 
@@ -52,6 +53,7 @@ class TpSlStruct(TypedDict, total=False):
     working_type: TriggerPriceType
 
 
+# todo: use camel case direct here
 class PlaceSwapOrderParams(TypedDict, total=False):
     """Request parameters for creating/modifying an order on BingX."""
 
@@ -95,6 +97,7 @@ class PlaceSwapOrderParams(TypedDict, total=False):
     position_id: NotRequired[int]
 
 
+# todo: use camel case direct here
 class PlaceSpotOrderParams(TypedDict, total=False):
     """Request parameters for placing a spot order on BingX."""
 

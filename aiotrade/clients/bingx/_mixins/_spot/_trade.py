@@ -1,6 +1,7 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
+from aiotrade.clients._utils import remap
 from aiotrade.types.bingx import PlaceSpotOrderParams
 
 
@@ -14,7 +15,7 @@ class TradeMixin:
     async def place_spot_order(
         self: HttpClientProtocol,
         params: PlaceSpotOrderParams,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Place an order on the BingX spot market.
 
@@ -30,23 +31,21 @@ class TradeMixin:
         Returns:
             dict: Response from the API.
         """
-        field_mapping = {
-            "symbol": "symbol",
-            "order_type": "type",
-            "side": "side",
-            "price": "price",
-            "quantity": "quantity",
-            "quote_order_qty": "quoteOrderQty",
-            "stop_price": "stopPrice",
-            "new_client_order_id": "newClientOrderId",
-            "time_in_force": "timeInForce",
-        }
-
-        order_data: Dict[str, Any] = {}
-        for key, value in params.items():
-            if value is None:
-                continue
-            order_data[field_mapping.get(key, key)] = value
+        # Remap fields
+        order_data = remap(
+            params,
+            {
+                "symbol": "symbol",
+                "order_type": "type",
+                "side": "side",
+                "price": "price",
+                "quantity": "quantity",
+                "quote_order_qty": "quoteOrderQty",
+                "stop_price": "stopPrice",
+                "new_client_order_id": "newClientOrderId",
+                "time_in_force": "timeInForce",
+            },
+        )
 
         return await self.post(
             "/openApi/spot/v1/trade/order", params=order_data, auth=True
@@ -54,24 +53,23 @@ class TradeMixin:
 
     async def get_spot_order_history(
         self: HttpClientProtocol,
-        symbol: Optional[str] = None,
-        order_id: Optional[int] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        page_index: Optional[int] = None,
-        page_size: Optional[int] = None,
-        status: Optional[Literal["FILLED", "CANCELED", "FAILED"]] = None,
-        order_type: Optional[
-            Literal[
-                "MARKET",
-                "LIMIT",
-                "TAKE_STOP_LIMIT",
-                "TAKE_STOP_MARKET",
-                "TRIGGER_LIMIT",
-                "TRIGGER_MARKET",
-            ]
-        ] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        order_id: int | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
+        page_index: int | None = None,
+        page_size: int | None = None,
+        status: Literal["FILLED", "CANCELED", "FAILED"] | None = None,
+        order_type: Literal[
+            "MARKET",
+            "LIMIT",
+            "TAKE_STOP_LIMIT",
+            "TAKE_STOP_MARKET",
+            "TRIGGER_LIMIT",
+            "TRIGGER_MARKET",
+        ]
+        | None = None,
+    ) -> dict[str, Any]:
         """
         Retrieve the order history for BingX spot trading.
 
@@ -105,14 +103,14 @@ class TradeMixin:
                 "TRIGGER_MARKET".
 
         Returns:
-            Dict[str, Any]: API response with list of historical order records.
+            dict[str, Any]: API response with list of historical order records.
 
         Notes:
             - If order_id is set, takes precedence; ignores times.
             - With start_time/end_time, order_id not required.
             - page_index * page_size must not exceed 10,000.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
 
         if symbol is not None:
             params["symbol"] = symbol
@@ -140,9 +138,9 @@ class TradeMixin:
     async def get_spot_order_details(
         self: HttpClientProtocol,
         symbol: str,
-        order_id: Optional[int] = None,
-        client_order_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        order_id: int | None = None,
+        client_order_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Query Order details for BingX spot trading.
 
@@ -162,7 +160,7 @@ class TradeMixin:
                     Only supports a query range of 2 hours.
 
         Returns:
-            Dict[str, Any]: API response with details of the queried order.
+            dict[str, Any]: API response with details of the queried order.
 
         Notes:
             - Must provide either order_id or client_order_id.
@@ -170,7 +168,7 @@ class TradeMixin:
             - UID Rate Limit: 10/second.
             - Master and sub accounts supported.
         """
-        params: Dict[str, Any] = {"symbol": symbol}
+        params: dict[str, Any] = {"symbol": symbol}
         if order_id is not None:
             params["orderId"] = order_id
         if client_order_id is not None:
@@ -184,8 +182,8 @@ class TradeMixin:
 
     async def get_spot_open_orders(
         self: HttpClientProtocol,
-        symbol: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
         """
         Query current open (pending) orders for BingX spot trading.
 
@@ -200,14 +198,14 @@ class TradeMixin:
                 Query all pending orders when left blank.
 
         Returns:
-            Dict[str, Any]: API response with the list of current open orders.
+            dict[str, Any]: API response with the list of current open orders.
 
         Notes:
             - UID Rate Limit: 10/second.
             - Signature is required.
             - Master and sub accounts supported.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol is not None:
             params["symbol"] = symbol
 
@@ -220,10 +218,10 @@ class TradeMixin:
     async def cancel_spot_batch_orders(
         self: HttpClientProtocol,
         symbol: str,
-        order_ids: Optional[list[str]] = None,
-        client_order_ids: Optional[list[str]] = None,
-        process: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        order_ids: list[str] | None = None,
+        client_order_ids: list[str] | None = None,
+        process: int | None = None,
+    ) -> dict[str, Any]:
         """
         Cancel multiple spot orders in a batch.
 
@@ -240,7 +238,7 @@ class TradeMixin:
             process: 0 or 1 (optional)
 
         Returns:
-            Dict[str, Any]: API response indicating cancellation results.
+            dict[str, Any]: API response indicating cancellation results.
 
         Notes:
             - At least one of order_ids or client_order_ids must be provided.
@@ -253,7 +251,7 @@ class TradeMixin:
                 "At least one of order_ids or client_order_ids must be provided."
             )
 
-        params: Dict[str, Any] = {"symbol": symbol}
+        params: dict[str, Any] = {"symbol": symbol}
         if order_ids is not None:
             params["orderIds"] = ",".join(order_ids)
         if client_order_ids is not None:
@@ -270,12 +268,12 @@ class TradeMixin:
     async def get_spot_trade_details(
         self: HttpClientProtocol,
         symbol: str,
-        order_id: Optional[int] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        from_id: Optional[int] = None,
+        order_id: int | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
+        from_id: int | None = None,
         limit: int = 500,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query transaction (trade) details for BingX spot orders.
 
@@ -295,7 +293,7 @@ class TradeMixin:
             limit (int, optional): Number of returned results (default 500, max 1000)
 
         Returns:
-            Dict[str, Any]: API response with trade details.
+            dict[str, Any]: API response with trade details.
 
         Notes:
             - Can only check data within the past 7 days.
@@ -307,7 +305,7 @@ class TradeMixin:
             - Signature is required.
             - Master and sub accounts supported.
         """
-        params: Dict[str, Any] = {"symbol": symbol, "limit": limit}
+        params: dict[str, Any] = {"symbol": symbol, "limit": limit}
         if order_id is not None:
             params["orderId"] = order_id
         if start_time is not None:
@@ -325,8 +323,8 @@ class TradeMixin:
 
     async def cancel_all_spot_open_orders(
         self: HttpClientProtocol,
-        symbol: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
         """
         Cancel all open spot orders on a symbol (or all symbols if not specified).
 
@@ -341,14 +339,14 @@ class TradeMixin:
                 If not filled, cancel all orders.
 
         Returns:
-            Dict[str, Any]: API response.
+            dict[str, Any]: API response.
 
         Notes:
             - UID Rate Limit: 2/second.
             - Signature is required.
             - Applicable to Master and Sub Accounts.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol is not None:
             params["symbol"] = symbol
 

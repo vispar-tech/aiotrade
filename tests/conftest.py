@@ -1,7 +1,8 @@
 """Pytest config, fixtures, and shared test utilities for the test suite."""
 
 import logging
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 from pytest import LogCaptureFixture

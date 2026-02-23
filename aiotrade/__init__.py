@@ -36,8 +36,8 @@ from importlib.metadata import version as get_version
 
 from ._errors import ExchangeResponseError
 from ._session import SharedSessionManager
-from .caches import BingxClientsCache, BybitClientsCache
-from .clients import BingxClient, BybitClient
+from .caches import BingxClientsCache, BybitClientsCache, OkxClientsCache
+from .clients import BingxClient, BybitClient, OkxClient
 
 __all__ = [
     "BingxClient",
@@ -45,6 +45,8 @@ __all__ = [
     "BybitClient",
     "BybitClientsCache",
     "ExchangeResponseError",
+    "OkxClient",
+    "OkxClientsCache",
     "SharedSessionManager",
 ]
 

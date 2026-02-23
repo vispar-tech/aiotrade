@@ -1,18 +1,18 @@
-"""High-performance cache for BingxClient instances."""
+"""High-performance cache for OkxClient instances."""
 
 from typing import ClassVar
 
-from aiotrade.clients import BingxClient
+from aiotrade.clients import OkxClient
 
 from ._base import BaseClientsCache
 
 _Key = tuple[str, str, bool]
 
 
-class BingxClientsCache(BaseClientsCache[_Key, BingxClient]):
-    """Ultra-fast singleton cache for BingxClient."""
+class OkxClientsCache(BaseClientsCache[_Key, OkxClient]):
+    """Ultra-fast singleton cache for OkxClient."""
 
-    _cache: ClassVar[dict[_Key, tuple[BingxClient, float]]] = {}
+    _cache: ClassVar[dict[_Key, tuple[OkxClient, float]]] = {}
 
     @classmethod
     def _make_key(
@@ -22,7 +22,7 @@ class BingxClientsCache(BaseClientsCache[_Key, BingxClient]):
         demo: bool = False,
     ) -> _Key:
         """
-        Create a unique tuple for API credentials/configuration.
+        Create a unique tuple for OKX API credentials/configuration.
 
         demo must be consistent with all uses!
         """
@@ -33,11 +33,12 @@ class BingxClientsCache(BaseClientsCache[_Key, BingxClient]):
         cls,
         api_key: str,
         api_secret: str,
+        passphrase: str,
         demo: bool = False,
         recv_window: int = 5000,
-    ) -> BingxClient:
+    ) -> OkxClient:
         """
-        Get BingxClient from cache or create/cache it.
+        Get OkxClient from cache or create/cache it.
 
         Returns:
             Cached instance (possibly new).
@@ -47,9 +48,10 @@ class BingxClientsCache(BaseClientsCache[_Key, BingxClient]):
         if entry is not None:
             return entry[0]
 
-        client = BingxClient(
+        client = OkxClient(
             api_key=api_key,
             api_secret=api_secret,
+            passphrase=passphrase,
             demo=demo,
             recv_window=recv_window,
         )

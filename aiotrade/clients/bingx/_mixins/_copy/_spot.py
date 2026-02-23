@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 
@@ -12,7 +12,7 @@ class SpotMixin:
     async def sell_spot_asset_by_order(
         self: HttpClientProtocol,
         order_id: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Trader sells spot assets based on buy order number.
 
@@ -38,7 +38,7 @@ class SpotMixin:
 
     async def get_spot_personal_trading_overview(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get spot trader's copy trading overview (cumulative profits, copier profit).
 
@@ -57,7 +57,7 @@ class SpotMixin:
 
     async def get_spot_profit_overview(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get spot trader's profit overview (cumulative profit, copier profit, etc).
 
@@ -80,7 +80,7 @@ class SpotMixin:
         page_size: int,
         start_time: int | None = None,
         end_time: int | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get spot trader's profit details (paginated).
 
@@ -120,7 +120,7 @@ class SpotMixin:
         symbol: str | None = None,
         start_time: int | None = None,
         end_time: int | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query historical spot copytrading orders.
 
@@ -140,7 +140,7 @@ class SpotMixin:
                 query orders within the time range.
 
         Returns:
-            Dict[str, Any]: Page of historical spot copytrading order results.
+            dict[str, Any]: Page of historical spot copytrading order results.
         """
         params: dict[str, Any] = {
             "pageIndex": page_index,

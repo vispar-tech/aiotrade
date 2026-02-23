@@ -1,8 +1,9 @@
 """Position management HTTP methods."""
 
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
+from aiotrade.clients._utils import remap, to_str_fields
 from aiotrade.types.bybit import SetTradingStopParams
 
 
@@ -12,12 +13,12 @@ class PositionMixin:
     async def get_position_info(
         self: HttpClientProtocol,
         category: Literal["linear", "inverse", "option"],
-        symbol: Optional[str] = None,
-        base_coin: Optional[str] = None,
-        settle_coin: Optional[str] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        base_coin: str | None = None,
+        settle_coin: str | None = None,
+        limit: int | None = None,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
         """
         Get position info from Bybit API.
 
@@ -41,7 +42,7 @@ class PositionMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        params: Dict[str, str | int] = {"category": category}
+        params: dict[str, str | int] = {"category": category}
 
         if symbol is not None:
             params["symbol"] = symbol
@@ -66,7 +67,7 @@ class PositionMixin:
         symbol: str,
         buy_leverage: float,
         sell_leverage: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set leverage from Bybit API.
 
@@ -106,9 +107,9 @@ class PositionMixin:
         self: HttpClientProtocol,
         category: Literal["linear"],
         mode: Literal[0, 3],
-        symbol: Optional[str] = None,
-        coin: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        coin: str | None = None,
+    ) -> dict[str, Any]:
         """
         Switch position mode from Bybit API.
 
@@ -137,7 +138,7 @@ class PositionMixin:
         if not symbol and not coin:
             raise ValueError("Either symbol or coin must be provided")
 
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "category": category,
             "mode": mode,
         }
@@ -157,7 +158,7 @@ class PositionMixin:
         self: HttpClientProtocol,
         category: Literal["linear", "inverse"],
         params: SetTradingStopParams,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set trading stop (take profit/stop loss) from Bybit API.
 
@@ -180,71 +181,65 @@ class PositionMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        # Convert TypedDict to API parameters
-        api_params: Dict[str, Any] = {"category": category}
-
-        # Fields that need to be converted to string
-        fields_to_str = {
-            "take_profit",
-            "stop_loss",
-            "trailing_stop",
-            "active_price",
-            "tp_size",
-            "sl_size",
-            "tp_limit_price",
-            "sl_limit_price",
-        }
-
-        # Map TypedDict fields to API parameter names
-        field_mapping = {
-            "symbol": "symbol",
-            "tpsl_mode": "tpslMode",
-            "position_idx": "positionIdx",
-            "take_profit": "takeProfit",
-            "stop_loss": "stopLoss",
-            "trailing_stop": "trailingStop",
-            "tp_trigger_by": "tpTriggerBy",
-            "sl_trigger_by": "slTriggerBy",
-            "active_price": "activePrice",
-            "tp_size": "tpSize",
-            "sl_size": "slSize",
-            "tp_limit_price": "tpLimitPrice",
-            "sl_limit_price": "slLimitPrice",
-            "tp_order_type": "tpOrderType",
-            "sl_order_type": "slOrderType",
-        }
-
-        # Add non-None parameters
-        for field_name, api_name in field_mapping.items():
-            value = params.get(field_name)
-            if value is not None:
-                if field_name in fields_to_str:
-                    value = str(value)
-                api_params[api_name] = value
-
+        remapped_params = remap(
+            params,
+            {
+                "symbol": "symbol",
+                "tpsl_mode": "tpslMode",
+                "position_idx": "positionIdx",
+                "take_profit": "takeProfit",
+                "stop_loss": "stopLoss",
+                "trailing_stop": "trailingStop",
+                "tp_trigger_by": "tpTriggerBy",
+                "sl_trigger_by": "slTriggerBy",
+                "active_price": "activePrice",
+                "tp_size": "tpSize",
+                "sl_size": "slSize",
+                "tp_limit_price": "tpLimitPrice",
+                "sl_limit_price": "slLimitPrice",
+                "tp_order_type": "tpOrderType",
+                "sl_order_type": "slOrderType",
+            },
+        )
+        api_params = {"category": category}
+        api_params.update(
+            to_str_fields(
+                remapped_params,
+                {
+                    "takeProfit",
+                    "stopLoss",
+                    "trailingStop",
+                    "activePrice",
+                    "tpSize",
+                    "slSize",
+                    "tpLimitPrice",
+                    "slLimitPrice",
+                },
+            )
+        )
         return await self.post(
             "/v5/position/trading-stop",
             params=api_params,
             auth=True,
         )
 
-    async def set_auto_add_margin(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def set_auto_add_margin(self: HttpClientProtocol) -> dict[str, Any]:
         """Set auto add margin."""
         raise NotImplementedError
 
-    async def add_or_reduce_margin(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def add_or_reduce_margin(self: HttpClientProtocol) -> dict[str, Any]:
         """Add or reduce margin."""
         raise NotImplementedError
 
     async def get_closed_pnl(
         self: HttpClientProtocol,
         category: Literal["linear"],
-        symbol: Optional[str] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
+        limit: int | None = None,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
         """
         Get closed PnL from Bybit API.
 
@@ -268,7 +263,7 @@ class PositionMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        params: Dict[str, str | int] = {"category": category}
+        params: dict[str, str | int] = {"category": category}
 
         if symbol is not None:
             params["symbol"] = symbol
@@ -287,18 +282,18 @@ class PositionMixin:
             auth=True,
         )
 
-    async def get_closed_options_positions(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_closed_options_positions(self: HttpClientProtocol) -> dict[str, Any]:
         """Get closed options positions (6 months)."""
         raise NotImplementedError
 
-    async def move_position(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def move_position(self: HttpClientProtocol) -> dict[str, Any]:
         """Move position."""
         raise NotImplementedError
 
-    async def get_move_position_history(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_move_position_history(self: HttpClientProtocol) -> dict[str, Any]:
         """Get move position history."""
         raise NotImplementedError
 
-    async def confirm_new_risk_limit(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def confirm_new_risk_limit(self: HttpClientProtocol) -> dict[str, Any]:
         """Confirm new risk limit."""
         raise NotImplementedError

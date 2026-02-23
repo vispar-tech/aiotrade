@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bybit import InstrumentStatus, SymbolType
@@ -7,7 +7,7 @@ from aiotrade.types.bybit import InstrumentStatus, SymbolType
 class MarketMixin:
     """Mixin for market data endpoints."""
 
-    async def get_server_time(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_server_time(self: HttpClientProtocol) -> dict[str, Any]:
         """Get Bybit server time.
 
         Returns:
@@ -19,11 +19,11 @@ class MarketMixin:
         self: HttpClientProtocol,
         symbol: str,
         interval: str,
-        category: Optional[Literal["spot", "linear", "inverse"]] = None,
-        start: Optional[int] = None,
-        end: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        category: Literal["spot", "linear", "inverse"] | None = None,
+        start: int | None = None,
+        end: int | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
         """Get historical klines (candlesticks).
 
         Args:
@@ -40,7 +40,7 @@ class MarketMixin:
             Each candle contains [startTime, openPrice, highPrice, lowPrice,
             closePrice, volume, turnover].
         """
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
             "interval": interval,
         }
@@ -56,28 +56,28 @@ class MarketMixin:
 
         return await self.get("/v5/market/kline", params=params)
 
-    async def get_mark_price_kline(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_mark_price_kline(self: HttpClientProtocol) -> dict[str, Any]:
         """Get mark price kline."""
         raise NotImplementedError
 
-    async def get_index_price_kline(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_index_price_kline(self: HttpClientProtocol) -> dict[str, Any]:
         """Get index price kline."""
         raise NotImplementedError
 
-    async def get_premium_index_price_kline(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_premium_index_price_kline(self: HttpClientProtocol) -> dict[str, Any]:
         """Get premium index price kline."""
         raise NotImplementedError
 
     async def get_instruments_info(
         self: HttpClientProtocol,
         category: Literal["spot", "linear", "inverse", "option"],
-        symbol: Optional[str] = None,
-        symbol_type: Optional[SymbolType] = None,
-        status: Optional[InstrumentStatus] = None,
-        base_coin: Optional[str] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        symbol_type: SymbolType | None = None,
+        status: InstrumentStatus | None = None,
+        base_coin: str | None = None,
+        limit: int | None = None,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
         """
         Get instruments info from Bybit API.
 
@@ -102,7 +102,7 @@ class MarketMixin:
         Raises:
             Any exception raised by the underlying HTTP request.
         """
-        params: Dict[str, int | str] = {"category": category}
+        params: dict[str, int | str] = {"category": category}
 
         if symbol is not None:
             params["symbol"] = symbol
@@ -122,35 +122,35 @@ class MarketMixin:
             params=params,
         )
 
-    async def get_orderbook(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_orderbook(self: HttpClientProtocol) -> dict[str, Any]:
         """Get orderbook."""
         raise NotImplementedError
 
-    async def get_rpi_orderbook(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_rpi_orderbook(self: HttpClientProtocol) -> dict[str, Any]:
         """Get RPI orderbook."""
         raise NotImplementedError
 
-    async def get_tickers(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_tickers(self: HttpClientProtocol) -> dict[str, Any]:
         """Get tickers."""
         raise NotImplementedError
 
-    async def get_funding_rate_history(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_funding_rate_history(self: HttpClientProtocol) -> dict[str, Any]:
         """Get funding rate history."""
         raise NotImplementedError
 
-    async def get_recent_public_trades(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_recent_public_trades(self: HttpClientProtocol) -> dict[str, Any]:
         """Get recent public trades."""
         raise NotImplementedError
 
-    async def get_open_interest(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_open_interest(self: HttpClientProtocol) -> dict[str, Any]:
         """Get open interest."""
         raise NotImplementedError
 
-    async def get_historical_volatility(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_historical_volatility(self: HttpClientProtocol) -> dict[str, Any]:
         """Get historical volatility."""
         raise NotImplementedError
 
-    async def get_insurance_pool(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_insurance_pool(self: HttpClientProtocol) -> dict[str, Any]:
         """Get insurance pool."""
         raise NotImplementedError
 
@@ -159,7 +159,7 @@ class MarketMixin:
         category: Literal["linear", "inverse"],
         symbol: str | None = None,
         cursor: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query for the risk limit margin parameters.
 
@@ -187,30 +187,30 @@ class MarketMixin:
             params=params,
         )
 
-    async def get_delivery_price(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_delivery_price(self: HttpClientProtocol) -> dict[str, Any]:
         """Get delivery price."""
         raise NotImplementedError
 
-    async def get_new_delivery_price(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_new_delivery_price(self: HttpClientProtocol) -> dict[str, Any]:
         """Get new delivery price."""
         raise NotImplementedError
 
-    async def get_long_short_ratio(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_long_short_ratio(self: HttpClientProtocol) -> dict[str, Any]:
         """Get long short ratio."""
         raise NotImplementedError
 
-    async def get_index_price_components(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_index_price_components(self: HttpClientProtocol) -> dict[str, Any]:
         """Get index price components."""
         raise NotImplementedError
 
-    async def get_order_price_limit(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_order_price_limit(self: HttpClientProtocol) -> dict[str, Any]:
         """Get order price limit."""
         raise NotImplementedError
 
-    async def get_adl_alert(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_adl_alert(self: HttpClientProtocol) -> dict[str, Any]:
         """Get ADL alert."""
         raise NotImplementedError
 
-    async def get_fee_group_structure(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_fee_group_structure(self: HttpClientProtocol) -> dict[str, Any]:
         """Get fee group structure."""
         raise NotImplementedError

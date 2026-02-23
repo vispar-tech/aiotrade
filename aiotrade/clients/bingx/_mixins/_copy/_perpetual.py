@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
 
@@ -15,7 +15,7 @@ class PerpetualMixin:
         symbol: str,
         offset: int = 0,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get current trader's order (copy position) for perpetual contracts.
 
@@ -44,7 +44,7 @@ class PerpetualMixin:
     async def close_perpetual_trader_position_by_order(
         self: HttpClientProtocol,
         position_id: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Close trader perpetual position by order number.
 
@@ -71,7 +71,7 @@ class PerpetualMixin:
         position_id: int,
         take_profit_mark_price: float,
         stop_loss_mark_price: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set take-profit and stop-loss for perpetual position by order number.
 
@@ -100,7 +100,7 @@ class PerpetualMixin:
     async def get_perpetual_personal_trading_overview(
         self: HttpClientProtocol,
         day_size: Literal[7, 30, 90, 180] | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get perpetual trader's copy trading overview (cumulative profits, gains, etc).
 
@@ -125,7 +125,7 @@ class PerpetualMixin:
 
     async def get_perpetual_profit_overview(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get perpetual trader's profit overview (cumulative profit, gains, etc).
 
@@ -146,7 +146,7 @@ class PerpetualMixin:
         page_size: int,
         start_time: int | None = None,
         end_time: int | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get perpetual trader's profit details (paginated).
 
@@ -180,7 +180,7 @@ class PerpetualMixin:
     async def set_perpetual_commission_rate(
         self: HttpClientProtocol,
         new_commission: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set perpetual trader's commission rate.
 
@@ -205,7 +205,7 @@ class PerpetualMixin:
     async def get_perpetual_copy_trading_pairs(
         self: HttpClientProtocol,
         contract_type: Literal["SFUTURES", "PFUTURES"],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get supported perpetual copy trading pairs.
 

@@ -1,8 +1,10 @@
-from typing import Any, Dict
+from typing import Any
 
 import orjson
 
 from aiotrade._types import Exchange
+
+ResponseType = dict[str, Any] | list[dict[str, Any]]
 
 
 class ExchangeResponseError(Exception):
@@ -10,7 +12,7 @@ class ExchangeResponseError(Exception):
 
     Attributes:
         exchange (Exchange): The originating exchange ("bingx", "bybit", etc.).
-        resp (dict): The full response dictionary from the exchange.
+        resp (dict or list[dict]): The full response from the exchange.
         message (str): The error message (human-readable).
         code (Any): Error code, if present.
     """
@@ -18,7 +20,7 @@ class ExchangeResponseError(Exception):
     def __init__(
         self,
         exchange: Exchange,
-        resp: Dict[str, Any],
+        resp: ResponseType,
         message: str = "",
     ) -> None:
         self.resp = resp
@@ -47,23 +49,36 @@ class ExchangeResponseError(Exception):
         )
 
     @staticmethod
-    def _extract_message(resp: Dict[str, Any]) -> str:
-        # Try to extract the typical error message fields.
-        for key in ("msg", "message", "error", "retMsg", "error_message"):
-            if key in resp and isinstance(resp[key], str):
-                return str(resp[key])
+    def _extract_message(resp: ResponseType) -> str:
+        # Support for dict or list[dict]
+        if isinstance(resp, dict):
+            for key in ("msg", "message", "error", "retMsg", "error_message"):
+                if key in resp and isinstance(resp[key], str):
+                    return str(resp[key])
+
+        for entry in resp:
+            if isinstance(entry, dict):
+                for key in ("msg", "message", "error", "retMsg", "error_message"):
+                    if key in entry and isinstance(entry[key], str):
+                        return str(entry[key])
         return "No error message found in response."
 
     @staticmethod
-    def _extract_code(resp: Dict[str, Any]) -> Any:
-        # Try to extract a typical error code field.
-        for key in ("code", "retCode"):
-            if key in resp:
-                return resp[key]
+    def _extract_code(resp: ResponseType) -> Any:
+        # Support for dict or list[dict]
+        if isinstance(resp, dict):
+            for key in ("code", "retCode"):
+                if key in resp:
+                    return resp[key]
+        for entry in resp:
+            if isinstance(entry, dict):
+                for key in ("code", "retCode"):
+                    if key in entry:
+                        return entry[key]
         return None
 
     @staticmethod
-    def _format_response(resp: Dict[str, Any]) -> str:
+    def _format_response(resp: ResponseType) -> str:
         try:
             return orjson.dumps(
                 resp, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS

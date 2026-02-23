@@ -7,27 +7,19 @@ from abc import ABC, abstractmethod
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    Generic,
-    Optional,
-    Tuple,
-    TypeVar,
 )
 
 from aiotrade._http import HttpClient
 
 logger = logging.getLogger(__name__)
 
-_Client = TypeVar("_Client", bound=HttpClient)
-_Key = TypeVar("_Key")
 
-
-class BaseClientsCache(ABC, Generic[_Key, _Client]):
+class BaseClientsCache[Key, Client: HttpClient](ABC):
     """Abstract base class for ultra-fast singleton exchange client caches."""
 
     # NOTE: use any cause classvar can't contain typevars
     # NOTE: need to overwrite by parent
-    _cache: ClassVar[Dict[Any, Tuple[Any, float]]] = {}
+    _cache: ClassVar[dict[Any, tuple[Any, float]]] = {}
     _lifetime_seconds: ClassVar[int] = 600  # 10 minutes default
 
     @classmethod
@@ -37,12 +29,12 @@ class BaseClientsCache(ABC, Generic[_Key, _Client]):
 
     @classmethod
     @abstractmethod
-    def _make_key(cls, *args: Any, **kwargs: Any) -> _Key:
+    def _make_key(cls, *args: Any, **kwargs: Any) -> Key:
         """Create a unique tuple for API credentials/configuration."""
         ...
 
     @classmethod
-    def get(cls, *args: Any, **kwargs: Any) -> Optional[_Client]:
+    def get(cls, *args: Any, **kwargs: Any) -> Client | None:
         """Get cached client instance or None."""
         key = cls._make_key(*args, **kwargs)
         entry = cls._cache.get(key)
@@ -51,7 +43,7 @@ class BaseClientsCache(ABC, Generic[_Key, _Client]):
         return None
 
     @classmethod
-    def add(cls, client: _Client, *args: Any, **kwargs: Any) -> None:
+    def add(cls, client: Client, *args: Any, **kwargs: Any) -> None:
         """Cache a client, overwriting any existing for key."""
         key = cls._make_key(*args, **kwargs)
         expires_at = time.monotonic() + cls._lifetime_seconds
@@ -59,7 +51,7 @@ class BaseClientsCache(ABC, Generic[_Key, _Client]):
 
     @classmethod
     @abstractmethod
-    def get_or_create(cls, *args: Any, **kwargs: Any) -> _Client:
+    def get_or_create(cls, *args: Any, **kwargs: Any) -> Client:
         """Get client from cache or create/cache it if absent."""
         ...
 

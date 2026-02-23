@@ -8,6 +8,7 @@ from urllib.parse import unquote
 
 import aiohttp
 
+from aiotrade._protocols import ParamsType
 from aiotrade._session import SharedSessionManager
 from aiotrade._types import HttpMethod
 
@@ -20,8 +21,6 @@ class HttpClient(ABC):
     def __init__(
         self,
         base_url: str,
-        api_key: str | None = None,
-        api_secret: str | None = None,
         recv_window: int = 5000,
     ) -> None:
         """
@@ -35,8 +34,6 @@ class HttpClient(ABC):
                 receive window for signed requests.
         """
         self.base_url = base_url
-        self.api_key = api_key
-        self.api_secret = api_secret
         self.recv_window = recv_window
 
         # Use shared session if available; otherwise, create a new aiohttp session.
@@ -95,14 +92,14 @@ class HttpClient(ABC):
         self,
         method: HttpMethod,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> tuple[
         dict[str, Any],
         str,
         dict[str, Any] | None,
-        dict[str, Any] | None,
+        list[dict[str, Any]] | dict[str, Any] | None,
         dict[str, Any] | None,
     ]:
         """
@@ -122,7 +119,7 @@ class HttpClient(ABC):
         self,
         method: HttpMethod,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:
@@ -141,7 +138,7 @@ class HttpClient(ABC):
     async def get(
         self,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:
@@ -157,7 +154,7 @@ class HttpClient(ABC):
     async def post(
         self,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:
@@ -173,7 +170,7 @@ class HttpClient(ABC):
     async def put(
         self,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:
@@ -189,7 +186,7 @@ class HttpClient(ABC):
     async def delete(
         self,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:

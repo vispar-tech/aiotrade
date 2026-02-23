@@ -1,8 +1,9 @@
+import base64
 import hashlib
 import hmac
 import logging
-import time
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from typing import Any
 
 import orjson
@@ -12,107 +13,96 @@ from aiotrade._http import HttpClient
 from aiotrade._protocols import ParamsType
 from aiotrade._types import HttpMethod
 
-DOMAIN_MAIN = "bybit"
-TLD_MAIN = "com"
-
-
-logger = logging.getLogger("aiotrade.bybit")
+logger = logging.getLogger("aiotrade.okx")
 
 
 def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
     masked: dict[str, Any] = {}
     for k, v in headers.items():
-        if k in ("X-BAPI-API-KEY", "X-BAPI-SIGN"):
+        if k in ("OK-ACCESS-KEY", "OK-ACCESS-SIGN", "OK-ACCESS-PASSPHRASE"):
             masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
         else:
             masked[k] = v
     return masked
 
 
-class BybitHttpClient(HttpClient):
-    """Bybit HTTP client."""
+class OkxHttpClient(HttpClient):
+    """Okx HTTP client."""
 
     def __init__(
         self,
         api_key: str | None = None,
         api_secret: str | None = None,
-        testnet: bool = False,
+        passphrase: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
-        referral_id: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 
         Args:
             api_key: Trading API key
             api_secret: Trading API secret
-            testnet: Use testnet instead of mainnet
+            passphrase: Trading API passphrase
             demo: Use demo trading
             recv_window: Receive window in milliseconds
             referral_id: Referral ID
         """
-        # Subdomain selection based on testnet and demo flags
-        if demo and testnet:
-            sub = "api-demo-testnet"
-        elif demo:
-            sub = "api-demo"
-        elif testnet:
-            sub = "api-testnet"
-        else:
-            sub = "api"
-        base_url = f"https://{sub}.{DOMAIN_MAIN}.{TLD_MAIN}"
-
-        self.referral_id = referral_id
         self.api_key = api_key
         self.api_secret = api_secret
+        self.passphrase = passphrase
+        self.demo = demo
 
-        super().__init__(base_url, recv_window=recv_window)
+        super().__init__("https://www.okx.com", recv_window=recv_window)
 
     def _generate_signature(
-        self, api_key: str, api_secret: str, payload: str, timestamp: int
+        self,
+        api_secret: str,
+        method: HttpMethod,
+        path: str,
+        payload: str,
+        timestamp: str,
     ) -> str:
-        """Bybit V5 signature (API v5).
+        """OKX signature.
 
         Signature is generated as:
-        HMAC_SHA256(apiSecret, timestamp + apiKey + recvWindow + payload)
-        - For GET: payload is the sorted query string.
-        - For POST: payload is the plain JSON string.
+        Base64(HMAC_SHA256(apiSecret, prehash))
+        Where prehash = timestamp + method + requestPath + body
+        - For GET: body is the sorted query string.
+        - For POST: body is the plain JSON string.
+        All parts are concatenated as strings.
         """
-        param_str = str(timestamp) + api_key + str(self.recv_window) + payload
-        return hmac.new(
-            bytes(api_secret, "utf-8"),
-            param_str.encode("utf-8"),
+        body_str = "?" + payload if payload and method == "GET" else payload
+        prehash = f"{timestamp}{method.upper()}{path}{body_str}"
+        signature = hmac.new(
+            api_secret.encode("utf-8"),
+            prehash.encode("utf-8"),
             hashlib.sha256,
-        ).hexdigest()
+        ).digest()
+        return base64.b64encode(signature).decode()
 
-    def _prepare_payload(self, method: HttpMethod, params: dict[str, Any]) -> str:
-        def cast_values() -> None:
-            string_params = [
-                "qty",
-                "price",
-                "triggerPrice",
-                "takeProfit",
-                "stopLoss",
-            ]
-            integer_params = ["positionIdx"]
-            for key, value in params.items():
-                if key in string_params:
-                    if not isinstance(value, str):
-                        params[key] = str(value)
-                elif key in integer_params and not isinstance(value, int):
-                    params[key] = int(value)
-
+    def _prepare_payload(self, method: HttpMethod, params: ParamsType) -> str:
         if method == "GET":
-            return "&".join(
-                f"{k}={v}" for k, v in sorted(params.items()) if v is not None
+            if isinstance(params, Mapping):
+                return "&".join(
+                    f"{k}={v}" for k, v in sorted(params.items()) if v is not None
+                )
+            raise TypeError(
+                "OKX client does not support list params for GET requests. "
+                "Only dict is supported."
             )
-        cast_values()
-        sanitized = {k: params[k] for k in sorted(params) if params[k] is not None}
-        if not sanitized:
-            return "{}"
+        sanitized: list[dict[str, Any]] | dict[str, Any]
+        # Handle both dict and list[dict[str, Any]] for params
+        if isinstance(params, Mapping):
+            sanitized = {k: params[k] for k in sorted(params) if params[k] is not None}
+            if not sanitized:
+                return "{}"
+        else:
+            sanitized = [
+                {k: v for k, v in sorted(d.items()) if v is not None} for d in params
+            ]
+            if not sanitized or all(not d for d in sanitized):
+                return "[]"
 
-        # Note: need Bybit logic for signature
-        # serialization must match server expectations
         return orjson.dumps(sanitized).decode().replace(":", ": ").replace(",", ", ")
 
     async def _build_request_args(
@@ -120,7 +110,7 @@ class BybitHttpClient(HttpClient):
         method: HttpMethod,
         endpoint: str,
         params: ParamsType | None = None,
-        headers: dict[str, str] | None = None,
+        headers: dict[str, Any] | None = None,
         auth: bool = False,
     ) -> tuple[
         dict[str, Any],
@@ -135,50 +125,59 @@ class BybitHttpClient(HttpClient):
             raise RuntimeError(
                 f"Session is closed ({session_type}). Create a new HttpClient instance."
             )
-        if params is not None and not isinstance(params, Mapping):
-            raise TypeError(
-                "BingX client does not support list params for 'params'. "
-                "Only dict is supported."
-            )
+        if params is None:
+            params = {}
+        elif isinstance(params, Mapping):
+            params = dict(params)
+        else:
+            params = [dict(p) for p in params]
 
         # Prefer local assignment for micro-speed-up
-        params = dict(params) if params is not None else {}
-        req_headers = headers if headers is not None else {}
+        req_headers: dict[str, str] = headers if headers is not None else {}
 
-        # Optimize timestamp retrieval
-        timestamp = int(time.time() * 10**3)
+        timestamp = (
+            datetime.now(tz=UTC).replace(tzinfo=None).isoformat("T", "milliseconds")
+            + "Z"
+        )
 
         # Cheap check for referral
-        if self.referral_id is not None:
-            req_headers["Referer"] = self.referral_id
+        if self.demo:
+            req_headers["x-simulated-trading"] = "1"
 
         # Fast payload prep
         req_payload = self._prepare_payload(method, params)
 
         # Quickly handle signature/auth
         if auth:
-            if not (self.api_key and self.api_secret):
+            if not (self.api_key and self.api_secret and self.passphrase):
                 raise ValueError(
-                    "API key and API secret must be set for authenticated requests."
+                    "API key, API secret and passphrase "
+                    "must be set for authenticated requests."
                 )
             signature = self._generate_signature(
-                self.api_key, self.api_secret, req_payload, timestamp
+                self.api_secret, method, endpoint, req_payload, timestamp
             )
-            req_headers["X-BAPI-API-KEY"] = self.api_key
-            req_headers["X-BAPI-SIGN"] = signature
-            req_headers["X-BAPI-SIGN-TYPE"] = "2"
-            req_headers["X-BAPI-TIMESTAMP"] = str(timestamp)
-            req_headers["X-BAPI-RECV-WINDOW"] = str(self.recv_window)
-
+            req_headers["OK-ACCESS-KEY"] = self.api_key
+            req_headers["OK-ACCESS-PASSPHRASE"] = self.passphrase
+            req_headers["OK-ACCESS-SIGN"] = signature
+            req_headers["OK-ACCESS-TIMESTAMP"] = str(timestamp)
+            req_headers["OK-ACCESS-TIMESTAMP"] = str(timestamp)
         else:
             signature = None
 
         req_url = f"{self.base_url}{endpoint}"
+        req_json: list[dict[str, Any]] | dict[str, Any] | None
 
         if method == "GET":
             req_url = f"{req_url}?{req_payload}" if req_payload else req_url
             req_json = None
+        elif isinstance(params, list):
+            # If params is a list[dict[str, Any]], filter Nones inside dicts
+            req_json = [
+                {k: d[k] for k in sorted(d) if d[k] is not None} for d in params
+            ]
         else:
+            # Assume dict[str, Any]
             req_json = {k: params[k] for k in sorted(params) if params[k] is not None}
 
         # Logging fast, avoid joining or formatting unnecessarily unless debug
@@ -214,10 +213,9 @@ class BybitHttpClient(HttpClient):
             headers=req_headers,
         ) as resp:
             try:
-                resp.raise_for_status()
-                res_json: dict[str, Any] = await resp.json(content_type=None)
-                if res_json.get("retCode") != 0:
-                    raise ExchangeResponseError("bybit", res_json)
+                res_json: dict[str, Any] = await resp.json()
+                if res_json.get("code") not in (None, "0"):
+                    raise ExchangeResponseError("okx", res_json)
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
@@ -242,4 +240,4 @@ class BybitHttpClient(HttpClient):
                         err,
                     )
                 raise
-        return res_json
+            return res_json

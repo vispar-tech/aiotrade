@@ -2,5 +2,6 @@
 
 from .bingx import BingxClientsCache
 from .bybit import BybitClientsCache
+from .okx import OkxClientsCache
 
-__all__ = ["BingxClientsCache", "BybitClientsCache"]
+__all__ = ["BingxClientsCache", "BybitClientsCache", "OkxClientsCache"]

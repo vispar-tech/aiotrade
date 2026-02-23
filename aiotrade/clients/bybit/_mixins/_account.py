@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bybit import (
@@ -17,7 +17,7 @@ class AccountMixin:
         self: HttpClientProtocol,
         account_type: AccountType = "UNIFIED",
         coin: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get wallet balance.
 
@@ -44,7 +44,7 @@ class AccountMixin:
     async def get_transferable_amount(
         self: HttpClientProtocol,
         coin_name: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get transferable amount for coins in Unified Wallet.
 
@@ -77,7 +77,7 @@ class AccountMixin:
         end_time: int | None = None,
         limit: int | None = None,
         cursor: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get transaction log for Unified Trading Account.
 
@@ -99,7 +99,7 @@ class AccountMixin:
         Returns:
             Dict with transaction log response.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if account_type is not None:
             params["accountType"] = account_type
         if category is not None:
@@ -129,7 +129,7 @@ class AccountMixin:
 
     async def get_account_info(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get account info.
 
@@ -150,7 +150,7 @@ class AccountMixin:
         symbol: str | None = None,
         limit: int | None = None,
         cursor: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get instrument specification of online trading pairs.
 
@@ -166,7 +166,7 @@ class AccountMixin:
         Returns:
             Dict with instruments info response.
         """
-        params: Dict[str, Any] = {"category": category}
+        params: dict[str, Any] = {"category": category}
         if symbol is not None:
             params["symbol"] = symbol
         if limit is not None:
@@ -184,7 +184,7 @@ class AccountMixin:
         self: HttpClientProtocol,
         coin: str,
         amount: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Manually borrow funds.
 
@@ -212,7 +212,7 @@ class AccountMixin:
         self: HttpClientProtocol,
         coin: str,
         amount: float | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Manually repay debt without asset conversion.
 
@@ -240,7 +240,7 @@ class AccountMixin:
         self: HttpClientProtocol,
         coin: str | None = None,
         amount: float | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Manually repay debt.
 
@@ -275,7 +275,7 @@ class AccountMixin:
         category: Literal["spot", "linear", "inverse", "option"],
         symbol: str | None = None,
         base_coin: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get trading fee rate.
 
@@ -306,7 +306,7 @@ class AccountMixin:
     async def get_collateral_info(
         self: HttpClientProtocol,
         currency: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get collateral information for the unified margin account.
 
@@ -329,7 +329,7 @@ class AccountMixin:
             auth=True,
         )
 
-    async def get_dcp_info(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_dcp_info(self: HttpClientProtocol) -> dict[str, Any]:
         """
         Query the DCP configuration of the account.
 
@@ -348,7 +348,7 @@ class AccountMixin:
         self: HttpClientProtocol,
         coin: str,
         collateral_switch: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set if a coin is enabled/disabled as collateral in the Unified account.
 
@@ -376,7 +376,7 @@ class AccountMixin:
     async def set_margin_mode(
         self: HttpClientProtocol,
         set_margin_mode: MarginMode,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set margin mode.
 
@@ -399,7 +399,7 @@ class AccountMixin:
     async def set_spot_hedging(
         self: HttpClientProtocol,
         enable: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Turn on or off Spot Hedging feature for Portfolio margin.
 
@@ -426,7 +426,7 @@ class AccountMixin:
         end_time: int | None = None,
         limit: int | None = None,
         cursor: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get interest borrow history.
 
@@ -495,7 +495,7 @@ class AccountMixin:
 
     async def get_coin_greeks(
         self: HttpClientProtocol, base_coin: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get current account Greeks information.
 
@@ -517,7 +517,7 @@ class AccountMixin:
             auth=True,
         )
 
-    async def get_mmp_state(self: HttpClientProtocol, base_coin: str) -> Dict[str, Any]:
+    async def get_mmp_state(self: HttpClientProtocol, base_coin: str) -> dict[str, Any]:
         """
         Get MMP (Market Maker Protection) state.
 
@@ -537,7 +537,7 @@ class AccountMixin:
             auth=True,
         )
 
-    async def reset_mmp(self: HttpClientProtocol, base_coin: str) -> Dict[str, Any]:
+    async def reset_mmp(self: HttpClientProtocol, base_coin: str) -> dict[str, Any]:
         """
         Reset Market Maker Protection (MMP) for base coin.
 
@@ -564,7 +564,7 @@ class AccountMixin:
         frozen_period: str,
         qty_limit: str,
         delta_limit: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set Market Maker Protection (MMP) parameters.
 
@@ -595,7 +595,7 @@ class AccountMixin:
             auth=True,
         )
 
-    async def get_smp_group_id(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_smp_group_id(self: HttpClientProtocol) -> dict[str, Any]:
         """
         Get SMP (Self Match Prevention) group ID.
 
@@ -610,7 +610,7 @@ class AccountMixin:
             auth=True,
         )
 
-    async def get_trade_behaviour_setting(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_trade_behaviour_setting(self: HttpClientProtocol) -> dict[str, Any]:
         """
         Get trade behaviour setting (limit price behaviour for spot and futures).
 
@@ -629,7 +629,7 @@ class AccountMixin:
         self: HttpClientProtocol,
         category: Literal["linear", "inverse", "spot"],
         modify_enable: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set limit price behaviour for spot or futures.
 
@@ -656,7 +656,7 @@ class AccountMixin:
 
     async def repay_liability(
         self: HttpClientProtocol, coin: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Repay liability for Unified account.
 
@@ -681,7 +681,7 @@ class AccountMixin:
 
     async def upgrade_to_unified_account_pro(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Upgrade current account to Unified Account Pro (UTA2.0 Pro).
 

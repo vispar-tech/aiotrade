@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 
@@ -12,8 +12,8 @@ class MarketMixin:
 
     async def get_spot_symbols(
         self: "HttpClientProtocol",
-        symbol: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
         """
         Query tradable spot pairs whose symbol contains the given string.
 
@@ -25,9 +25,9 @@ class MarketMixin:
             symbol: Partial symbol (optional).
 
         Returns:
-            Dict[str, Any]: API response containing spot pairs matching the symbol.
+            dict[str, Any]: API response containing spot pairs matching the symbol.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol is not None:
             params["symbol"] = symbol
         return await self.get(
@@ -39,10 +39,10 @@ class MarketMixin:
         self: "HttpClientProtocol",
         symbol: str,
         interval: str,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        start_time: int | None = None,
+        end_time: int | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
         """
         Retrieve Kline/Candlestick data for BingX Spot market.
 
@@ -51,18 +51,18 @@ class MarketMixin:
         https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data
 
         Args:
-            symbol (str): Trading pair symbol, e.g. "BTC-USDT".
+            symbol: Trading pair symbol, e.g. "BTC-USDT".
                 Must be uppercase and include a hyphen.
-            interval (str): Candle interval, e.g. "1m", "5m", "1h", "1d", etc.
-            start_time (Optional[int]): Start timestamp (ms), inclusive. (optional)
-            end_time (Optional[int]): End timestamp (ms), inclusive. (optional)
-            limit (Optional[int]): How many klines to return
+            interval: Candle interval, e.g. "1m", "5m", "1h", "1d", etc.
+            start_time: Start timestamp (ms), inclusive. (optional)
+            end_time: End timestamp (ms), inclusive. (optional)
+            limit: How many klines to return
                 (default 500, max 1440). (optional)
 
         Returns:
-            Dict[str, Any]: API response with candlestick/kline data.
+            dict[str, Any]: API response with candlestick/kline data.
         """
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
             "interval": interval,
         }

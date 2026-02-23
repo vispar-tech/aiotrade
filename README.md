@@ -2,9 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![Python versions](https://img.shields.io/pypi/pyversions/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Release](https://github.com/vispar-tech/aiotrade/actions/workflows/release.yml/badge.svg)](https://github.com/vispar-tech/aiotrade/actions/workflows/release.yml)
+[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com)
 
-High-performance async trading API client for Python supporting BingX and Bybit exchanges with intelligent session and cache management.
+High-performance async trading API client for Python supporting BingX, Bybit and OKX exchanges with intelligent session and cache management.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ The library uses a sophisticated architecture for optimal performance:
 
 ### Client Caching
 
-- **TTL Cache**: `BingxClientsCache` and `BybitClientsCache` cache client instances with 10-minute lifetime
+- **TTL Cache**: `BingxClientsCache`, `BybitClientsCache`, and `OkxClientsCache` cache client instances with 10-minute lifetime
 - **Lock-Free**: No blocking operations for maximum performance
 - **Lazy Cleanup**: Expired entries removed on access, not proactively
 
@@ -74,6 +74,17 @@ BingxClient methods (48):
     get_spot_order_details                     set_perpetual_trader_tpsl_by_order
     get_spot_order_history                     set_swap_leverage
     get_spot_personal_trading_overview         set_swap_position_mode
+
+OkxClient methods (18):
+    batch_place_order      get_order
+    cancel_batch_orders    get_orders_history
+    close_position         get_orders_pending
+    decode_str             get_position_tiers
+    get_account_config     get_positions
+    get_balance            get_positions_history
+    get_funding_balance    set_isolated_mode
+    get_instruments        set_leverage
+    get_leverage_info      set_position_mode
 ```
 
 ## Installation
@@ -87,7 +98,7 @@ poetry add aiotrade-sdk
 ### Option 1: Shared Session (Recommended for Production)
 
 ```python
-from aiotrade import SharedSessionManager, BingxClient, BybitClient
+from aiotrade import SharedSessionManager, BingxClient, BybitClient, OkxClient
 
 # Initialize shared session at startup (once per application)
 SharedSessionManager.setup(max_connections=2000)
@@ -95,11 +106,13 @@ SharedSessionManager.setup(max_connections=2000)
 # Create clients for different exchanges - they automatically use the shared session
 bingx_client = BingxClient(api_key="bingx_key", api_secret="bingx_secret", demo=True)
 bybit_client = BybitClient(api_key="bybit_key", api_secret="bybit_secret", testnet=True)
+okx_client = OkxClient(api_key="okx_key", api_secret="okx_secret", passphrase="okx_passphrase")
 
 try:
     # Use clients for API calls
     bingx_assets = await bingx_client.get_spot_account_assets()
     bybit_tickers = await bybit_client.get_tickers(category="spot")
+    okx_balance = await okx_client.get_balance()
 finally:
     # Close shared session at shutdown
     await SharedSessionManager.close()
@@ -108,7 +121,7 @@ finally:
 ### Option 2: Individual Sessions
 
 ```python
-from aiotrade import BingxClient, BybitClient
+from aiotrade import BingxClient, BybitClient, OkxClient
 
 # BingX client with individual session
 async with BingxClient(api_key="your_key", api_secret="your_secret", demo=True) as client:
@@ -119,12 +132,17 @@ async with BingxClient(api_key="your_key", api_secret="your_secret", demo=True) 
 async with BybitClient(api_key="your_key", api_secret="your_secret", testnet=True) as client:
     tickers = await client.get_tickers(category="spot")
     print(f"Bybit tickers: {tickers}")
+
+# OKX client with individual session
+async with OkxClient(api_key="your_key", api_secret="your_secret", passphrase="your_passphrase") as client:
+    balance = await client.get_balance()
+    print(f"OKX balance: {balance}")
 ```
 
 ### Option 3: Cached Clients
 
 ```python
-from aiotrade import BingxClientsCache, BybitClientsCache
+from aiotrade import BingxClientsCache, BybitClientsCache, OkxClientsCache
 
 # Get cached BingX client (creates new if doesn't exist)
 bingx_client = BingxClientsCache.get_or_create(
@@ -140,6 +158,13 @@ bybit_client = BybitClientsCache.get_or_create(
     testnet=True
 )
 
+# Get cached OKX client
+okx_client = OkxClientsCache.get_or_create(
+    api_key="your_key",
+    api_secret="your_secret",
+    passphrase="your_passphrase"
+)
+
 # Use clients (session management is automatic)
 async with bingx_client:
     assets = await bingx_client.get_spot_account_assets()
@@ -147,13 +172,16 @@ async with bingx_client:
 async with bybit_client:
     tickers = await bybit_client.get_tickers(category="spot")
 
+async with okx_client:
+    balance = await okx_client.get_balance()
+
 # Same parameters return the same cached instance
-cached_bingx = BingxClientsCache.get_or_create(
+cached_okx = OkxClientsCache.get_or_create(
     api_key="your_key",
     api_secret="your_secret",
-    demo=True
+    passphrase="your_passphrase"
 )
-assert bingx_client is cached_bingx  # True
+assert okx_client is cached_okx  # True
 ```
 
 ## Session Behavior
@@ -175,62 +203,17 @@ assert bingx_client is cached_bingx  # True
 # Configure cache lifetime for each exchange
 BingxClientsCache.configure(lifetime_seconds=1800)  # 30 minutes
 BybitClientsCache.configure(lifetime_seconds=1800)  # 30 minutes
+OkxClientsCache.configure(lifetime_seconds=1800)    # 30 minutes
 
 # Start background cleanup
 bingx_cleanup = BingxClientsCache.create_cleanup_task(interval_seconds=300)
 bybit_cleanup = BybitClientsCache.create_cleanup_task(interval_seconds=300)
+okx_cleanup = OkxClientsCache.create_cleanup_task(interval_seconds=300)
 
 # Manual cleanup
 bingx_removed = BingxClientsCache.cleanup_expired()
 bybit_removed = BybitClientsCache.cleanup_expired()
-```
-
-## API Methods
-
-### BingX Client Methods
-
-```python
-from aiotrade import BingxClient
-
-client = BingxClient(api_key="your_key", api_secret="your_secret", demo=True)
-
-# Market data
-server_time = await client.get_server_time()
-
-# Spot trading
-assets = await client.get_spot_account_assets()
-tickers = await client.get_spot_tickers()
-
-# Swap trading (perpetual futures)
-await client.place_swap_order({
-    "symbol": "BTC-USDT",
-    "side": "BUY",
-    "positionSide": "BOTH",
-    "type": "MARKET",
-    "quantity": 0.001
-})
-```
-
-### Bybit Client Methods
-
-```python
-from aiotrade import BybitClient
-
-client = BybitClient(api_key="your_key", api_secret="your_secret", testnet=True)
-
-# Market data
-server_time = await client.get_server_time()
-tickers = await client.get_tickers(category="spot")
-klines = await client.get_kline("BTCUSDT", "1h", category="linear")
-
-# Trading
-await client.place_order({
-    "category": "linear",
-    "symbol": "BTCUSDT",
-    "side": "Buy",
-    "orderType": "Market",
-    "qty": "0.001"
-})
+okx_removed = OkxClientsCache.cleanup_expired()
 ```
 
 ## Requirements

@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 import orjson
 
@@ -22,7 +22,7 @@ class TradeMixin:
 
     async def place_swap_order(
         self: "HttpClientProtocol", params: PlaceSwapOrderParams
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Place a new swap order.
 
         Endpoint: POST /openApi/swap/v2/trade/order
@@ -55,7 +55,7 @@ class TradeMixin:
             "position_id": "positionId",
         }
 
-        order_data: Dict[str, Any] = {}
+        order_data: dict[str, Any] = {}
         for key, value in params.items():
             if value is None:
                 continue
@@ -76,7 +76,7 @@ class TradeMixin:
 
     async def place_swap_batch_orders(
         self: "HttpClientProtocol", batch_orders: list[PlaceSwapOrderParams]
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Place multiple swap orders (batch).
 
@@ -86,7 +86,7 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
 
         Args:
-            batch_orders: List[PlaceSwapOrderParams] - Up to 5 order dicts.
+            batch_orders: list[PlaceSwapOrderParams] - Up to 5 order dicts.
 
         Returns:
             Dict: The API response.
@@ -113,8 +113,9 @@ class TradeMixin:
             "position_id": "positionId",
         }
 
-        def serialize_order(params: PlaceSwapOrderParams) -> Dict[str, Any]:
-            order: Dict[str, Any] = {}
+        # todo: use remap
+        def serialize_order(params: PlaceSwapOrderParams) -> dict[str, Any]:
+            order: dict[str, Any] = {}
             for key, value in params.items():
                 if value is None:
                     continue
@@ -145,7 +146,7 @@ class TradeMixin:
     async def close_swap_position(
         self: "HttpClientProtocol",
         position_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Close a Perpetual Swap position.
 
         POST /openApi/swap/v1/trade/closePosition
@@ -161,13 +162,13 @@ class TradeMixin:
 
     async def get_swap_order_history(
         self: "HttpClientProtocol",
-        symbol: Optional[str] = None,
-        currency: Optional[Literal["USDT", "USDC"]] = None,
-        order_id: Optional[int] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
+        symbol: str | None = None,
+        currency: Literal["USDT", "USDC"] | None = None,
+        order_id: int | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
         limit: int = 500,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query swap order history (completed or canceled orders).
 
@@ -186,9 +187,9 @@ class TradeMixin:
             Default 500, max 1000.
 
         Returns:
-            Dict[str, Any]: API response with order history.
+            dict[str, Any]: API response with order history.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
 
         if symbol is not None:
             params["symbol"] = symbol
@@ -212,9 +213,9 @@ class TradeMixin:
     async def get_swap_order_details(
         self: "HttpClientProtocol",
         symbol: str,
-        order_id: Optional[int] = None,
-        client_order_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        order_id: int | None = None,
+        client_order_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Query swap order details (active/completed/canceled orders).
 
@@ -229,9 +230,9 @@ class TradeMixin:
                 (1~40 chars, lowercase).
 
         Returns:
-            Dict[str, Any]: API response with order details.
+            dict[str, Any]: API response with order details.
         """
-        params: Dict[str, Any] = {"symbol": symbol}
+        params: dict[str, Any] = {"symbol": symbol}
         if order_id is not None:
             params["orderId"] = order_id
         if client_order_id is not None:
@@ -245,9 +246,9 @@ class TradeMixin:
 
     async def get_swap_open_orders(
         self: "HttpClientProtocol",
-        symbol: Optional[str] = None,
-        order_type: Optional[SwapOrderType] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        order_type: SwapOrderType | None = None,
+    ) -> dict[str, Any]:
         """
         Query all currently open swap orders (open entrusts).
 
@@ -260,9 +261,9 @@ class TradeMixin:
             order_type: Optional order type.
 
         Returns:
-            Dict[str, Any]: API response with list of open orders.
+            dict[str, Any]: API response with list of open orders.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol is not None:
             params["symbol"] = symbol
         if order_type is not None:
@@ -277,9 +278,9 @@ class TradeMixin:
     async def cancel_swap_batch_orders(
         self: "HttpClientProtocol",
         symbol: str,
-        order_id_list: Optional[list[int]] = None,
-        client_order_id_list: Optional[list[str]] = None,
-    ) -> Dict[str, Any]:
+        order_id_list: list[int] | None = None,
+        client_order_id_list: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Cancel multiple swap orders in a batch (max 10 per request).
 
@@ -293,7 +294,7 @@ class TradeMixin:
             client_order_id_list: Optional list of up to 10 custom IDs
 
         Returns:
-            Dict[str, Any]: API response indicating cancellation results.
+            dict[str, Any]: API response indicating cancellation results.
 
         Notes:
             - At least one of order_id_list or client_order_id_list must be provided.
@@ -306,7 +307,7 @@ class TradeMixin:
                 "client_order_id_list must be provided."
             )
 
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
         }
         if order_id_list is not None:
@@ -325,11 +326,11 @@ class TradeMixin:
         symbol: str,
         start_ts: int,
         end_ts: int,
-        currency: Optional[Literal["USDC", "USDT"]] = None,
-        position_id: Optional[int] = None,
-        page_index: Optional[int] = None,
-        page_size: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        currency: Literal["USDC", "USDT"] | None = None,
+        position_id: int | None = None,
+        page_index: int | None = None,
+        page_size: int | None = None,
+    ) -> dict[str, Any]:
         """
         Query the position history of perpetual contracts for the specified symbol.
 
@@ -348,7 +349,7 @@ class TradeMixin:
             page_size (int, optional): Page size, max 100 (default: 1000)
 
         Returns:
-            Dict[str, Any]: API response containing position history records.
+            dict[str, Any]: API response containing position history records.
 
         Notes:
             - Time window max is three months.
@@ -356,7 +357,7 @@ class TradeMixin:
             - UID rate limit: 5/sec.
             - Master and sub accounts supported.
         """
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
             "startTs": start_ts,
             "endTs": end_ts,
@@ -382,7 +383,7 @@ class TradeMixin:
         symbol: str,
         side: PositionSide,
         leverage: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Adjust the user's opening leverage in the specified symbol contract.
 
@@ -397,14 +398,14 @@ class TradeMixin:
 
 
         Returns:
-            Dict[str, Any]: Response from BingX API.
+            dict[str, Any]: Response from BingX API.
 
         Notes:
             - UID rate limit: 5/sec.
             - Signature required.
             - Supported for master and sub accounts.
         """
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
             "side": side,
             "leverage": leverage,
@@ -419,7 +420,7 @@ class TradeMixin:
     async def set_swap_position_mode(
         self: "HttpClientProtocol",
         dual_side_position: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set the position mode of perpetual contract (dual or single position mode).
 
@@ -432,7 +433,7 @@ class TradeMixin:
                 False for single position mode.
 
         Returns:
-            Dict[str, Any]: Response from BingX API.
+            dict[str, Any]: Response from BingX API.
 
         Notes:
             - "dualSidePosition" POST param: "true" for dual, "false" for single.
@@ -440,7 +441,7 @@ class TradeMixin:
             - Signature required.
             - Supported for master and sub accounts.
         """
-        params: Dict[str, Any] = {"dualSidePosition": str(dual_side_position).lower()}
+        params: dict[str, Any] = {"dualSidePosition": str(dual_side_position).lower()}
 
         return await self.post(
             "/openApi/swap/v1/positionSide/dual",
@@ -450,7 +451,7 @@ class TradeMixin:
 
     async def get_swap_position_mode(
         self: "HttpClientProtocol",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get the position mode of perpetual contract (dual or single position mode).
 
@@ -459,7 +460,7 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
 
         Returns:
-            Dict[str, Any]: API response with the current position mode.
+            dict[str, Any]: API response with the current position mode.
 
         Notes:
             - UID rate limit: 2/sec per UID.
@@ -474,7 +475,7 @@ class TradeMixin:
     async def get_swap_leverage_and_available_positions(
         self: "HttpClientProtocol",
         symbol: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query leverage and available positions for the contract symbol.
 
@@ -486,14 +487,14 @@ class TradeMixin:
             symbol (str): Trading pair symbol, e.g., "BTC-USDT".
 
         Returns:
-            Dict[str, Any]: API response with leverage and available positions.
+            dict[str, Any]: API response with leverage and available positions.
 
         Notes:
             - UID rate limit: 5/sec per UID.
             - Signature required.
             - Supported for master and sub accounts.
         """
-        params: Dict[str, Any] = {"symbol": symbol}
+        params: dict[str, Any] = {"symbol": symbol}
         return await self.get(
             "/openApi/swap/v2/trade/leverage",
             params=params,
@@ -502,9 +503,9 @@ class TradeMixin:
 
     async def cancel_all_swap_open_orders(
         self: "HttpClientProtocol",
-        symbol: Optional[str] = None,
-        order_type: Optional[SwapOrderType] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+        order_type: SwapOrderType | None = None,
+    ) -> dict[str, Any]:
         """
         Cancel all open swap orders for the account or symbol/type, if specified.
 
@@ -513,19 +514,19 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
 
         Args:
-            symbol (Optional[str]): Trading pair symbol, e.g. "BTC-USDT".
+            symbol (str | None): Trading pair symbol, e.g. "BTC-USDT".
                 If omitted, cancels all orders of all symbols.
-            order_type (Optional[SwapOrderType]): Order type to cancel.
+            order_type: Order type to cancel.
 
         Returns:
-            Dict[str, Any]: API response.
+            dict[str, Any]: API response.
 
         Notes:
             - UID Rate Limit: 5/sec per UID.
             - Signature verification required.
             - Supported for master and sub accounts.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol is not None:
             params["symbol"] = symbol
         if order_type is not None:
@@ -541,7 +542,7 @@ class TradeMixin:
         self: "HttpClientProtocol",
         symbol: str,
         margin_type: MarginMode,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Change the user's margin mode on the specified symbol contract.
 
@@ -554,14 +555,14 @@ class TradeMixin:
             margin_type (Literal): "ISOLATED", "CROSSED", or "SEPARATE_ISOLATED".
 
         Returns:
-            Dict[str, Any]: API response indicating margin type result.
+            dict[str, Any]: API response indicating margin type result.
 
         Notes:
             - UID Rate Limit: 2/second per UID.
             - Signature verification required.
             - Supported for master and sub accounts.
         """
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
             "marginType": margin_type,
         }
@@ -574,7 +575,7 @@ class TradeMixin:
     async def get_swap_margin_type(
         self: "HttpClientProtocol",
         symbol: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query the user's margin mode on the specified symbol contract.
 
@@ -586,14 +587,14 @@ class TradeMixin:
             symbol (str): Trading pair symbol, e.g., "BTC-USDT" (must contain '-').
 
         Returns:
-            Dict[str, Any]: API response indicating the margin type for the contract.
+            dict[str, Any]: API response indicating the margin type for the contract.
 
         Notes:
             - UID Rate Limit: 2/second per UID.
             - Signature verification required.
             - Supported for master and sub accounts.
         """
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "symbol": symbol,
         }
         return await self.get(
@@ -609,7 +610,7 @@ class TradeMixin:
         start_time: int | None = None,
         end_time: int | None = None,
         limit: int = 500,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query all swap orders (history and open) for BingX.
 
@@ -625,9 +626,9 @@ class TradeMixin:
             limit (int, optional): Results to return. Default 500, max 1000.
 
         Returns:
-            Dict[str, Any]: API response containing list of full orders.
+            dict[str, Any]: API response containing list of full orders.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol:
             params["symbol"] = symbol
         if order_id is not None:

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bingx import AccountType
@@ -9,7 +9,7 @@ class AccountMixin:
 
     async def get_spot_account_assets(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get spot account balances from BingX API.
 
@@ -23,8 +23,8 @@ class AccountMixin:
 
     async def get_account_asset_overview(
         self: HttpClientProtocol,
-        account_type: Optional[AccountType] = None,
-    ) -> Dict[str, Any]:
+        account_type: AccountType | None = None,
+    ) -> dict[str, Any]:
         """
         Get asset overview for all or specific BingX account types.
 
@@ -36,7 +36,7 @@ class AccountMixin:
         Returns:
             Response dictionary with asset overview.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if account_type is not None:
             params["accountType"] = account_type
 

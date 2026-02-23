@@ -1,10 +1,10 @@
-from typing import Any, Dict
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 
 
 class CommonMixin:
-    async def get_server_time(self: HttpClientProtocol) -> Dict[str, Any]:
+    async def get_server_time(self: HttpClientProtocol) -> dict[str, Any]:
         """Get BingX server time.
 
         Returns:

@@ -3,7 +3,7 @@
 import aiohttp
 
 from aiotrade._session import SharedSessionManager
-from aiotrade.clients import BingxClient, BybitClient
+from aiotrade.clients import BingxClient, BybitClient, OkxClient
 
 
 async def test_clients_share_session() -> None:
@@ -19,6 +19,8 @@ async def test_clients_share_session() -> None:
         BybitClient() as client2,
         BingxClient() as client3,
         BingxClient() as client4,
+        OkxClient() as client5,
+        OkxClient() as client6,
     ):
         # All clients should use the same aiohttp session internally.
         # We'll check via the private _session, for test purposes only
@@ -26,16 +28,22 @@ async def test_clients_share_session() -> None:
         session_client2 = getattr(client2, "_session", None)
         session_client3 = getattr(client3, "_session", None)
         session_client4 = getattr(client4, "_session", None)
+        session_client5 = getattr(client5, "_session", None)
+        session_client6 = getattr(client6, "_session", None)
         assert session_client1 is session1
         assert session_client2 is session1
         assert session_client3 is session1
         assert session_client4 is session1
+        assert session_client5 is session1
+        assert session_client6 is session1
 
         # Check that all clients report they are using the shared session.
         assert client1.uses_shared_session is True
         assert client2.uses_shared_session is True
         assert client3.uses_shared_session is True
         assert client4.uses_shared_session is True
+        assert client5.uses_shared_session is True
+        assert client6.uses_shared_session is True
 
     # After all clients closed, shared session is still open unless we close it
     assert SharedSessionManager.is_initialized()

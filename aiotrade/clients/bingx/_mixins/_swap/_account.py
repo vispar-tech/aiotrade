@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 
@@ -12,8 +12,8 @@ class AccountMixin:
 
     async def get_swap_positions(
         self: "HttpClientProtocol",
-        symbol: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
         """Retrieve information on user's Perpetual Swap positions.
 
         GET /openApi/swap/v2/user/positions
@@ -25,9 +25,9 @@ class AccountMixin:
                                     If None, query all positions.
 
         Returns:
-            Dict[str, Any]: API response containing position data.
+            dict[str, Any]: API response containing position data.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if symbol is not None:
             params["symbol"] = symbol
 
@@ -39,7 +39,7 @@ class AccountMixin:
 
     async def get_swap_account_balance(
         self: "HttpClientProtocol",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve user's Perpetual Swap account balance.
 
@@ -48,7 +48,7 @@ class AccountMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data
 
         Returns:
-            Dict[str, Any]: API response containing account balance data.
+            dict[str, Any]: API response containing account balance data.
         """
         return await self.get(
             "/openApi/swap/v3/user/balance",

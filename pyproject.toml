@@ -87,7 +87,6 @@ exclude = ["debug"]
 select = [
     "E",
     "F",
-    "W",
     "I",
     "N",
     "D",
@@ -108,7 +107,7 @@ select = [
     "ERA",
     "PLR",
     "RUF",
-
+    "UP"
 ]
 ignore = [
     "ANN401", # Need cause we work with dictionaries

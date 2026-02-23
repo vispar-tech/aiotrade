@@ -152,6 +152,7 @@ class BatchSetCollateralRequest(TypedDict):
     collateralSwitch: bool
 
 
+# todo: use camel case direct here
 class SetTradingStopParams(TypedDict):
     """Parameters for setting trading stop (TP/SL)."""
 
@@ -177,6 +178,7 @@ class SetTradingStopParams(TypedDict):
     sl_order_type: NotRequired[TpSlOrderType]
 
 
+# todo: use camel case direct here
 class GetOrderHistoryParams(TypedDict, total=False):
     """Parameters for querying order history."""
 
@@ -207,6 +209,7 @@ class GetOrderHistoryParams(TypedDict, total=False):
     cursor: str
 
 
+# todo: use camel case direct here
 class CancelOrderParams(TypedDict):
     """Parameters for canceling an order."""
 
@@ -215,6 +218,7 @@ class CancelOrderParams(TypedDict):
     order_link_id: NotRequired[str]
 
 
+# todo: use camel case direct here
 class PlaceOrderParams(TypedDict):
     """Parameters for placing an order."""
 

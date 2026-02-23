@@ -3,9 +3,9 @@
 import ast
 import inspect
 from contextlib import suppress
-from typing import Any, List
+from typing import Any
 
-from aiotrade import BingxClient, BybitClient
+from aiotrade import BingxClient, BybitClient, OkxClient
 
 
 def is_method(obj: Any) -> bool:
@@ -58,9 +58,9 @@ def is_effectively_not_implemented(func: Any) -> bool:
     return returns_none_annotation(func) or raises_notimplemented_in_body(func)
 
 
-def implemented_methods(client_cls: type) -> List[str]:
+def implemented_methods(client_cls: type) -> list[str]:
     """List implemented public method names of class, skipping non-implemented ones."""
-    methods: List[str] = []
+    methods: list[str] = []
     for name, _member in inspect.getmembers(client_cls, predicate=is_method):
         if name.startswith("_"):
             continue
@@ -74,7 +74,7 @@ def implemented_methods(client_cls: type) -> List[str]:
     return sorted(set(filtered_methods))
 
 
-def pretty_print_methods(title: str, methods: List[str]) -> None:
+def pretty_print_methods(title: str, methods: list[str]) -> None:
     print(f"\n{title}")
     if not methods:
         print("  (none found)")
@@ -102,9 +102,11 @@ def main() -> None:
     """Print all implemented public method names in a nice table."""
     bybit_methods = implemented_methods(BybitClient)
     bingx_methods = implemented_methods(BingxClient)
+    okx_methods = implemented_methods(OkxClient)
 
     pretty_print_methods(f"BybitClient methods ({len(bybit_methods)}):", bybit_methods)
     pretty_print_methods(f"BingxClient methods ({len(bingx_methods)}):", bingx_methods)
+    pretty_print_methods(f"OkxClient methods ({len(okx_methods)}):", okx_methods)
 
 
 if __name__ == "__main__":

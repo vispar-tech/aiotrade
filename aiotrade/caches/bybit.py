@@ -1,6 +1,6 @@
 """High-performance cache for BybitClient instances."""
 
-from typing import ClassVar, Dict, Tuple
+from typing import ClassVar
 
 from aiotrade.clients import BybitClient
 
@@ -12,7 +12,7 @@ _Key = tuple[str, str, bool, bool]
 class BybitClientsCache(BaseClientsCache[_Key, BybitClient]):
     """Ultra-fast singleton cache for BybitClient."""
 
-    _cache: ClassVar[Dict[_Key, Tuple[BybitClient, float]]] = {}
+    _cache: ClassVar[dict[_Key, tuple[BybitClient, float]]] = {}
 
     @classmethod
     def _make_key(

@@ -209,15 +209,15 @@ async def test_bingx_spot_assets_and_positions() -> None:
         try:
             result = await client.place_swap_order(
                 PlaceSwapOrderParams(
-                    symbol="BTC-USDT",
+                    symbol="XRP-USDT",
                     side="BUY",
                     position_side="BOTH",
                     order_type="MARKET",
-                    quantity=0.005,
+                    quantity=10,
                     take_profit=TpSlStruct(
                         order_type="TAKE_PROFIT_MARKET",
-                        price=100_000,
-                        stop_price=100_000,
+                        price=2.000,
+                        stop_price=2.000,
                         working_type="MARK_PRICE",
                     ),
                 )

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 
@@ -11,7 +11,7 @@ class SubMixin:
 
     async def get_api_permissions(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get API permission information.
 
         GET /openApi/v1/account/apiPermissions
@@ -22,7 +22,7 @@ class SubMixin:
 
     async def get_account_uid(
         self: HttpClientProtocol,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Query the Account UID.
 
@@ -31,7 +31,7 @@ class SubMixin:
         https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Sub-account%20Management/Query%20Account%20UID
 
         Returns:
-            Dict[str, Any]: Response containing the account UID and related info.
+            dict[str, Any]: Response containing the account UID and related info.
 
         Example response:
             {

@@ -2,11 +2,13 @@ import hashlib
 import hmac
 import logging
 import time
+from collections.abc import Mapping
 from typing import Any
 from urllib import parse
 
 from aiotrade._errors import ExchangeResponseError
 from aiotrade._http import HttpClient
+from aiotrade._protocols import ParamsType
 from aiotrade._types import HttpMethod
 
 logger = logging.getLogger("aiotrade.bingx")
@@ -57,7 +59,10 @@ class BingxHttpClient(HttpClient):
             base_url = "https://open-api-vst.bingx.com"
         else:
             base_url = "https://open-api.bingx.com"
-        super().__init__(base_url, api_key, api_secret, recv_window)
+        self.api_key = api_key
+        self.api_secret = api_secret
+
+        super().__init__(base_url, recv_window=recv_window)
 
     def _generate_signature(self, api_secret: str, payload: str) -> str:
         """Bingx V5 signature (API v5)."""
@@ -114,14 +119,14 @@ class BingxHttpClient(HttpClient):
         self,
         method: HttpMethod,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> tuple[
         dict[str, Any],
         str,
         dict[str, Any] | None,
-        dict[str, Any] | None,
+        list[dict[str, Any]] | dict[str, Any] | None,
         dict[str, Any] | None,
     ]:
         # Fast path: avoid unnecessary checks and recomputation
@@ -130,9 +135,14 @@ class BingxHttpClient(HttpClient):
             raise RuntimeError(
                 f"Session is closed ({session_type}). Create a new HttpClient instance."
             )
+        if params is not None and not isinstance(params, Mapping):
+            raise TypeError(
+                "BingX client does not support list params for 'params'. "
+                "Only dict is supported."
+            )
 
         # Prefer local assignment for micro-speed-up
-        params = params if params is not None else {}
+        params = dict(params) if params is not None else {}
         req_headers = headers if headers is not None else {}
 
         # Optimize timestamp retrieval
@@ -186,7 +196,7 @@ class BingxHttpClient(HttpClient):
         self,
         method: HttpMethod,
         endpoint: str,
-        params: dict[str, Any] | None = None,
+        params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
     ) -> dict[str, Any]:
@@ -222,4 +232,4 @@ class BingxHttpClient(HttpClient):
                         err,
                     )
                 raise
-        return res_json
+            return res_json
