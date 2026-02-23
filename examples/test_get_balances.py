@@ -1,10 +1,10 @@
-"""Tests for BingX, Bybit, and OKX API spot and swap account/portfolio balances."""
+"""Tests for exchanges spot and swap account/portfolio balances."""
 
 import asyncio
 import os
 from decimal import Decimal
 
-from aiotrade import BingxClient, BybitClient, OkxClient
+from aiotrade import BingxClient, BitgetClient, BybitClient, OkxClient
 
 
 def _format_number(val: float) -> str:
@@ -136,6 +136,36 @@ async def print_okx_wallet_balances(client: OkxClient) -> None:
         print(_tab(1) + f"❌ Error retrieving OKX wallet balance: {e}")
 
 
+async def print_bitget_wallet_balances(client: BitgetClient) -> None:
+    """Fetch and print Bitget wallet balances using get_account_list."""
+    print("\n🔴 Fetching Bitget wallet balance...")
+    try:
+        # This returns futures/swap account balances
+        result = await client.get_account_list("USDT-FUTURES")
+        assets: set[str] = set()
+        for account in result.get("data", []):
+            margin_coin = account.get("marginCoin")
+            if margin_coin:
+                assets.add(margin_coin)
+
+        if assets:
+            print(_tab(1) + "Asset".ljust(12) + "Wallet Balance")
+            print(_tab(1) + "-" * 30)
+        else:
+            print(_tab(1) + "No assets found.")
+
+        for asset in sorted(assets):
+            wallet_balance = client.helpers.extract_wallet_balance(result, asset=asset)
+            if wallet_balance is None:
+                print(_tab(1) + f"{asset.ljust(12)}" + "No wallet balance found")
+            else:
+                print(
+                    _tab(1) + f"{asset.ljust(12)}" + f"{_format_number(wallet_balance)}"
+                )
+    except Exception as e:
+        print(_tab(1) + f"❌ Error retrieving Bitget wallet balance: {e}")
+
+
 def check_env(
     required_vars: list[str],
 ) -> tuple[bool, list[str]]:
@@ -154,7 +184,7 @@ def check_env(
 
 
 async def test_get_balances() -> None:  # noqa: PLR0912, PLR0915
-    """Test retrieving balances for BingX (spot/swap), Bybit, and OKX using env vars."""
+    """Test retrieving balances using env vars."""
 
     # --- BingX ---
     bx_ok, bx_vals = check_env(["BINGX_API_KEY", "BINGX_API_SECRET"])
@@ -271,6 +301,29 @@ async def test_get_balances() -> None:  # noqa: PLR0912, PLR0915
         print("\n==================== OKX ====================")
         missing = ", ".join(okx_vals)
         print(f"{_tab(1)}❌ Skipping OKX test. Missing env vars: {missing}")
+
+    # --- Bitget ---
+    bitget_ok, bitget_vals = check_env(
+        ["BITGET_API_KEY", "BITGET_API_SECRET", "BITGET_API_PASSPHRASE"]
+    )
+    if bitget_ok:
+        bitget_key, bitget_secret, bitget_passphrase = bitget_vals
+        print("\n" + "_" * 80)
+        print("\n==================== Bitget ====================")
+        print(f"🔑 Using Bitget API Key: {bitget_key[:8]}...")
+        bitget_client = BitgetClient(
+            api_key=bitget_key,
+            api_secret=bitget_secret,
+            passphrase=bitget_passphrase,
+            demo=True,
+        )
+        await print_bitget_wallet_balances(bitget_client)
+        await bitget_client.close()
+    else:
+        print("\n" + "_" * 80)
+        print("\n==================== Bitget ====================")
+        missing = ", ".join(bitget_vals)
+        print(f"{_tab(1)}❌ Skipping Bitget test. Missing env vars: {missing}")
 
 
 if __name__ == "__main__":

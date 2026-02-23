@@ -1,14 +1,13 @@
-"""OKX client package."""
+"""Bitget client package."""
 
-from ._helpers import OkxHelpers
-from ._http import OkxHttpClient
-from ._mixins import FundingAccountMixin, PublicMixin, TradeMixin, TradingAccountMixin
+from aiotrade.clients.bitget._mixins import FuturesMixin, PublicMixin, SpotMixin
+
+from ._helpers import BitgetHelpers
+from ._http import BitgetHttpClient
 
 
-class OkxClient(
-    OkxHttpClient, TradingAccountMixin, FundingAccountMixin, PublicMixin, TradeMixin
-):
-    """OKX Trading API Client with all available methods."""
+class BitgetClient(BitgetHttpClient, FuturesMixin, SpotMixin, PublicMixin):
+    """Bitget Trading API Client with all available methods."""
 
     def __init__(
         self,
@@ -19,12 +18,12 @@ class OkxClient(
         recv_window: int = 5000,
     ) -> None:
         """
-        Initialize an OkxClient instance.
+        Initialize a BitgetClient instance.
 
         Args:
-            api_key: OKX API key.
-            api_secret: OKX API secret.
-            passphrase: OKX API passphrase.
+            api_key: Bitget API key.
+            api_secret: Bitget API secret.
+            passphrase: Bitget API passphrase.
             demo: Whether to use demo trading mode.
                 Default is False.
             recv_window: Optional custom receive window (ms) for requests.
@@ -32,9 +31,9 @@ class OkxClient(
 
         Example:
             ```python
-            from aiotrade.clients import OkxClient
+            from aiotrade.clients import BitgetClient
 
-            client = OkxClient(
+            client = BitgetClient(
                 api_key="your_api_key",
                 api_secret="your_api_secret",
                 passphrase="your_passphrase",
@@ -46,7 +45,7 @@ class OkxClient(
         super().__init__(api_key, api_secret, passphrase, demo, recv_window)
 
         # Utility class for helper methods
-        self.helpers = OkxHelpers
+        self.helpers = BitgetHelpers
 
 
-__all__ = ["OkxClient"]
+__all__ = ["BitgetClient"]

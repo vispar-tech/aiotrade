@@ -130,13 +130,13 @@ class SpotMixin:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/Spot%20Trading/Query%20Historical%20Orders
 
         Args:
-            page_index (int): Page index, must be greater than 0.
-            page_size (int): Number of items per page, must be greater than 0,
+            page_index: Page index, must be greater than 0.
+            page_size: Number of items per page, must be greater than 0,
                 maximum 100.
-            symbol (str, optional): Trading pair (e.g. "BTC-USDT").
-            start_time (int, optional): Start timestamp in milliseconds,
+            symbol: Trading pair (e.g. "BTC-USDT").
+            start_time: Start timestamp in milliseconds,
                 query orders within the time range.
-            end_time (int, optional): End timestamp in milliseconds,
+            end_time: End timestamp in milliseconds,
                 query orders within the time range.
 
         Returns:

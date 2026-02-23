@@ -80,23 +80,23 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
 
         Parameters:
-            symbol (str, optional):
+            symbol:
                 Spot trading pair symbol, e.g. "BTC-USDT".
                 If not provided, returns all symbols.
-            order_id (int, optional):
+            order_id:
                 Returns all orders with orderId >= this value.
                 If set, start/end time are ignored.
-            start_time (int, optional):
+            start_time:
                 Start timestamp in ms. Used with end_time.
-            end_time (int, optional):
+            end_time:
                 End timestamp in ms.
-            page_index (int, optional):
+            page_index:
                 Page number (starts from 1). Default is 1.
-            page_size (int, optional):
+            page_size:
                 Results per page. Max 100. Default is 100.
-            status (str, optional):
+            status:
                 Filter order status: "FILLED", "CANCELED", "FAILED".
-            order_type (str, optional):
+            order_type:
                 Filter order type:
                 "MARKET", "LIMIT", "TAKE_STOP_LIMIT",
                 "TAKE_STOP_MARKET", "TRIGGER_LIMIT",
@@ -151,11 +151,11 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details
 
         Parameters:
-            symbol (str, required):
+            symbol:
                 Trading pair, e.g., "BTC-USDT".
-            order_id (int, optional):
+            order_id:
                 Order ID.
-            client_order_id (str, optional):
+            client_order_id:
                 Custom user order ID (1~40 chars).
                     Only supports a query range of 2 hours.
 
@@ -194,7 +194,7 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders
 
         Parameters:
-            symbol (str, optional): Trading pair, e.g., "BTC-USDT".
+            symbol: Trading pair, e.g., "BTC-USDT".
                 Query all pending orders when left blank.
 
         Returns:
@@ -284,13 +284,13 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details
 
         Parameters:
-            symbol (str): Trading pair, e.g. "BTC-USDT" (required, UPPERCASE)
-            order_id (int, optional): Order ID
-            start_time (int, optional): Start timestamp in milliseconds
-            end_time (int, optional): End timestamp in milliseconds
-            from_id (int, optional): Starting trade ID;
+            symbol: Trading pair, e.g. "BTC-USDT" (required, UPPERCASE)
+            order_id: Order ID
+            start_time: Start timestamp in milliseconds
+            end_time: End timestamp in milliseconds
+            from_id: Starting trade ID;
                 by default retrieves the latest trade
-            limit (int, optional): Number of returned results (default 500, max 1000)
+            limit: Number of returned results (default 500, max 1000)
 
         Returns:
             dict[str, Any]: API response with trade details.
@@ -335,7 +335,7 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol
 
         Parameters:
-            symbol (str, optional): Trading pair, e.g., "BTC-USDT".
+            symbol: Trading pair, e.g., "BTC-USDT".
                 If not filled, cancel all orders.
 
         Returns:

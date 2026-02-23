@@ -13,21 +13,22 @@ from aiotrade._http import HttpClient
 from aiotrade._protocols import ParamsType
 from aiotrade._types import HttpMethod
 
-logger = logging.getLogger("aiotrade.okx")
+logger = logging.getLogger("aiotrade.bitget")
 
 
 def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
     masked: dict[str, Any] = {}
     for k, v in headers.items():
-        if k in ("OK-ACCESS-KEY", "OK-ACCESS-SIGN", "OK-ACCESS-PASSPHRASE"):
+        # Update for Bitget header schemes
+        if k in ("ACCESS-KEY", "ACCESS-SIGN", "ACCESS-PASSPHRASE"):
             masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
         else:
             masked[k] = v
     return masked
 
 
-class OkxHttpClient(HttpClient):
-    """Okx HTTP client."""
+class BitgetHttpClient(HttpClient):
+    """Bitget HTTP client."""
 
     def __init__(
         self,
@@ -45,14 +46,13 @@ class OkxHttpClient(HttpClient):
             passphrase: Trading API passphrase
             demo: Use demo trading
             recv_window: Receive window in milliseconds
-            referral_id: Referral ID
         """
         self.api_key = api_key
         self.api_secret = api_secret
         self.passphrase = passphrase
         self.demo = demo
 
-        super().__init__("https://www.okx.com", recv_window=recv_window)
+        super().__init__("https://api.bitget.com", recv_window=recv_window)
 
     def _generate_signature(
         self,
@@ -62,14 +62,11 @@ class OkxHttpClient(HttpClient):
         payload: str,
         timestamp: str,
     ) -> str:
-        """OKX signature.
+        """Bitget signature.
 
         Signature is generated as:
         Base64(HMAC_SHA256(apiSecret, prehash))
-        Where prehash = timestamp + method + requestPath + body
-        - For GET: body is the sorted query string.
-        - For POST: body is the plain JSON string.
-        All parts are concatenated as strings.
+        Where prehash = timestamp + method + requestPath + body.
         """
         body_str = "?" + payload if payload and method == "GET" else payload
         prehash = f"{timestamp}{method.upper()}{path}{body_str}"
@@ -87,11 +84,10 @@ class OkxHttpClient(HttpClient):
                     f"{k}={v}" for k, v in sorted(params.items()) if v is not None
                 )
             raise TypeError(
-                "OKX client does not support list params for GET requests. "
+                "Bitget client does not support list params for GET requests. "
                 "Only dict is supported."
             )
         sanitized: list[dict[str, Any]] | dict[str, Any]
-        # Handle both dict and list[dict[str, Any]] for params
         if isinstance(params, Mapping):
             sanitized = {k: params[k] for k in sorted(params) if params[k] is not None}
             if not sanitized:
@@ -102,7 +98,6 @@ class OkxHttpClient(HttpClient):
             ]
             if not sanitized or all(not d for d in sanitized):
                 return "[]"
-
         return orjson.dumps(sanitized).decode().replace(":", ": ").replace(",", ", ")
 
     async def _build_request_args(
@@ -119,7 +114,6 @@ class OkxHttpClient(HttpClient):
         list[dict[str, Any]] | dict[str, Any] | None,
         dict[str, Any] | None,
     ]:
-        # Fast path: avoid unnecessary checks and recomputation
         if self._session.closed:
             session_type = "shared" if self._shared_session else "individual"
             raise RuntimeError(
@@ -132,7 +126,6 @@ class OkxHttpClient(HttpClient):
         else:
             params = [dict(p) for p in params]
 
-        # Prefer local assignment for micro-speed-up
         req_headers: dict[str, str] = headers if headers is not None else {}
 
         timestamp = (
@@ -141,12 +134,10 @@ class OkxHttpClient(HttpClient):
         )
 
         if self.demo:
-            req_headers["x-simulated-trading"] = "1"
+            req_headers["paptrading"] = "1"
 
-        # Fast payload prep
         req_payload = self._prepare_payload(method, params)
 
-        # Quickly handle signature/auth
         if auth:
             if not (self.api_key and self.api_secret and self.passphrase):
                 raise ValueError(
@@ -156,11 +147,11 @@ class OkxHttpClient(HttpClient):
             signature = self._generate_signature(
                 self.api_secret, method, endpoint, req_payload, timestamp
             )
-            req_headers["OK-ACCESS-KEY"] = self.api_key
-            req_headers["OK-ACCESS-PASSPHRASE"] = self.passphrase
-            req_headers["OK-ACCESS-SIGN"] = signature
-            req_headers["OK-ACCESS-TIMESTAMP"] = str(timestamp)
-            req_headers["OK-ACCESS-TIMESTAMP"] = str(timestamp)
+            req_headers["ACCESS-KEY"] = self.api_key
+            req_headers["ACCESS-PASSPHRASE"] = self.passphrase
+            req_headers["ACCESS-SIGN"] = signature
+            req_headers["ACCESS-TIMESTAMP"] = str(timestamp)
+            req_headers["locale"] = "en-US"
         else:
             signature = None
 
@@ -171,15 +162,12 @@ class OkxHttpClient(HttpClient):
             req_url = f"{req_url}?{req_payload}" if req_payload else req_url
             req_json = None
         elif isinstance(params, list):
-            # If params is a list[dict[str, Any]], filter Nones inside dicts
             req_json = [
                 {k: d[k] for k in sorted(d) if d[k] is not None} for d in params
             ]
         else:
-            # Assume dict[str, Any]
             req_json = {k: params[k] for k in sorted(params) if params[k] is not None}
 
-        # Logging fast, avoid joining or formatting unnecessarily unless debug
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 "Making async %s request to %s with params: %s", method, req_url, params
@@ -213,8 +201,9 @@ class OkxHttpClient(HttpClient):
         ) as resp:
             try:
                 res_json: dict[str, Any] = await resp.json()
-                if res_json.get("code") not in (None, "0"):
-                    raise ExchangeResponseError("okx", res_json)
+                # Bitget error code scheme differs from OKX
+                if res_json.get("code") not in (None, "00000"):
+                    raise ExchangeResponseError("bitget", res_json)
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(

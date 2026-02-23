@@ -188,7 +188,7 @@ class PerpetualMixin:
             https://bingx-api.github.io/docs-v3/#/en/Copy%20Trade/USDT-M%20Perpetual%20Contracts/Set%20Commission%20Rate
 
         Args:
-            new_commission: The commission rate to set (int),
+            new_commission: The commission rate to set,
                 must be > 10 and less than current level.
                 Silver: 16%, Gold: 20%, Diamond: 32%.
 

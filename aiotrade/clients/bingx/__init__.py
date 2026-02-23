@@ -34,11 +34,11 @@ class BingxClient(
         Initialize a BingxClient instance.
 
         Args:
-            api_key (str | None): BingX API key.
-            api_secret (str | None): BingX API secret.
-            demo (bool): Whether to use demo trading mode.
+            api_key: BingX API key.
+            api_secret: BingX API secret.
+            demo: Whether to use demo trading mode.
                 Default is False.
-            recv_window (int): Optional custom receive window (ms) for requests.
+            recv_window: Optional custom receive window (ms) for requests.
                 Default is 5000.
 
         Example:

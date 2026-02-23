@@ -13,7 +13,7 @@ class ExchangeResponseError(Exception):
     Attributes:
         exchange (Exchange): The originating exchange ("bingx", "bybit", etc.).
         resp (dict or list[dict]): The full response from the exchange.
-        message (str): The error message (human-readable).
+        message: The error message (human-readable).
         code (Any): Error code, if present.
     """
 

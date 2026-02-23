@@ -23,15 +23,15 @@ class BybitClient(
         Initialize a BybitClient instance.
 
         Args:
-            api_key (str | None): Bybit API key.
-            api_secret (str | None): Bybit API secret.
-            testnet (bool): Whether to use Bybit testnet environment.
+            api_key: Bybit API key.
+            api_secret: Bybit API secret.
+            testnet: Whether to use Bybit testnet environment.
                 Default is False.
-            demo (bool): Whether to use demo trading mode.
+            demo: Whether to use demo trading mode.
                 Default is False.
-            recv_window (int): Optional custom receive window (ms) for requests.
+            recv_window: Optional custom receive window (ms) for requests.
                 Default is 5000.
-            referral_id (str | None): Optional referral code.
+            referral_id: Optional referral code.
                 Default is None.
 
         Example:

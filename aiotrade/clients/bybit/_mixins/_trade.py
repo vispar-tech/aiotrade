@@ -91,15 +91,15 @@ class TradeMixin:
             https://bybit-exchange.github.io/docs/v5/order/cancel-order
 
         Args:
-            category (str): Product type (linear, inverse, spot, option).
+            category: Product type (linear, inverse, spot, option).
                 REQUIRED.
-            symbol (str): Symbol name, like BTCUSDT, uppercase only.
+            symbol: Symbol name, like BTCUSDT, uppercase only.
                 REQUIRED.
-            order_id (str, optional): Order ID. Either order_id or
+            order_id: Order ID. Either order_id or
                 order_link_id is REQUIRED.
-            order_link_id (str, optional): User customized order ID.
+            order_link_id: User customized order ID.
                 Either order_id or order_link_id is REQUIRED.
-            order_filter (str, optional): Spot trading only. "Order",
+            order_filter: Spot trading only. "Order",
                 "tpslOrder", "StopOrder". Default is "Order" if not passed.
 
         Returns:

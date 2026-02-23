@@ -193,7 +193,7 @@ class AccountMixin:
 
         Args:
             coin: Coin name to borrow (uppercase), e.g. "BTC".
-            amount: Borrow amount (float).
+            amount: Borrow amount.
 
         Returns:
             Dict with borrow operation response.
@@ -221,7 +221,7 @@ class AccountMixin:
 
         Args:
             coin: Coin name to repay (uppercase), e.g. "BTC".
-            amount: Repay amount (float).  If not provided, repays in full.
+            amount: Repay amount.  If not provided, repays in full.
 
         Returns:
             Dict with manual repay operation response.
@@ -250,7 +250,7 @@ class AccountMixin:
         Args:
             coin: Coin name to repay (uppercase), e.g. "BTC".
                 If not provided and amount is not provided, repays all liabilities.
-            amount: Repay amount (float).
+            amount: Repay amount.
                 If coin is not provided, amount must also not be provided.
 
         Returns:

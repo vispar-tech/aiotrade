@@ -107,7 +107,7 @@ class HttpClient(ABC):
 
         Returns a tuple containing:
             - aiohttp request kwargs (dict)
-            - resolved URL (str)
+            - resolved URL
             - parameters (dict or None)
             - headers (dict or None)
             - extra kwargs (dict or None)
@@ -204,7 +204,7 @@ class HttpClient(ABC):
         Decode a URL-encoded string.
 
         Args:
-            s (str): The URL-encoded string to decode.
+            s: The URL-encoded string to decode.
 
         Returns:
             str: The decoded string.

@@ -2,9 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![Python versions](https://img.shields.io/pypi/pyversions/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com)
+[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/)
 
-High-performance async trading API client for Python supporting BingX, Bybit and OKX exchanges with intelligent session and cache management.
+High-performance async trading API client for Python supporting BingX, Bybit, OKX, and Bitget exchanges with intelligent session and cache management.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ The library uses a sophisticated architecture for optimal performance:
 
 ### Client Caching
 
-- **TTL Cache**: `BingxClientsCache`, `BybitClientsCache`, and `OkxClientsCache` cache client instances with 10-minute lifetime
+- **TTL Cache**: `BingxClientsCache`, `BybitClientsCache`, `OkxClientsCache`, and `BitgetClientsCache` cache client instances with 10-minute lifetime
 - **Lock-Free**: No blocking operations for maximum performance
 - **Lazy Cleanup**: Expired entries removed on access, not proactively
 
@@ -85,6 +85,25 @@ OkxClient methods (18):
     get_funding_balance    set_isolated_mode
     get_instruments        set_leverage
     get_leverage_info      set_position_mode
+
+BitgetClient methods (34):
+    batch_cancel_futures_orders  get_isolated_symbols
+    batch_cancel_spot_orders     get_order_detail
+    batch_place_futures_orders   get_pending_orders
+    batch_place_spot_orders      get_pending_trigger_orders
+    cancel_all_futures_orders    get_server_time
+    cancel_order                 get_single_account
+    cancel_order_by_symbol       get_spot_history_orders
+    cancel_trigger_orders        get_symbol_info
+    decode_str                   get_trade_rate
+    flash_close_position         get_unfilled_orders
+    get_account_assets           place_futures_order
+    get_account_info             place_spot_order
+    get_account_list             place_tpsl_plan_order
+    get_all_positions            place_trigger_order
+    get_contract_config          set_leverage
+    get_futures_history_orders   set_margin_mode
+    get_historical_position      set_position_mode
 ```
 
 ## Installation
@@ -98,7 +117,7 @@ poetry add aiotrade-sdk
 ### Option 1: Shared Session (Recommended for Production)
 
 ```python
-from aiotrade import SharedSessionManager, BingxClient, BybitClient, OkxClient
+from aiotrade import SharedSessionManager, BingxClient, BybitClient, OkxClient, BitgetClient
 
 # Initialize shared session at startup (once per application)
 SharedSessionManager.setup(max_connections=2000)
@@ -107,12 +126,14 @@ SharedSessionManager.setup(max_connections=2000)
 bingx_client = BingxClient(api_key="bingx_key", api_secret="bingx_secret", demo=True)
 bybit_client = BybitClient(api_key="bybit_key", api_secret="bybit_secret", testnet=True)
 okx_client = OkxClient(api_key="okx_key", api_secret="okx_secret", passphrase="okx_passphrase")
+bitget_client = BitgetClient(api_key="bitget_key", api_secret="bitget_secret", passphrase="bitget_passphrase")
 
 try:
     # Use clients for API calls
     bingx_assets = await bingx_client.get_spot_account_assets()
     bybit_tickers = await bybit_client.get_tickers(category="spot")
     okx_balance = await okx_client.get_balance()
+    bitget_assets = await bitget_client.get_account_assets()
 finally:
     # Close shared session at shutdown
     await SharedSessionManager.close()
@@ -121,7 +142,7 @@ finally:
 ### Option 2: Individual Sessions
 
 ```python
-from aiotrade import BingxClient, BybitClient, OkxClient
+from aiotrade import BingxClient, BybitClient, OkxClient, BitgetClient
 
 # BingX client with individual session
 async with BingxClient(api_key="your_key", api_secret="your_secret", demo=True) as client:
@@ -137,12 +158,17 @@ async with BybitClient(api_key="your_key", api_secret="your_secret", testnet=Tru
 async with OkxClient(api_key="your_key", api_secret="your_secret", passphrase="your_passphrase") as client:
     balance = await client.get_balance()
     print(f"OKX balance: {balance}")
+
+# Bitget client with individual session
+async with BitgetClient(api_key="your_key", api_secret="your_secret", passphrase="your_passphrase") as client:
+    assets = await client.get_account_assets()
+    print(f"Bitget assets: {assets}")
 ```
 
 ### Option 3: Cached Clients
 
 ```python
-from aiotrade import BingxClientsCache, BybitClientsCache, OkxClientsCache
+from aiotrade import BingxClientsCache, BybitClientsCache, OkxClientsCache, BitgetClientsCache
 
 # Get cached BingX client (creates new if doesn't exist)
 bingx_client = BingxClientsCache.get_or_create(
@@ -165,6 +191,13 @@ okx_client = OkxClientsCache.get_or_create(
     passphrase="your_passphrase"
 )
 
+# Get cached Bitget client
+bitget_client = BitgetClientsCache.get_or_create(
+    api_key="your_key",
+    api_secret="your_secret",
+    passphrase="your_passphrase"
+)
+
 # Use clients (session management is automatic)
 async with bingx_client:
     assets = await bingx_client.get_spot_account_assets()
@@ -175,6 +208,9 @@ async with bybit_client:
 async with okx_client:
     balance = await okx_client.get_balance()
 
+async with bitget_client:
+    assets = await bitget_client.get_account_assets()
+
 # Same parameters return the same cached instance
 cached_okx = OkxClientsCache.get_or_create(
     api_key="your_key",
@@ -182,6 +218,13 @@ cached_okx = OkxClientsCache.get_or_create(
     passphrase="your_passphrase"
 )
 assert okx_client is cached_okx  # True
+
+cached_bitget = BitgetClientsCache.get_or_create(
+    api_key="your_key",
+    api_secret="your_secret",
+    passphrase="your_passphrase"
+)
+assert bitget_client is cached_bitget  # True
 ```
 
 ## Session Behavior
@@ -204,16 +247,19 @@ assert okx_client is cached_okx  # True
 BingxClientsCache.configure(lifetime_seconds=1800)  # 30 minutes
 BybitClientsCache.configure(lifetime_seconds=1800)  # 30 minutes
 OkxClientsCache.configure(lifetime_seconds=1800)    # 30 minutes
+BitgetClientsCache.configure(lifetime_seconds=1800) # 30 minutes
 
 # Start background cleanup
 bingx_cleanup = BingxClientsCache.create_cleanup_task(interval_seconds=300)
 bybit_cleanup = BybitClientsCache.create_cleanup_task(interval_seconds=300)
 okx_cleanup = OkxClientsCache.create_cleanup_task(interval_seconds=300)
+bitget_cleanup = BitgetClientsCache.create_cleanup_task(interval_seconds=300)
 
 # Manual cleanup
 bingx_removed = BingxClientsCache.cleanup_expired()
 bybit_removed = BybitClientsCache.cleanup_expired()
 okx_removed = OkxClientsCache.cleanup_expired()
+bitget_removed = BitgetClientsCache.cleanup_expired()
 ```
 
 ## Requirements

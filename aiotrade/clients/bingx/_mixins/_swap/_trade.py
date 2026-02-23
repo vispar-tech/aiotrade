@@ -86,7 +86,7 @@ class TradeMixin:
             https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
 
         Args:
-            batch_orders: list[PlaceSwapOrderParams] - Up to 5 order dicts.
+            batch_orders - Up to 5 order dicts.
 
         Returns:
             Dict: The API response.
@@ -177,13 +177,13 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
 
         Args:
-            symbol (str, optional): Trading pair symbol, e.g. "BTC-USDT".
+            symbol: Trading pair symbol, e.g. "BTC-USDT".
             If not specified, returns all.
-            currency (str, optional): USDT or USDC.
-            order_id (int, optional): Return orders after this orderId.
-            start_time (int, optional): Start timestamp (ms).
-            end_time (int, optional): End timestamp (ms).
-            limit (int, required): Number of results to return.
+            currency: USDT or USDC.
+            order_id: Return orders after this orderId.
+            start_time: Start timestamp (ms).
+            end_time: End timestamp (ms).
+            limit: Number of results to return.
             Default 500, max 1000.
 
         Returns:
@@ -224,9 +224,9 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details
 
         Args:
-            symbol (str, required): Trading pair symbol, e.g. "BTC-USDT".
-            order_id (int, optional): Order ID.
-            client_order_id (str, optional): Custom user order ID
+            symbol: Trading pair symbol, e.g. "BTC-USDT".
+            order_id: Order ID.
+            client_order_id: Custom user order ID
                 (1~40 chars, lowercase).
 
         Returns:
@@ -339,14 +339,14 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History
 
         Args:
-            symbol (str): Trading pair, e.g. "BTC-USDT"
-            currency (str, optional): USDC or USDT
-            position_id (int, optional): Position ID to filter by
-            start_ts (int, optional): Start timestamp in milliseconds
+            symbol: Trading pair, e.g. "BTC-USDT"
+            currency: USDC or USDT
+            position_id: Position ID to filter by
+            start_ts: Start timestamp in milliseconds
                 (default: 90 days ago)
-            end_ts (int, optional): End timestamp in milliseconds (default: now)
-            page_index (int, optional): Page number (default: 1)
-            page_size (int, optional): Page size, max 100 (default: 1000)
+            end_ts: End timestamp in milliseconds (default: now)
+            page_index: Page number (default: 1)
+            page_size: Page size, max 100 (default: 1000)
 
         Returns:
             dict[str, Any]: API response containing position history records.
@@ -392,9 +392,9 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage
 
         Args:
-            symbol (str): Trading pair symbol (e.g., "BTC-USDT"), must include a hyphen.
+            symbol: Trading pair symbol (e.g., "BTC-USDT"), must include a hyphen.
             side (PositionSide): Leverage side, e.g., "LONG", "SHORT", or "BOTH".
-            leverage (int): Leverage value.
+            leverage: Leverage value.
 
 
         Returns:
@@ -429,7 +429,7 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
 
         Args:
-            dual_side_position (bool): True for dual position mode,
+            dual_side_position: True for dual position mode,
                 False for single position mode.
 
         Returns:
@@ -484,7 +484,7 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions
 
         Args:
-            symbol (str): Trading pair symbol, e.g., "BTC-USDT".
+            symbol: Trading pair symbol, e.g., "BTC-USDT".
 
         Returns:
             dict[str, Any]: API response with leverage and available positions.
@@ -514,7 +514,7 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
 
         Args:
-            symbol (str | None): Trading pair symbol, e.g. "BTC-USDT".
+            symbol: Trading pair symbol, e.g. "BTC-USDT".
                 If omitted, cancels all orders of all symbols.
             order_type: Order type to cancel.
 
@@ -551,7 +551,7 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type
 
         Args:
-            symbol (str): Trading pair symbol, e.g., "BTC-USDT" (must contain '-').
+            symbol: Trading pair symbol, e.g., "BTC-USDT" (must contain '-').
             margin_type (Literal): "ISOLATED", "CROSSED", or "SEPARATE_ISOLATED".
 
         Returns:
@@ -584,7 +584,7 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type
 
         Args:
-            symbol (str): Trading pair symbol, e.g., "BTC-USDT" (must contain '-').
+            symbol: Trading pair symbol, e.g., "BTC-USDT" (must contain '-').
 
         Returns:
             dict[str, Any]: API response indicating the margin type for the contract.
@@ -619,11 +619,11 @@ class TradeMixin:
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
 
         Args:
-            symbol (str, optional): Trading pair symbol. If None, query all pairs.
-            order_id (int, optional): Return orders after this ID.
-            start_time (int, optional): Start time (ms).
-            end_time (int, optional): End time (ms).
-            limit (int, optional): Results to return. Default 500, max 1000.
+            symbol: Trading pair symbol. If None, query all pairs.
+            order_id: Return orders after this ID.
+            start_time: Start time (ms).
+            end_time: End time (ms).
+            limit: Results to return. Default 500, max 1000.
 
         Returns:
             dict[str, Any]: API response containing list of full orders.

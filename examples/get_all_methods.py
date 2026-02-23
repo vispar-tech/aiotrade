@@ -5,7 +5,7 @@ import inspect
 from contextlib import suppress
 from typing import Any
 
-from aiotrade import BingxClient, BybitClient, OkxClient
+from aiotrade import BingxClient, BitgetClient, BybitClient, OkxClient
 
 
 def is_method(obj: Any) -> bool:
@@ -103,10 +103,14 @@ def main() -> None:
     bybit_methods = implemented_methods(BybitClient)
     bingx_methods = implemented_methods(BingxClient)
     okx_methods = implemented_methods(OkxClient)
+    bitget_methods = implemented_methods(BitgetClient)
 
     pretty_print_methods(f"BybitClient methods ({len(bybit_methods)}):", bybit_methods)
     pretty_print_methods(f"BingxClient methods ({len(bingx_methods)}):", bingx_methods)
     pretty_print_methods(f"OkxClient methods ({len(okx_methods)}):", okx_methods)
+    pretty_print_methods(
+        f"BitgetClient methods ({len(bitget_methods)}):", bitget_methods
+    )
 
 
 if __name__ == "__main__":
