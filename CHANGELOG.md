@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.10.0 (2026-02-23)
+
+### Features
+
+- **bitget**: :sparkles: add Bitget exchange client support
+  ([`9728dcc`](https://github.com/vispar-tech/aiotrade/commit/9728dcc2abd212d71cd885dad29d2b8d35d33069))
+
+
 ## v0.9.0 (2026-02-23)
 
 ### Features
