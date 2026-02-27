@@ -2,7 +2,7 @@
 
 from typing import Literal, NotRequired, TypedDict
 
-AccountType = Literal[
+type AccountType = Literal[
     "spot",  # Spot (fund account)
     "stdFutures",  # Standard futures account
     "coinMPerp",  # Coin base account
@@ -12,10 +12,10 @@ AccountType = Literal[
     "eran",  # Wealth account
     "c2c",  # C2C account
 ]
-MarginMode = Literal["ISOLATED", "CROSSED", "SEPARATE_ISOLATED"]
+type MarginMode = Literal["ISOLATED", "CROSSED", "SEPARATE_ISOLATED"]
 
 
-SwapOrderType = Literal[
+type SwapOrderType = Literal[
     "LIMIT",
     "MARKET",
     "STOP_MARKET",
@@ -27,7 +27,7 @@ SwapOrderType = Literal[
     "TRAILING_STOP_MARKET",
     "TRAILING_TP_SL",
 ]
-SpotOrderType = Literal[
+type SpotOrderType = Literal[
     "MARKET",
     "LIMIT",
     "TAKE_STOP_LIMIT",
@@ -35,12 +35,12 @@ SpotOrderType = Literal[
     "TRIGGER_LIMIT",
     "TRIGGER_MARKET",
 ]
-TpSlOrderType = Literal["STOP", "TAKE_PROFIT", "STOP_MARKET", "TAKE_PROFIT_MARKET"]
-OrderSide = Literal["SELL", "BUY"]
-PositionSide = Literal["BOTH", "LONG", "SHORT"]
-TriggerPriceType = Literal["MARK_PRICE", "CONTRACT_PRICE", "INDEX_PRICE"]
-TimeInForce = Literal["PostOnly", "GTC", "IOC", "FOK"]
-StopGuaranteed = Literal["true", "false", "cutfee"]
+type TpSlOrderType = Literal["STOP", "TAKE_PROFIT", "STOP_MARKET", "TAKE_PROFIT_MARKET"]
+type OrderSide = Literal["SELL", "BUY"]
+type PositionSide = Literal["BOTH", "LONG", "SHORT"]
+type TriggerPriceType = Literal["MARK_PRICE", "CONTRACT_PRICE", "INDEX_PRICE"]
+type TimeInForce = Literal["PostOnly", "GTC", "IOC", "FOK"]
+type StopGuaranteed = Literal["true", "false", "cutfee"]
 
 
 # todo: use camel case direct here

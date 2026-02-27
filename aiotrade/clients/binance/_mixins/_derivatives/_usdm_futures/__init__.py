@@ -3,5 +3,5 @@ from ._market import MarketMixin
 from ._trade import TradeMixin
 
 
-class SpotMixin(MarketMixin, TradeMixin, AccountMixin):
-    """Combine spot mixins."""
+class UsdmFuturesMixin(MarketMixin, AccountMixin, TradeMixin):
+    """USDM Futures endpoints."""

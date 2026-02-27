@@ -12,4 +12,4 @@ class FuturesMixin(
     TradeMixin,
     TriggerMixin,
 ):
-    pass
+    """Combine futures mixins."""

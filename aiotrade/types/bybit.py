@@ -2,30 +2,30 @@
 
 from typing import Literal, NotRequired, TypedDict
 
-AccountType = Literal["UNIFIED", "FUND"]
-MarginMode = Literal["ISOLATED_MARGIN", "REGULAR_MARGIN", "PORTFOLIO_MARGIN"]
+type AccountType = Literal["UNIFIED", "FUND"]
+type MarginMode = Literal["ISOLATED_MARGIN", "REGULAR_MARGIN", "PORTFOLIO_MARGIN"]
 
 # Market types
-InstrumentStatus = Literal["Trading", "PreLaunch", "Delivering"]
-SymbolType = Literal["innovation", "adventure", "xstocks"]
+type InstrumentStatus = Literal["Trading", "PreLaunch", "Delivering"]
+type SymbolType = Literal["innovation", "adventure", "xstocks"]
 
 # Trade types
-Side = Literal["Buy", "Sell"]
-PlaceOrderType = Literal["Market", "Limit"]
-MarketUnit = Literal["baseCoin", "quoteCoin"]
-OrderPriceTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
-TimeInForce = Literal["PostOnly", "GTC", "IOC", "FOK"]
-PositionIdx = Literal[0, 1, 2]
-TpSlTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
-TpSlMode = Literal["Full", "Partial"]
-TpSlOrderType = Literal["Market", "Limit"]
-OrderFilter = Literal[
+type Side = Literal["Buy", "Sell"]
+type PlaceOrderType = Literal["Market", "Limit"]
+type MarketUnit = Literal["baseCoin", "quoteCoin"]
+type OrderPriceTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
+type TimeInForce = Literal["PostOnly", "GTC", "IOC", "FOK"]
+type PositionIdx = Literal[0, 1, 2]
+type TpSlTriggerBy = Literal["LastPrice", "IndexPrice", "MarkPrice"]
+type TpSlMode = Literal["Full", "Partial"]
+type TpSlOrderType = Literal["Market", "Limit"]
+type OrderFilter = Literal[
     "Order",
     "tpslOrder",
     "StopOrder",
 ]
 
-UTATransLogType = Literal[
+type UTATransLogType = Literal[
     "TRANSFER_IN",
     "TRANSFER_OUT",
     "TRADE",
@@ -126,7 +126,7 @@ UTATransLogType = Literal[
     "FLOATING_TO_FIXED_REPAY",
 ]
 
-ContractTransLogType = Literal[
+type ContractTransLogType = Literal[
     "TRANSFER_IN",
     "TRANSFER_OUT",
     "TRADE",

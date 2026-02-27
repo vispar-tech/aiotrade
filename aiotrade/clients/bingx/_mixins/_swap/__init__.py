@@ -7,6 +7,3 @@ from ._trade import TradeMixin
 
 class SwapMixin(AccountMixin, MarketMixin, TradeMixin):
     """Combined swap mixin with all swap trading functionality."""
-
-
-__all__ = ["SwapMixin"]

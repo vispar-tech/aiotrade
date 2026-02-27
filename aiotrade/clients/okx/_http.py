@@ -45,7 +45,6 @@ class OkxHttpClient(HttpClient):
             passphrase: Trading API passphrase
             demo: Use demo trading
             recv_window: Receive window in milliseconds
-            referral_id: Referral ID
         """
         self.api_key = api_key
         self.api_secret = api_secret
@@ -112,12 +111,13 @@ class OkxHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, Any] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> tuple[
         dict[str, Any],
         str,
         dict[str, Any] | None,
         list[dict[str, Any]] | dict[str, Any] | None,
-        dict[str, Any] | None,
+        dict[str, Any] | str | None,
     ]:
         # Fast path: avoid unnecessary checks and recomputation
         if self._session.closed:
@@ -194,6 +194,7 @@ class OkxHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         (
             req_headers,
@@ -202,6 +203,16 @@ class OkxHttpClient(HttpClient):
             req_json,
             req_data,
         ) = await self._build_request_args(method, endpoint, params, headers, auth)
+
+        if self.verbose:
+            logger.info(
+                "Request args: headers=%r, url=%r, params=%r, json=%r, data=%r",
+                req_headers,
+                req_url,
+                req_params,
+                req_json,
+                req_data,
+            )
 
         async with self._session.request(
             method,
@@ -218,25 +229,21 @@ class OkxHttpClient(HttpClient):
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
-                        "ExchangeResponseError during async request: "
-                        "method=%s url=%s headers=%s status=%s error=%s",
-                        method,
-                        req_url,
-                        _mask_headers(req_headers),
-                        resp.status,
-                        err,
+                        f"[ExchangeResponseError] method={method} | "
+                        f"url={req_url} | "
+                        f"headers={_mask_headers(req_headers)} | "
+                        f"status={resp.status} | "
+                        f"error={err}"
                     )
                 raise
             except Exception as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
-                        "HTTP error during async request: "
-                        "method=%s url=%s headers=%s status=%s err=%r",
-                        method,
-                        req_url,
-                        _mask_headers(req_headers),
-                        resp.status,
-                        err,
+                        f"[HTTP Error] method={method} | "
+                        f"url={req_url} | "
+                        f"headers={_mask_headers(req_headers)} | "
+                        f"status={resp.status} | "
+                        f"err={err!r}"
                     )
                 raise
             return res_json

@@ -2,10 +2,10 @@
 
 from typing import Literal, NotRequired, TypedDict
 
-TradeMode = Literal["cross", "isolated", "cash", "spot_isolated"]
-OrderSide = Literal["buy", "sell"]
-PositionSide = Literal["long", "short", "net"]
-OrderType = Literal[
+type TradeMode = Literal["cross", "isolated", "cash", "spot_isolated"]
+type OrderSide = Literal["buy", "sell"]
+type PositionSide = Literal["long", "short", "net"]
+type OrderType = Literal[
     "market",
     "limit",
     "post_only",
@@ -16,13 +16,13 @@ OrderType = Literal[
     "mmp_and_post_only",
     "elp",
 ]
-TargetCurrency = Literal["base_ccy", "quote_ccy"]
-PriceAmendmentType = Literal["0", "1"]
-SelfTradePreventionMode = Literal["cancel_maker", "cancel_taker", "cancel_both"]
-TakeProfitStopLossTriggerPriceType = Literal["last", "index", "mark"]
-TakeProfitOrderKind = Literal["condition", "limit"]
-AmendPriceOnTriggerType = Literal["0", "1"]
-AlgoOrderType = Literal[
+type TargetCurrency = Literal["base_ccy", "quote_ccy"]
+type PriceAmendmentType = Literal["0", "1"]
+type SelfTradePreventionMode = Literal["cancel_maker", "cancel_taker", "cancel_both"]
+type TakeProfitStopLossTriggerPriceType = Literal["last", "index", "mark"]
+type TakeProfitOrderKind = Literal["condition", "limit"]
+type AmendPriceOnTriggerType = Literal["0", "1"]
+type AlgoOrderType = Literal[
     "conditional",
     "oco",
     "chase",
@@ -31,7 +31,7 @@ AlgoOrderType = Literal[
     "iceberg",
     "twap",
 ]
-AlgoOrderHistoryState = Literal["effective", "canceled", "order_failed"]
+type AlgoOrderHistoryState = Literal["effective", "canceled", "order_failed"]
 
 
 class AttachAlgorithmOrderParams(TypedDict, total=False):

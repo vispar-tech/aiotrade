@@ -107,12 +107,13 @@ class BitgetHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, Any] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> tuple[
         dict[str, Any],
         str,
         dict[str, Any] | None,
         list[dict[str, Any]] | dict[str, Any] | None,
-        dict[str, Any] | None,
+        dict[str, Any] | str | None,
     ]:
         if self._session.closed:
             session_type = "shared" if self._shared_session else "individual"
@@ -182,6 +183,7 @@ class BitgetHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         (
             req_headers,
@@ -207,25 +209,21 @@ class BitgetHttpClient(HttpClient):
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
-                        "ExchangeResponseError during async request: "
-                        "method=%s url=%s headers=%s status=%s error=%s",
-                        method,
-                        req_url,
-                        _mask_headers(req_headers),
-                        resp.status,
-                        err,
+                        f"[ExchangeResponseError] method={method} | "
+                        f"url={req_url} | "
+                        f"headers={_mask_headers(req_headers)} | "
+                        f"status={resp.status} | "
+                        f"error={err}"
                     )
                 raise
             except Exception as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
-                        "HTTP error during async request: "
-                        "method=%s url=%s headers=%s status=%s err=%r",
-                        method,
-                        req_url,
-                        _mask_headers(req_headers),
-                        resp.status,
-                        err,
+                        f"[HTTP Error] method={method} | "
+                        f"url={req_url} | "
+                        f"headers={_mask_headers(req_headers)} | "
+                        f"status={resp.status} | "
+                        f"err={err!r}"
                     )
                 raise
             return res_json

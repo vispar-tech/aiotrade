@@ -1,8 +1,10 @@
 import hashlib
 import hmac
+import json
 import logging
 import time
 from collections.abc import Mapping
+from operator import itemgetter
 from typing import Any
 from urllib import parse
 
@@ -11,13 +13,13 @@ from aiotrade._http import HttpClient
 from aiotrade._protocols import ParamsType
 from aiotrade._types import HttpMethod
 
-logger = logging.getLogger("aiotrade.bingx")
+logger = logging.getLogger("aiotrade.binance")
 
 
 def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
     masked: dict[str, Any] = {}
     for k, v in headers.items():
-        if k == "X-BX-APIKEY":
+        if k in ("X-MBX-APIKEY",):
             masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
         else:
             masked[k] = v
@@ -37,8 +39,8 @@ def _mask_signature(url: str) -> str:
     return url[: i + len(sig)] + "***" + url[amp:]
 
 
-class BingxHttpClient(HttpClient):
-    """Bingx HTTP client."""
+class BinanceHttpClient(HttpClient):
+    """Binance HTTP client."""
 
     def __init__(
         self,
@@ -52,20 +54,21 @@ class BingxHttpClient(HttpClient):
         Args:
             api_key: Trading API key
             api_secret: Trading API secret
-            demo: Use vst instead of mainnet
+            demo: Use demo trading
             recv_window: Receive window in milliseconds
+            referral_id: Referral ID
         """
-        if demo:
-            base_url = "https://open-api-vst.bingx.com"
-        else:
-            base_url = "https://open-api.bingx.com"
         self.api_key = api_key
         self.api_secret = api_secret
+        self.demo = demo
 
-        super().__init__(base_url, recv_window=recv_window)
+        super().__init__(
+            "https://api.binance.com",
+            recv_window=recv_window,
+        )
 
     def _generate_signature(self, api_secret: str, payload: str) -> str:
-        """Bingx V5 signature (API v5)."""
+        """Binance signature."""
         return hmac.new(
             api_secret.encode("utf-8"),
             payload.encode("utf-8"),
@@ -73,47 +76,63 @@ class BingxHttpClient(HttpClient):
         ).hexdigest()
 
     def _prepare_payload(
-        self, in_url: bool, params: dict[str, Any], timestamp: int
-    ) -> tuple[str, str | None]:
+        self,
+        method: HttpMethod,
+        params: dict[str, Any],
+    ) -> str:
         """
         Prepare BingX payload and URL-encoded payload, as per exchange rules.
 
-        Returns a tuple: (payload_for_signature, url_encoded_payload_for_query)
+        Returns a string url params
         """
+        sorted_params = sorted(params.items())
         # Always work with a sorted list of (k, v) tuples
-        if in_url:
-            sorted_items = sorted(params.items())
-            params_str = "&".join(f"{k}={v}" for k, v in sorted_items)
-            params_str = (
-                f"{params_str}&timestamp={timestamp}"
-                if params_str
-                else f"timestamp={timestamp}"
-            )
-
+        if method == "GET":
             # Any structured value triggers full encoding
             contains_struct = any(
                 isinstance(v, (dict, list))
                 or (isinstance(v, str) and ("{" in v or "[" in v))
-                for _, v in sorted_items
+                for _, v in sorted_params
             )
             if contains_struct:
                 url_params_str = "&".join(
-                    f"{k}={parse.quote(str(v), safe='')}" for k, v in sorted_items
+                    f"{k}={parse.quote(str(v), safe='')}" for k, v in sorted_params
                 )
             else:
-                url_params_str = "&".join(f"{k}={v}" for k, v in sorted_items)
-            url_params_str = (
-                f"{url_params_str}&timestamp={timestamp}"
-                if url_params_str
-                else f"timestamp={timestamp}"
-            )
-            return params_str, url_params_str
+                url_params_str = "&".join(f"{k}={v}" for k, v in sorted_params)
+            return url_params_str
 
-        # For non-GET: mutate params and build simple k=v string for signature
-        params["timestamp"] = timestamp
-        sorted_items = sorted(params.items())
-        params_str = "&".join(f"{k}={v!s}" for k, v in sorted_items)
-        return params_str, None
+        items: list[tuple[str, str]] = []
+        for k, v in sorted_params:
+            if isinstance(v, dict):
+                items.append((k, json.dumps(sorted(v.items()))))
+            else:
+                items.append((k, str(v)))
+        return "&".join(f"{k}={v!s}" for k, v in items)
+
+    @staticmethod
+    def _order_params(data: dict[str, Any]) -> list[tuple[str, str]]:
+        """Convert params to list with signature as last element."""
+        data = dict(filter(lambda el: el[1] is not None, data.items()))
+        has_signature = False
+        params: list[tuple[str, str]] = []
+        for key, value in data.items():
+            if key == "signature":
+                has_signature = True
+            else:
+                params.append((key, str(value)))
+        # sort parameters by key
+        params.sort(key=itemgetter(0))
+        if has_signature:
+            params.append(("signature", data["signature"]))
+        return params
+
+    def _fix_batch_orders_request(self, params: dict[str, Any]) -> dict[str, Any]:
+        for order in params["batchOrders"]:
+            order = self._order_params(order)
+        query_string = parse.urlencode(params).replace("%40", "@").replace("%27", "%22")
+        params["batchOrders"] = query_string[12:]
+        return params
 
     async def _build_request_args(
         self,
@@ -149,49 +168,66 @@ class BingxHttpClient(HttpClient):
         # Optimize timestamp retrieval
         timestamp = int(time.time() * 10**3)
 
-        if auth:
-            if not self.api_key:
-                raise ValueError("API key must be set for authenticated requests.")
-            if not self.api_secret:
-                raise ValueError("API secret must be set for authenticated requests.")
-            req_headers["X-BX-APIKEY"] = self.api_key
+        if auth and not (self.api_key and self.api_secret):
+            raise ValueError(
+                "API key and API secret must be set for authenticated requests."
+            )
+
+        if "batchOrders" in params:
+            params = self._fix_batch_orders_request(params)
 
         # Set recv window from cls
         params["recvWindow"] = self.recv_window
-        in_url = method == "GET" or "/openApi/spot/" in endpoint
-        req_payload, req_url_params = self._prepare_payload(in_url, params, timestamp)
+        params["timestamp"] = timestamp
+        req_payload = self._prepare_payload(method, params)
+        req_body = None
 
         if auth:
             if not (self.api_key and self.api_secret):
                 raise ValueError(
                     "API key and API secret must be set for authenticated requests."
                 )
+            req_headers["X-MBX-APIKEY"] = self.api_key
             signature = self._generate_signature(self.api_secret, req_payload)
         else:
             signature = None
 
-        base_req_url = f"{self.base_url}{endpoint}"
+        req_url = f"{base_url if base_url else self.base_url}{endpoint}"
 
-        if in_url:
-            req_url = f"{base_req_url}?{req_url_params}"
+        if method == "GET":
+            req_url = f"{req_url}?{req_payload}" if req_payload else req_url
             if signature:
-                req_url += f"&signature={signature}"
-            req_json = None
-        else:
-            req_json = params
-            req_json["timestamp"] = timestamp
-            req_json["signature"] = signature
-            req_url = base_req_url
+                req_url += (
+                    f"?signature={signature}"
+                    if not req_payload
+                    else f"&signature={signature}"
+                )
+        elif method in ["POST", "PUT", "DELETE"]:
+            req_headers.update({"Content-Type": "application/x-www-form-urlencoded"})
+            req_body = req_payload
+            if signature:
+                req_body += (
+                    f"?signature={signature}"
+                    if not req_payload
+                    else f"&signature={signature}"
+                )
 
         # Logging fast, avoid joining or formatting unnecessarily unless debug
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 "Making async %s request to %s with params: %s",
                 method,
-                base_req_url,
+                req_url,
                 params,
             )
-        return (req_headers, req_url, None, req_json, None)
+
+        return (
+            req_headers,
+            req_url,
+            None,
+            None,
+            req_body,
+        )
 
     async def _async_request(
         self,
@@ -208,8 +244,9 @@ class BingxHttpClient(HttpClient):
             req_params,
             req_json,
             req_data,
-        ) = await self._build_request_args(method, endpoint, params, headers, auth)
-
+        ) = await self._build_request_args(
+            method, endpoint, params, headers, auth, base_url
+        )
         if self.verbose:
             logger.info(
                 "Request args: headers=%r, url=%r, params=%r, json=%r, data=%r",
@@ -220,6 +257,8 @@ class BingxHttpClient(HttpClient):
                 req_data,
             )
 
+        wrapped: dict[str, Any]
+
         async with self._session.request(
             method,
             req_url,
@@ -229,10 +268,34 @@ class BingxHttpClient(HttpClient):
             headers=req_headers,
         ) as resp:
             try:
-                resp.raise_for_status()
-                res_json: dict[str, Any] = await resp.json(content_type=None)
-                if res_json.get("code") not in (None, 0):
-                    raise ExchangeResponseError("bingx", res_json)
+                # Try to parse JSON response; fallback to None if not JSON
+                try:
+                    response_content = await resp.json(content_type=None)
+                except Exception:
+                    response_content = None
+
+                response_message = resp.reason if not resp.ok else "ok"
+                response_code = resp.status
+
+                if isinstance(response_content, dict):
+                    # Pop 'msg' if present for a friendly message
+                    if "msg" in response_content:
+                        response_message = response_content.pop("msg")
+                    # Pop 'code' if present for code override
+                    if "code" in response_content:
+                        response_code = response_content.pop("code")
+                elif isinstance(response_content, list):
+                    # Always wrap lists in a result container
+                    response_content = {"list": response_content}
+
+                wrapped = {
+                    "retCode": response_code,
+                    "retMsg": response_message or "unknown",
+                    "result": response_content,
+                }
+
+                if not resp.ok or (400 < response_code < 200):
+                    raise ExchangeResponseError("binance", wrapped)
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
@@ -253,4 +316,4 @@ class BingxHttpClient(HttpClient):
                         f"err={err!r}"
                     )
                 raise
-            return res_json
+            return wrapped

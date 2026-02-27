@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+from pprint import pprint
 from typing import Any
 
 from aiotrade import BybitClient
@@ -19,7 +20,7 @@ async def print_wallet_balance(client: BybitClient) -> None:
         result = await client.get_wallet_balance(account_type="UNIFIED", coin="USDT")
         print("✅ Wallet balance retrieved successfully!")
         try:
-            pretty_resp = json.dumps(result.get("result"), indent=2, ensure_ascii=False)
+            pretty_resp = json.dumps(result, indent=2, ensure_ascii=False)
             print(f"Full response:\n{pretty_resp}\n")
         except Exception:
             print(f"Full response:\n{result}\n")
@@ -140,6 +141,7 @@ async def test_bybit_wallet_and_positions() -> None:
 
     await print_wallet_balance(client)
     await print_open_positions(client)
+    pprint(await client.get_open_and_closed_orders("linear", settle_coin="USDT"))
 
     if PLACE_ORDER:
         try:

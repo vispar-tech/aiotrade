@@ -2,9 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![Python versions](https://img.shields.io/pypi/pyversions/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/)
+[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/) [![Binance](https://img.shields.io/badge/Binance-supported-yellow?logo=binance)](https://www.binance.com/)
 
-High-performance async trading API client for Python supporting BingX, Bybit, OKX, and Bitget exchanges with intelligent session and cache management.
+High-performance async trading API client for Python supporting BingX, Bybit, OKX, Bitget and Binance exchanges with intelligent session and cache management.
 
 ## Architecture
 
@@ -18,92 +18,117 @@ The library uses a sophisticated architecture for optimal performance:
 
 ### Client Caching
 
-- **TTL Cache**: `BingxClientsCache`, `BybitClientsCache`, `OkxClientsCache`, and `BitgetClientsCache` cache client instances with 10-minute lifetime
+- **TTL Cache**: `BingxClientsCache`, `BybitClientsCache` and etc. cache client instances with 10-minute lifetime
 - **Lock-Free**: No blocking operations for maximum performance
 - **Lazy Cleanup**: Expired entries removed on access, not proactively
 
 #### Implemented methods
 
+1. **Use Shared Session** for applications creating many clients
+2. **Enable Caching** for repeated API credential usage
+3. **Configure Connection Limits** based on your throughput needs
+4. **Use Background Cleanup** for long-running applications
+
 ```text
-BybitClient methods (43):
-    batch_cancel_order                     get_server_time
-    batch_place_order                      get_smp_group_id
-    batch_set_collateral_coin              get_trade_behaviour_setting
-    cancel_all_orders                      get_transaction_log
-    cancel_order                           get_transferable_amount
-    decode_str                             get_wallet_balance
-    get_account_info                       manual_borrow
-    get_account_instruments_info           manual_repay
-    get_api_key_info                       manual_repay_without_asset_conversion
-    get_borrow_history                     place_order
-    get_closed_pnl                         repay_liability
-    get_coin_greeks                        reset_mmp
-    get_collateral_info                    set_collateral_coin
-    get_dcp_info                           set_leverage
-    get_fee_rate                           set_limit_price_behaviour
-    get_instruments_info                   set_margin_mode
-    get_kline                              set_mmp
-    get_mmp_state                          set_spot_hedging
-    get_open_and_closed_orders             set_trading_stop
-    get_order_history                      switch_position_mode
-    get_position_info                      upgrade_to_unified_account_pro
-    get_risk_limit
+BybitClient methods (42):
+ batch_cancel_order                     get_server_time
+ batch_place_order                      get_smp_group_id
+ batch_set_collateral_coin              get_trade_behaviour_setting
+ cancel_all_orders                      get_transaction_log
+ cancel_order                           get_transferable_amount
+ get_account_info                       get_wallet_balance
+ get_account_instruments_info           manual_borrow
+ get_api_key_info                       manual_repay
+ get_borrow_history                     manual_repay_without_asset_conversion
+ get_closed_pnl                         place_order
+ get_coin_greeks                        repay_liability
+ get_collateral_info                    reset_mmp
+ get_dcp_info                           set_collateral_coin
+ get_fee_rate                           set_leverage
+ get_instruments_info                   set_limit_price_behaviour
+ get_kline                              set_margin_mode
+ get_mmp_state                          set_mmp
+ get_open_and_closed_orders             set_spot_hedging
+ get_order_history                      set_trading_stop
+ get_position_info                      switch_position_mode
+ get_risk_limit                         upgrade_to_unified_account_pro
 
-BingxClient methods (48):
-    cancel_all_spot_open_orders                get_spot_profit_details
-    cancel_all_swap_open_orders                get_spot_profit_overview
-    cancel_spot_batch_orders                   get_spot_symbols
-    cancel_swap_batch_orders                   get_spot_trade_details
-    change_swap_margin_type                    get_swap_account_balance
-    close_perpetual_trader_position_by_order   get_swap_contracts
-    close_swap_position                        get_swap_full_orders
-    decode_str                                 get_swap_klines
-    get_account_asset_overview                 get_swap_leverage_and_available_positions
-    get_account_uid                            get_swap_margin_type
-    get_api_permissions                        get_swap_open_orders
-    get_perpetual_copy_trading_pairs           get_swap_order_details
-    get_perpetual_current_trader_order         get_swap_order_history
-    get_perpetual_personal_trading_overview    get_swap_position_history
-    get_perpetual_profit_details               get_swap_position_mode
-    get_perpetual_profit_overview              get_swap_positions
-    get_server_time                            place_spot_order
-    get_spot_account_assets                    place_swap_batch_orders
-    get_spot_history_orders                    place_swap_order
-    get_spot_klines                            sell_spot_asset_by_order
-    get_spot_open_orders                       set_perpetual_commission_rate
-    get_spot_order_details                     set_perpetual_trader_tpsl_by_order
-    get_spot_order_history                     set_swap_leverage
-    get_spot_personal_trading_overview         set_swap_position_mode
+BingxClient methods (47):
+ cancel_all_spot_open_orders                get_spot_profit_overview
+ cancel_all_swap_open_orders                get_spot_symbols
+ cancel_spot_batch_orders                   get_spot_trade_details
+ cancel_swap_batch_orders                   get_swap_account_balance
+ change_swap_margin_type                    get_swap_contracts
+ close_perpetual_trader_position_by_order   get_swap_full_orders
+ close_swap_position                        get_swap_klines
+ get_account_asset_overview                 get_swap_leverage_and_available_positions
+ get_account_uid                            get_swap_margin_type
+ get_api_permissions                        get_swap_open_orders
+ get_perpetual_copy_trading_pairs           get_swap_order_details
+ get_perpetual_current_trader_order         get_swap_order_history
+ get_perpetual_personal_trading_overview    get_swap_position_history
+ get_perpetual_profit_details               get_swap_position_mode
+ get_perpetual_profit_overview              get_swap_positions
+ get_server_time                            place_spot_order
+ get_spot_account_assets                    place_swap_batch_orders
+ get_spot_history_orders                    place_swap_order
+ get_spot_klines                            sell_spot_asset_by_order
+ get_spot_open_orders                       set_perpetual_commission_rate
+ get_spot_order_details                     set_perpetual_trader_tpsl_by_order
+ get_spot_order_history                     set_swap_leverage
+ get_spot_personal_trading_overview         set_swap_position_mode
+ get_spot_profit_details
 
-OkxClient methods (18):
-    batch_place_order      get_order
-    cancel_batch_orders    get_orders_history
-    close_position         get_orders_pending
-    decode_str             get_position_tiers
-    get_account_config     get_positions
-    get_balance            get_positions_history
-    get_funding_balance    set_isolated_mode
-    get_instruments        set_leverage
-    get_leverage_info      set_position_mode
+OkxClient methods (22):
+ batch_place_order        get_leverage_info
+ cancel_algo_orders       get_order
+ cancel_batch_orders      get_orders_history
+ close_position           get_orders_pending
+ get_account_config       get_position_tiers
+ get_algo_order           get_positions
+ get_algo_orders_history  get_positions_history
+ get_algo_orders_pending  place_algo_order
+ get_balance              set_isolated_mode
+ get_funding_balance      set_leverage
+ get_instruments          set_position_mode
 
-BitgetClient methods (34):
-    batch_cancel_futures_orders  get_isolated_symbols
-    batch_cancel_spot_orders     get_order_detail
-    batch_place_futures_orders   get_pending_orders
-    batch_place_spot_orders      get_pending_trigger_orders
-    cancel_all_futures_orders    get_server_time
-    cancel_order                 get_single_account
-    cancel_order_by_symbol       get_spot_history_orders
-    cancel_trigger_orders        get_symbol_info
-    decode_str                   get_trade_rate
-    flash_close_position         get_unfilled_orders
-    get_account_assets           place_futures_order
-    get_account_info             place_spot_order
-    get_account_list             place_tpsl_plan_order
-    get_all_positions            place_trigger_order
-    get_contract_config          set_leverage
-    get_futures_history_orders   set_margin_mode
-    get_historical_position      set_position_mode
+BitgetClient methods (33):
+ batch_cancel_futures_orders  get_order_detail
+ batch_cancel_spot_orders     get_pending_orders
+ batch_place_futures_orders   get_pending_trigger_orders
+ batch_place_spot_orders      get_server_time
+ cancel_all_futures_orders    get_single_account
+ cancel_order                 get_spot_history_orders
+ cancel_order_by_symbol       get_symbol_info
+ cancel_trigger_orders        get_trade_rate
+ flash_close_position         get_unfilled_orders
+ get_account_assets           place_futures_order
+ get_account_info             place_spot_order
+ get_account_list             place_tpsl_plan_order
+ get_all_positions            place_trigger_order
+ get_contract_config          set_leverage
+ get_futures_history_orders   set_margin_mode
+ get_historical_position      set_position_mode
+ get_isolated_symbols
+
+BinanceClient methods (33):
+ cancel_algo_order            get_all_orders
+ cancel_all_algo_open_orders  get_api_key_permissions
+ cancel_all_open_orders       get_exchange_info
+ cancel_batch_orders          get_income_history
+ cancel_order                 get_klines
+ change_leverage              get_multi_assets_mode
+ change_margin_type           get_open_algo_orders
+ change_multi_assets_mode     get_open_order
+ change_position_mode         get_open_orders
+ create_algo_order            get_order
+ create_batch_orders          get_position_info
+ create_order                 get_position_mode
+ get_account_balance          get_spot_account_info
+ get_account_config           get_spot_all_orders
+ get_account_info             get_spot_open_orders
+ get_algo_order               get_symbol_config
+ get_all_algo_orders
 ```
 
 ## Installation
@@ -117,114 +142,56 @@ poetry add aiotrade-sdk
 ### Option 1: Shared Session (Recommended for Production)
 
 ```python
-from aiotrade import SharedSessionManager, BingxClient, BybitClient, OkxClient, BitgetClient
+from aiotrade import SharedSessionManager, BybitClient
 
 # Initialize shared session at startup (once per application)
 SharedSessionManager.setup(max_connections=2000)
 
-# Create clients for different exchanges - they automatically use the shared session
-bingx_client = BingxClient(api_key="bingx_key", api_secret="bingx_secret", demo=True)
+# Create Bybit client - will use the shared session
 bybit_client = BybitClient(api_key="bybit_key", api_secret="bybit_secret", testnet=True)
-okx_client = OkxClient(api_key="okx_key", api_secret="okx_secret", passphrase="okx_passphrase")
-bitget_client = BitgetClient(api_key="bitget_key", api_secret="bitget_secret", passphrase="bitget_passphrase")
 
 try:
-    # Use clients for API calls
-    bingx_assets = await bingx_client.get_spot_account_assets()
+    # Use client for API calls
     bybit_tickers = await bybit_client.get_tickers(category="spot")
-    okx_balance = await okx_client.get_balance()
-    bitget_assets = await bitget_client.get_account_assets()
 finally:
     # Close shared session at shutdown
     await SharedSessionManager.close()
 ```
 
-### Option 2: Individual Sessions
+### Option 2: Individual Bybit Session
 
 ```python
-from aiotrade import BingxClient, BybitClient, OkxClient, BitgetClient
-
-# BingX client with individual session
-async with BingxClient(api_key="your_key", api_secret="your_secret", demo=True) as client:
-    assets = await client.get_spot_account_assets()
-    print(f"BingX assets: {assets}")
+from aiotrade import BybitClient
 
 # Bybit client with individual session
 async with BybitClient(api_key="your_key", api_secret="your_secret", testnet=True) as client:
     tickers = await client.get_tickers(category="spot")
     print(f"Bybit tickers: {tickers}")
-
-# OKX client with individual session
-async with OkxClient(api_key="your_key", api_secret="your_secret", passphrase="your_passphrase") as client:
-    balance = await client.get_balance()
-    print(f"OKX balance: {balance}")
-
-# Bitget client with individual session
-async with BitgetClient(api_key="your_key", api_secret="your_secret", passphrase="your_passphrase") as client:
-    assets = await client.get_account_assets()
-    print(f"Bitget assets: {assets}")
 ```
 
-### Option 3: Cached Clients
+### Option 3: Cached Bybit Client
 
 ```python
-from aiotrade import BingxClientsCache, BybitClientsCache, OkxClientsCache, BitgetClientsCache
+from aiotrade import BybitClientsCache
 
-# Get cached BingX client (creates new if doesn't exist)
-bingx_client = BingxClientsCache.get_or_create(
-    api_key="your_key",
-    api_secret="your_secret",
-    demo=True
-)
-
-# Get cached Bybit client
+# Get cached Bybit client (creates new if doesn't exist)
 bybit_client = BybitClientsCache.get_or_create(
     api_key="your_key",
     api_secret="your_secret",
     testnet=True
 )
 
-# Get cached OKX client
-okx_client = OkxClientsCache.get_or_create(
-    api_key="your_key",
-    api_secret="your_secret",
-    passphrase="your_passphrase"
-)
-
-# Get cached Bitget client
-bitget_client = BitgetClientsCache.get_or_create(
-    api_key="your_key",
-    api_secret="your_secret",
-    passphrase="your_passphrase"
-)
-
-# Use clients (session management is automatic)
-async with bingx_client:
-    assets = await bingx_client.get_spot_account_assets()
-
+# Use cached client (session management is automatic)
 async with bybit_client:
     tickers = await bybit_client.get_tickers(category="spot")
 
-async with okx_client:
-    balance = await okx_client.get_balance()
-
-async with bitget_client:
-    assets = await bitget_client.get_account_assets()
-
 # Same parameters return the same cached instance
-cached_okx = OkxClientsCache.get_or_create(
+cached_bybit = BybitClientsCache.get_or_create(
     api_key="your_key",
     api_secret="your_secret",
-    passphrase="your_passphrase"
+    testnet=True
 )
-assert okx_client is cached_okx  # True
-
-cached_bitget = BitgetClientsCache.get_or_create(
-    api_key="your_key",
-    api_secret="your_secret",
-    passphrase="your_passphrase"
-)
-assert bitget_client is cached_bitget  # True
+assert bybit_client is cached_bybit  # True
 ```
 
 ## Session Behavior
@@ -267,10 +234,3 @@ bitget_removed = BitgetClientsCache.cleanup_expired()
 - Python >= 3.12
 - aiohttp
 - High-performance connection pooling for production use
-
-## Performance Tips
-
-1. **Use Shared Session** for applications creating many clients
-2. **Enable Caching** for repeated API credential usage
-3. **Configure Connection Limits** based on your throughput needs
-4. **Use Background Cleanup** for long-running applications

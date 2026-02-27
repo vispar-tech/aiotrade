@@ -96,8 +96,8 @@ async def print_swap_positions(client: BingxClient) -> None:  # noqa: C901, PLR0
             position_side = pos.get("positionSide", "?")
 
             size = pos.get("positionAmt", pos.get("positionAmount", "0"))
-            entry_price = pos.get("avgEntryPrice", pos.get("entryPrice", "0"))
-            unrealized_pnl = pos.get("unRealizedProfit", pos.get("unrealizedPnl", "0"))
+            entry_price = pos.get("avgPrice", "0")
+            unrealized_pnl = pos.get("unrealizedProfit", "0")
 
             print(
                 f"   {symbol}: position_side={position_side}, "
@@ -108,29 +108,32 @@ async def print_swap_positions(client: BingxClient) -> None:  # noqa: C901, PLR0
             matching_tp: list[dict[str, Any]] = []
             matching_sl: list[dict[str, Any]] = []
             matching_trailing: list[dict[str, Any]] = []
+            matching_limits: list[dict[str, Any]] = []
 
             for order in open_orders:
                 order_position_id = order.get("positionID")
                 order_type = order.get("type")
-                order_position_side = order.get("positionSide")
-                if (
-                    str(order_position_id) == str(position_id)
-                    and position_side == order_position_side
-                ):
+                if str(order_position_id) == str(position_id):
                     if order_type == "TAKE_PROFIT_MARKET":
                         matching_tp.append(order)
                     if order_type == "STOP_MARKET":
                         matching_sl.append(order)
                     if order_type == "TRAILING_TP_SL":
                         matching_trailing.append(order)
+                if order_type == "LIMIT" and order.get("symbol") == symbol:
+                    matching_limits.append(order)
 
             if matching_tp:
                 print(f"      🎯 Matching TP orders ({len(matching_tp)}):")
                 for tp_order in matching_tp:
                     tp_id = tp_order.get("orderId")
                     tp_price = tp_order.get("stopPrice")
+                    tp_orig_qty = tp_order.get("origQty")
                     tp_type = tp_order.get("type", "")
-                    print(f"         id={tp_id}, type={tp_type}, price={tp_price}")
+                    print(
+                        f"         id={tp_id}, type={tp_type}, "
+                        f"price={tp_price}, origQty={tp_orig_qty}"
+                    )
             else:
                 print("      No matching TP orders found.")
 
@@ -139,8 +142,12 @@ async def print_swap_positions(client: BingxClient) -> None:  # noqa: C901, PLR0
                 for sl_order in matching_sl:
                     sl_id = sl_order.get("orderId")
                     sl_price = sl_order.get("stopPrice")
+                    sl_orig_qty = sl_order.get("origQty")
                     sl_type = sl_order.get("type", "")
-                    print(f"         id={sl_id}, type={sl_type}, price={sl_price}")
+                    print(
+                        f"         id={sl_id}, type={sl_type}, "
+                        f"price={sl_price}, orig_Qty={sl_orig_qty}"
+                    )
             else:
                 print("      No matching SL orders found.")
 
@@ -176,6 +183,21 @@ async def print_swap_positions(client: BingxClient) -> None:  # noqa: C901, PLR0
             else:
                 print("      No matching Trailing TP/SL orders found.")
 
+            if matching_limits:
+                print(f"      📈 Matching LIMIT orders ({len(matching_limits)}):")
+                for limit_order in matching_limits:
+                    limit_id = limit_order.get("orderId")
+                    limit_price = limit_order.get("price")
+                    limit_orig_qty = limit_order.get("origQty")
+                    limit_type = limit_order.get("type", "")
+                    stop_loss = limit_order.get("stopLoss")
+                    print(
+                        f"         id={limit_id}, type={limit_type}, "
+                        f"price={limit_price}, orig_Qty={limit_orig_qty}, stop_loss={stop_loss}"
+                    )
+            else:
+                print("      No matching Limit orders found.")
+
     except Exception as e:
         print(f"❌ Error retrieving open swap positions: {e}")
 
@@ -202,8 +224,35 @@ async def test_bingx_spot_assets_and_positions() -> None:
         demo=demo,
     )
 
-    await print_spot_account_assets(client)
+    # await print_spot_account_assets(client)
     await print_swap_positions(client)
+    orders = await client.get_swap_open_orders()
+
+    with open("bingx_open_orders.json", "w", encoding="utf-8") as f:
+        json.dump(orders, f, indent=2, ensure_ascii=False)
+    print("✅ Orders saved to bingx_open_orders.json")
+
+    # pprint(
+    #     await client.cancel_swap_batch_orders(
+    #         symbol="BTC-USDT", order_id_list=[2027346919806316544, 2027096348193042432]
+    #     )
+    # )
+
+    # pprint(await client.close_swap_position(position_id="2027064920269615105"))
+
+    # pprint(
+    #     await client.place_swap_order(
+    #         PlaceSwapOrderParams(
+    #             symbol="BTC-USDT",
+    #             quantity=0.0011,
+    #             position_side="BOTH",
+    #             side="SELL",
+    #             order_type="STOP_MARKET",
+    #             price=62_000,
+    #             stop_price=62_000,
+    #         )
+    #     )
+    # )
 
     if PLACE_ORDER:
         try:

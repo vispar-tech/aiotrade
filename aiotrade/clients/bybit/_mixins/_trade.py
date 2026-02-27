@@ -326,7 +326,7 @@ class TradeMixin:
 
     async def batch_place_order(
         self: HttpClientProtocol,
-        category: str,
+        category: Literal["linear", "option", "spot", "inverse"],
         orders: list[PlaceOrderParams],
     ) -> dict[str, Any]:
         """

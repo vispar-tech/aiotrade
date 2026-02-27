@@ -2,11 +2,22 @@
 
 from ._helpers import OkxHelpers
 from ._http import OkxHttpClient
-from ._mixins import FundingAccountMixin, PublicMixin, TradeMixin, TradingAccountMixin
+from ._mixins import (
+    AlgorithmTradeMixin,
+    FundingAccountMixin,
+    PublicMixin,
+    TradeMixin,
+    TradingAccountMixin,
+)
 
 
 class OkxClient(
-    OkxHttpClient, TradingAccountMixin, FundingAccountMixin, PublicMixin, TradeMixin
+    OkxHttpClient,
+    TradingAccountMixin,
+    FundingAccountMixin,
+    PublicMixin,
+    TradeMixin,
+    AlgorithmTradeMixin,
 ):
     """OKX Trading API Client with all available methods."""
 

@@ -2,10 +2,12 @@
 
 import ast
 import inspect
+import textwrap
+from collections import Counter
 from contextlib import suppress
 from typing import Any
 
-from aiotrade import BingxClient, BitgetClient, BybitClient, OkxClient
+from aiotrade import BinanceClient, BingxClient, BitgetClient, BybitClient, OkxClient
 
 
 def is_method(obj: Any) -> bool:
@@ -28,8 +30,6 @@ def raises_notimplemented_in_body(func: Any) -> bool:
         source = inspect.getsource(func)
         # Remove method indentation if present
         if source.startswith(" "):  # crude but fast check
-            import textwrap
-
             source = textwrap.dedent(source)
         module = ast.parse(source)
         for node in ast.walk(module):
@@ -59,7 +59,10 @@ def is_effectively_not_implemented(func: Any) -> bool:
 
 
 def implemented_methods(client_cls: type) -> list[str]:
-    """List implemented public method names of class, skipping non-implemented ones."""
+    """
+    List implemented public method names of class, skipping non-implemented ones.
+    Contains possible duplicates for duplicate check.
+    """
     methods: list[str] = []
     for name, _member in inspect.getmembers(client_cls, predicate=is_method):
         if name.startswith("_"):
@@ -70,11 +73,12 @@ def implemented_methods(client_cls: type) -> list[str]:
                 continue
             methods.append(name)
     excluded = {"close", "get", "post", "put", "delete", "set_recv_window", "set_dcp"}
-    filtered_methods = [m for m in methods if m not in excluded]
-    return sorted(set(filtered_methods))
+    return [m for m in methods if m not in excluded]
 
 
 def pretty_print_methods(title: str, methods: list[str]) -> None:
+    # Deduplicate for pretty print view
+    methods = sorted(set(methods))
     print(f"\n{title}")
     if not methods:
         print("  (none found)")
@@ -98,19 +102,33 @@ def pretty_print_methods(title: str, methods: list[str]) -> None:
         print(" " + "".join(m.ljust(maxlen) for m in row))
 
 
+def report_duplicates(client_name: str, methods: list[str]) -> None:
+    """Check and print duplicate public methods for the client."""
+    counter = Counter(methods)
+    duplicates = [m for m, count in counter.items() if count > 1]
+    if duplicates:
+        print(
+            f"WARNING: {client_name} has duplicate public methods: "
+            f"{', '.join(sorted(duplicates))}"
+        )
+
+
 def main() -> None:
     """Print all implemented public method names in a nice table."""
-    bybit_methods = implemented_methods(BybitClient)
-    bingx_methods = implemented_methods(BingxClient)
-    okx_methods = implemented_methods(OkxClient)
-    bitget_methods = implemented_methods(BitgetClient)
-
-    pretty_print_methods(f"BybitClient methods ({len(bybit_methods)}):", bybit_methods)
-    pretty_print_methods(f"BingxClient methods ({len(bingx_methods)}):", bingx_methods)
-    pretty_print_methods(f"OkxClient methods ({len(okx_methods)}):", okx_methods)
-    pretty_print_methods(
-        f"BitgetClient methods ({len(bitget_methods)}):", bitget_methods
-    )
+    client_data = [
+        ("BybitClient", BybitClient),
+        ("BingxClient", BingxClient),
+        ("OkxClient", OkxClient),
+        ("BitgetClient", BitgetClient),
+        ("BinanceClient", BinanceClient),
+    ]
+    for client_name, client_cls in client_data:
+        methods = implemented_methods(client_cls)
+        report_duplicates(client_name, methods)
+        # remove utility method
+        if "decode_str" in methods:
+            methods.remove("decode_str")
+        pretty_print_methods(f"{client_name} methods ({len(set(methods))}):", methods)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@ class HttpClient(ABC):
         self,
         base_url: str,
         recv_window: int = 5000,
+        verbose: bool = False,
     ) -> None:
         """
         Initialize the HTTP client.
@@ -32,9 +33,11 @@ class HttpClient(ABC):
             api_secret: Optional trading API secret.
             recv_window: Time in milliseconds representing the
                 receive window for signed requests.
+            verbose: If True, enables verbose/debug output from the client.
         """
         self.base_url = base_url
         self.recv_window = recv_window
+        self.verbose = verbose
 
         # Use shared session if available; otherwise, create a new aiohttp session.
         if SharedSessionManager.is_initialized():
@@ -59,6 +62,15 @@ class HttpClient(ABC):
             recv_window: New time in milliseconds for the receive window.
         """
         self.recv_window = recv_window
+
+    def set_verbose(self, verbose: bool) -> None:
+        """
+        Set the verbose mode for the client.
+
+        Args:
+            verbose: If True, enables verbose/debug output from the client.
+        """
+        self.verbose = verbose
 
     async def close(self) -> None:
         """
@@ -95,12 +107,13 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> tuple[
         dict[str, Any],
         str,
         dict[str, Any] | None,
         list[dict[str, Any]] | dict[str, Any] | None,
-        dict[str, Any] | None,
+        dict[str, Any] | str | None,
     ]:
         """
         Prepare the arguments required for making an HTTP request.
@@ -122,6 +135,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         """
         Execute an asynchronous HTTP request using the given parameters.
@@ -141,6 +155,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async GET request."""
         return await self._async_request(
@@ -149,6 +164,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            base_url=base_url,
         )
 
     async def post(
@@ -157,6 +173,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async POST request."""
         return await self._async_request(
@@ -165,6 +182,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            base_url=base_url,
         )
 
     async def put(
@@ -173,6 +191,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async PUT request."""
         return await self._async_request(
@@ -181,6 +200,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            base_url=base_url,
         )
 
     async def delete(
@@ -189,6 +209,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async DELETE request."""
         return await self._async_request(
@@ -197,6 +218,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            base_url=base_url,
         )
 
     def decode_str(self, s: str) -> str:

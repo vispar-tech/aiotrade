@@ -2,19 +2,19 @@
 
 from typing import Literal, NotRequired, TypedDict
 
-ProductType = Literal[
+type ProductType = Literal[
     "USDT-FUTURES",
     "COIN-FUTURES",
     "USDC-FUTURES",
 ]
 
-MarginMode = Literal["isolated", "crossed"]
-Side = Literal["buy", "sell"]
-OrderType = Literal["limit", "market"]
-TradeSide = Literal["open", "close"]
-TimeInForce = Literal["ioc", "fok", "gtc", "post_only"]
-ReduceOnly = Literal["YES", "NO"]
-StpMode = Literal["none", "cancel_taker", "cancel_maker", "cancel_both"]
+type MarginMode = Literal["isolated", "crossed"]
+type Side = Literal["buy", "sell"]
+type OrderType = Literal["limit", "market"]
+type TradeSide = Literal["open", "close"]
+type TimeInForce = Literal["ioc", "fok", "gtc", "post_only"]
+type ReduceOnly = Literal["YES", "NO"]
+type StpMode = Literal["none", "cancel_taker", "cancel_maker", "cancel_both"]
 
 
 class PlaceOrderParams(TypedDict, total=False):

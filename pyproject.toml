@@ -40,6 +40,9 @@ anyio = "^4.12.1"
 ruff = "^0.14.14"
 
 
+[tool.poetry.group.examples.dependencies]
+dotenv = "^0.9.9"
+
 [tool.poetry]
 packages = [
     { include = "aiotrade" }
@@ -116,8 +119,8 @@ fixable = ["ALL"]
 unfixable = []
 pydocstyle = { convention = "pep257", ignore-decorators = ["typing.overload"] }
 isort = { force-single-line = false, known-first-party = ["aiotrade"] }
-pylint = { allow-magic-value-types = ["int", "str", "float", "bytes"], max-args = 12 }
-mccabe = { max-complexity = 12}
+pylint = { allow-magic-value-types = ["int", "str", "float", "bytes"], max-args = 13 }
+mccabe = { max-complexity = 13}
 
 [tool.ruff.lint.per-file-ignores]
 "examples/*" = [
