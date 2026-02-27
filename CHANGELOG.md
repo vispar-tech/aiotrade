@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.12.0 (2026-02-27)
+
+### Features
+
+- **bybit**: :sparkles: integrate BrokerClient into BybitClient
+  ([`84e8c36`](https://github.com/vispar-tech/aiotrade/commit/84e8c360d0617d8b298fa8201630e0218006230d))
+
+
 ## v0.11.0 (2026-02-27)
 
 ### Features
