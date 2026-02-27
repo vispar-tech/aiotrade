@@ -2,7 +2,7 @@
 
 import asyncio
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from aiotrade import BybitClient
 
@@ -21,11 +21,11 @@ async def main() -> None:
     print(f"Starting benchmark: {NUM_REQUESTS} requests to get server time...")
 
     start_time = time.time()
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     async with client:
         # Create tasks for parallel execution
-        tasks: List[Tuple[int, asyncio.Task[Dict[str, Any]]]] = []
+        tasks: list[tuple[int, asyncio.Task[dict[str, Any]]]] = []
         for i in range(NUM_REQUESTS):
             task = asyncio.create_task(client.get_server_time())
             tasks.append((i, task))

@@ -2,7 +2,7 @@
 
 import asyncio
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from aiotrade import BybitClient
 
@@ -22,7 +22,7 @@ async def main() -> None:
     )
 
     # Create NUM_CLIENTS clients for testnet (no authentication required)
-    clients: List[BybitClient] = []
+    clients: list[BybitClient] = []
     for _ in range(NUM_CLIENTS):
         client = BybitClient(
             api_key="",
@@ -32,17 +32,17 @@ async def main() -> None:
         clients.append(client)
 
     start_time = time.time()
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     # Create tasks for parallel execution
-    tasks: List[asyncio.Task[None]] = []
+    tasks: list[asyncio.Task[None]] = []
 
     for client_idx, client in enumerate(clients):
 
         async def make_requests(client_idx: int, client: BybitClient) -> None:
             async with client:
                 # Create tasks for parallel execution of a single client's requests
-                client_tasks: List[Tuple[int, asyncio.Task[Dict[str, Any]]]] = []
+                client_tasks: list[tuple[int, asyncio.Task[dict[str, Any]]]] = []
                 for request_idx in range(REQUESTS_PER_CLIENT):
                     task = asyncio.create_task(client.get_server_time())
                     client_tasks.append((request_idx, task))

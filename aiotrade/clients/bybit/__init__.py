@@ -1,5 +1,6 @@
 """Bybit client package."""
 
+from ._broker import BrokerClient
 from ._helpers import BybitHelpers
 from ._http import BybitHttpClient
 from ._mixins import AccountMixin, MarketMixin, PositionMixin, TradeMixin, UserMixin
@@ -9,6 +10,16 @@ class BybitClient(
     BybitHttpClient, AccountMixin, TradeMixin, MarketMixin, PositionMixin, UserMixin
 ):
     """ByBit Trading API Client with all available methods."""
+
+    @staticmethod
+    def broker(client_id: str, client_secret: str) -> BrokerClient:
+        """
+        Return a Bybit OAuth BrokerClient for API integration.
+
+        Usage:
+            broker = BybitClient.broker(client_id="...", client_secret="...")
+        """
+        return BrokerClient(client_id, client_secret)
 
     def __init__(
         self,

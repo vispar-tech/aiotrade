@@ -3,14 +3,13 @@
 import asyncio
 import time
 from collections import OrderedDict
-from typing import Dict, Tuple
 
 from aiotrade import BybitClient, BybitClientsCache, SharedSessionManager
 
 CLIENTS_COUNT = 10_000
 
 
-def make_credentials(i: int, prefix: str = "client") -> Tuple[str, str]:
+def make_credentials(i: int, prefix: str = "client") -> tuple[str, str]:
     """Generate unique API credentials for testing."""
     return f"{prefix}_key_{i:04d}", f"{prefix}_secret_{i:04d}"
 
@@ -152,7 +151,7 @@ class CacheBenchmarks:
 
 class BenchmarkResultSummary:
     @staticmethod
-    def print(results: Dict[str, float]) -> None:
+    def print(results: dict[str, float]) -> None:
         """Print summary sorted by best (fastest) timings, with ms/client."""
         print()
         print("```text")
@@ -168,7 +167,7 @@ class BenchmarkResultSummary:
         print("```")
 
 
-async def run_benchmarks_without_session_manager() -> Dict[str, float]:
+async def run_benchmarks_without_session_manager() -> dict[str, float]:
     print(f"\nBenchmarking {CLIENTS_COUNT} clients WITHOUT SharedSessionManager ...\n")
     results: OrderedDict[str, float] = OrderedDict()
     results["direct_creation"] = await CacheBenchmarks.direct_creation()
@@ -182,7 +181,7 @@ async def run_benchmarks_without_session_manager() -> Dict[str, float]:
     return results
 
 
-async def run_benchmarks_with_session_manager() -> Dict[str, float]:
+async def run_benchmarks_with_session_manager() -> dict[str, float]:
     print(f"\nBenchmarking {CLIENTS_COUNT} clients WITH SharedSessionManager ...\n")
     results: OrderedDict[str, float] = OrderedDict()
     # Setup SharedSessionManager before all scenarios
