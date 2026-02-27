@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.11.0 (2026-02-27)
+
+### Features
+
+- **binance**: :sparkles: add Binance exchange client support
+  ([`e9c15a1`](https://github.com/vispar-tech/aiotrade/commit/e9c15a1537bd75d2946d5e64705abd79b0d7ccb2))
+
+
 ## v0.10.0 (2026-02-23)
 
 ### Features
