@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.14.1 (2026-03-07)
+
+### Bug Fixes
+
+- **clients**: :wrench: enhance OKX client with new broker tag parameter
+  ([`0bbfa62`](https://github.com/vispar-tech/aiotrade/commit/0bbfa62b8f6fa11aaa133a456c89e536c5c6615f))
+
+
 ## v0.14.0 (2026-03-07)
 
 ### Features
