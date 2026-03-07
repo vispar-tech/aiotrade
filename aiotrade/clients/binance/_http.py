@@ -213,7 +213,7 @@ class BinanceHttpClient(HttpClient):
                 )
 
         # Logging fast, avoid joining or formatting unnecessarily unless debug
-        if logger.isEnabledFor(logging.DEBUG):
+        if self.verbose:
             logger.debug(
                 "Making async %s request to %s with params: %s",
                 method,

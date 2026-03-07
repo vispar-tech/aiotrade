@@ -7,8 +7,7 @@ from typing import Any
 
 from aiotrade import BitgetClient
 from aiotrade.types.bitget import (
-    CancelTriggerOrderItem,
-    PlaceTpslPlanOrderParams,
+    BatchPlaceOrderItemParams,
 )
 
 # Set this to True to actually place a test order in the real API test
@@ -186,51 +185,72 @@ async def test_bitget_wallet_and_positions() -> None:
     if PLACE_ORDER:
         try:
             # spot order
-            await client.cancel_trigger_orders(
-                product_type="USDT-FUTURES",
-                symbol="BTCUSDT",
-                plan_type="moving_plan",
-                margin_coin="USDT",
-                order_id_list=[CancelTriggerOrderItem(orderId="1409871544033230848")],
-            )
-            result = await client.place_tpsl_plan_order(
-                params=PlaceTpslPlanOrderParams(
-                    productType="USDT-FUTURES",
-                    symbol="BTCUSDT",
-                    planType="moving_plan",
-                    triggerPrice=67000,
-                    triggerType="mark_price",
-                    holdSide="long",
-                    size=0.0015,
-                    marginCoin="USDT",
-                    rangeRate=3,
-                    # planType="track_plan",
-                    # marginMode="crossed",
-                    # marginCoin="USDT",
-                    # size=30,
-                    # side="sell",
-                    # tradeSide="close",
-                    # orderType="market",
-                    # reduceOnly="no",
-                    # triggerType="mark_price",
-                    # triggerPrice=67_000,
-                    # callbackRatio=0.05,
-                ),
-                channel_api_code="testing",
-            )
-            # result = await client.batch_place_order(
-            #     orders=[
-            #         PlaceOrderParams(
-            #             instId="BTC-USDT",
-            #             tdMode="cash",
-            #             side="buy",
-            #             ordType="market",
-            #             tradeQuoteCcy="USDT",
-            #             sz=0.00001,
-            #             tgtCcy="base_ccy",
-            #         ),
-            #     ]
+            # await client.cancel_trigger_orders(
+            #     product_type="USDT-FUTURES",
+            #     symbol="BTCUSDT",
+            #     plan_type="moving_plan",
+            #     margin_coin="USDT",
+            #     order_id_list=[CancelTriggerOrderItem(orderId="1409871544033230848")],
             # )
+            # result_order = await client.place_futures_order(
+            #     PlaceOrderParams(
+            #         productType="USDT-FUTURES",
+            #         symbol="BTCUSDT",
+            #         marginMode="isolated",
+            #         size=0.01,
+            #         side="buy",
+            #         orderType="market",
+            #         # tradeSide="open",
+            #         marginCoin="USDT",
+            #         # side="buy",
+            #         # posSide="net",
+            #         # ordType="market",
+            #         # sz=0.01,
+            #         # tdMode="isolated",
+            #     ),
+            # )
+            # pprint(result_order)
+            # result = await client.place_tpsl_plan_order(
+            #     params=PlaceTpslPlanOrderParams(
+            #         productType="USDT-FUTURES",
+            #         symbol="BTCUSDT",
+            #         planType="moving_plan",
+            #         triggerPrice=73000,
+            #         triggerType="mark_price",
+            #         holdSide="buy",
+            #         size=0.0200,
+            #         marginCoin="USDT",
+            #         rangeRate=3,
+            #         # planType="track_plan",
+            #         # marginMode="crossed",
+            #         # marginCoin="USDT",
+            #         # size=30,
+            #         # side="sell",
+            #         # tradeSide="close",
+            #         # orderType="market",
+            #         # reduceOnly="no",
+            #         # triggerType="mark_price",
+            #         # triggerPrice=67_000,
+            #         # callbackRatio=0.05,
+            #     ),
+            #     channel_api_code="testing",
+            # )
+            result = await client.batch_place_futures_orders(
+                symbol="BTCUSDT",
+                product_type="USDT-FUTURES",
+                margin_mode="isolated",
+                margin_coin="USDT",
+                order_list=[
+                    BatchPlaceOrderItemParams(
+                        size=0.001,
+                        side="buy",
+                        orderType="market",
+                    ),
+                    BatchPlaceOrderItemParams(
+                        size=5, side="buy", orderType="limit", price=67000
+                    ),
+                ],
+            )
             # futures order
             # result = await client.batch_place_order(
             #     orders=[

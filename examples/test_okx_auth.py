@@ -179,13 +179,21 @@ async def test_okx_wallet_and_positions() -> None:
             result = await client.batch_place_order(
                 orders=[
                     PlaceOrderParams(
-                        instId="BTC-USDT",
-                        tdMode="cash",
+                        instId="BTC-USDT-SWAP",
+                        tdMode="isolated",
                         side="buy",
                         ordType="market",
                         tradeQuoteCcy="USDT",
-                        sz=0.00001,
-                        tgtCcy="base_ccy",
+                        sz=0.01,
+                    ),
+                    PlaceOrderParams(
+                        instId="BTC-USDT-SWAP",
+                        tdMode="isolated",
+                        side="buy",
+                        ordType="limit",
+                        tradeQuoteCcy="USDT",
+                        sz=0.01,
+                        # px=65000,
                     ),
                 ]
             )

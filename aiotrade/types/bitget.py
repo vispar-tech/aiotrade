@@ -17,7 +17,7 @@ type ReduceOnly = Literal["YES", "NO"]
 type StpMode = Literal["none", "cancel_taker", "cancel_maker", "cancel_both"]
 
 
-class PlaceOrderParams(TypedDict, total=False):
+class PlaceOrderParams(TypedDict):
     """Parameters for placing a futures order.
 
     Ignore tradeSide when in one-way position mode. In hedge-mode,

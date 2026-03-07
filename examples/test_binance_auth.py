@@ -9,7 +9,7 @@ from typing import Any
 
 from aiotrade import BinanceClient
 from aiotrade.types.binance import (
-    TrailingStopMarketAlgorithmOrderParams,
+    CreateOrderParams,
 )
 
 # Set this to True to actually place a test order in the real API test
@@ -149,24 +149,33 @@ async def test_binance_wallet_and_positions() -> None:
     print(f"   Demo: {demo}...")
     print(api_key, api_secret)
     client = BinanceClient(api_key=api_key, api_secret=api_secret, demo=demo)
-    client.set_verbose(True)
 
     await print_futures_wallet_balance(client)
     await print_spot_wallet_balance(client)
     await print_open_positions(client)
 
-    if True:
+    await client.change_position_mode(dual_side_position=False)
+
+    if PLACE_ORDER:
         try:
-            # resp = await client.create_batch_orders(
-            #     params=[
-            #         CreateOrderParams(
-            #             symbol="BTCUSDT",
-            #             side="BUY",
-            #             type="MARKET",
-            #             quantity=0.003,
-            #         )
-            #     ]
-            # )
+            resp = await client.create_batch_orders(
+                params=[
+                    CreateOrderParams(
+                        symbol="BTCUSDT",
+                        side="BUY",
+                        positionSide="BOTH",
+                        type="MARKET",
+                        quantity=0.01,
+                    ),
+                    CreateOrderParams(
+                        symbol="BTCUSDT",
+                        side="BUY",
+                        positionSide="BOTH",
+                        type="LIMIT",
+                        quantity=0.01,
+                    ),
+                ]
+            )
 
             # print("✅ Futures order placed successfully:")
             # try:
@@ -175,18 +184,18 @@ async def test_binance_wallet_and_positions() -> None:
             # except Exception:
             #     print(resp)
 
-            resp = await client.create_algo_order(
-                params=TrailingStopMarketAlgorithmOrderParams(
-                    algoType="CONDITIONAL",
-                    symbol="BTCUSDT",
-                    side="SELL",
-                    type="TRAILING_STOP_MARKET",
-                    quantity=0.018,
-                    reduceOnly="true",
-                    activatePrice=70_000,
-                    callbackRate=0.5,
-                )
-            )
+            # resp = await client.create_algo_order(
+            #     params=TrailingStopMarketAlgorithmOrderParams(
+            #         algoType="CONDITIONAL",
+            #         symbol="BTCUSDT",
+            #         side="SELL",
+            #         type="TRAILING_STOP_MARKET",
+            #         quantity=0.018,
+            #         reduceOnly="true",
+            #         activatePrice=70_000,
+            #         callbackRate=0.5,
+            #     )
+            # )
 
             # # place tp
             # resp = await client.create_algo_order(
@@ -206,13 +215,13 @@ async def test_binance_wallet_and_positions() -> None:
                 print(pretty_data)
             except Exception:
                 print(resp)
-            try:
-                pretty_data = json.dumps(
-                    await client.get_open_algo_orders(), indent=2, ensure_ascii=False
-                )
-                print(pretty_data)
-            except Exception:
-                print("Exc algo orders")
+            # try:
+            #     pretty_data = json.dumps(
+            #         await client.get_open_algo_orders(), indent=2, ensure_ascii=False
+            #     )
+            #     print(pretty_data)
+            # except Exception:
+            #     print("Exc algo orders")
         except Exception as err:
             print(f"❌ Error placing futures order: {err}")
     else:

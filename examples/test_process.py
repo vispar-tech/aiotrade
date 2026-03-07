@@ -1,11 +1,13 @@
 """Tests for exchanges spot and swap account/portfolio balances."""
 
 import asyncio
+import json
 import logging
 import os
 import sys
 import time
 import traceback
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -101,6 +103,9 @@ def get_tp_sl(price: float) -> tuple[float, float]:
 
 async def process_bingx(client: BingxClient) -> None:  # noqa: C901, PLR0912, PLR0915
     """Get BingX swap (futures) account balances: show entry for USDT."""
+    print("await client.get_swap_account_balance()")
+    print(json.dumps(await client.get_swap_account_balance(), indent=4))
+    return
 
     async def get_open_orders() -> list[dict[str, Any]]:
         open_orders_response = await client.get_swap_open_orders(symbol=exchange_symbol)
@@ -319,6 +324,10 @@ async def process_bingx(client: BingxClient) -> None:  # noqa: C901, PLR0912, PL
 
 async def process_bybit(client: BybitClient) -> None:  # noqa: C901, PLR0912, PLR0915
     """Get Bybit unified (futures) wallet balance: show entry for USDT."""
+    print("await client.get_wallet_balance()")
+    print(json.dumps(await client.get_wallet_balance(), indent=4))
+
+    return
 
     async def get_open_orders() -> list[dict[str, Any]]:
         open_orders_response = await client.get_open_and_closed_orders(
@@ -587,6 +596,61 @@ async def process_bybit(client: BybitClient) -> None:  # noqa: C901, PLR0912, PL
 
 async def process_okx(client: OkxClient) -> None:
     """Get OKX wallet (futures/etc) balances: show entry for USDT."""
+    print(await client.get_leverage_info(mgn_mode="cross", inst_id="BTC-USDT-SWAP"))
+    print(await client.set_leverage(20, "isolated", inst_id="BTC-USDT-SWAP"))
+    # print(await client.get_account_config())
+    # print("await await client.get_instruments(inst_type='SWAP')")
+    # print(
+    #     json.dumps(
+    #         await client.get_instruments(inst_type="SWAP", inst_id="BTC-USDT-SWAP"),
+    #         indent=2,
+    #     )
+    # )
+    return
+    print("await client.get_positions(inst_type='SWAP')")
+    print(json.dumps(await client.get_positions(inst_type="SWAP"), indent=4))
+    # Calculate start_time: 7 days ago (UTC timestamp in ms)
+    start_from_dt = datetime.now(UTC) - timedelta(days=7)
+    start_from_timestamp = int(start_from_dt.timestamp() * 1000)
+
+    total_pnls: list[dict[str, Any]] = []
+    after_cursor: int | None = start_from_timestamp
+    req_limit = 100
+
+    while True:
+        try:
+            # Call /api/v5/account/positions-history with paginated `after`
+            result = await client.get_positions_history(
+                inst_type="SWAP",  # Note: API parameter is 'instType'
+                after=after_cursor,  # Paginate using last seen uTime
+                limit=req_limit,  # Okx expects string for limit
+            )
+            # API returns a top-level 'data': [ ...list of positions... ]
+            positions: list[dict[str, Any]] = result.get("data", [])
+        except Exception as exc:
+            print(f"OKX positions-history fetch error: {exc!s}")
+            break
+
+        if not positions:
+            break
+
+        total_pnls.extend(positions)
+
+        # Find max uTime to paginate to next
+        u_times = [int(pos.get("uTime", "0")) for pos in positions if "uTime" in pos]
+        if u_times:
+            max_u_time = max(u_times)
+            # Advance `after_cursor` for next page
+            after_cursor = int(max_u_time)
+            # If we've reached the maximum time covered by the response, break the loop
+            if len(positions) < req_limit:
+                break
+        else:
+            break
+
+    print(f"Loaded {len(total_pnls)} OKX PNL history rows in last 7 days.")
+    print(json.dumps(total_pnls, indent=2))
+    return
 
     async def get_open_orders() -> list[dict[str, Any]]:
         open_orders_response = await client.get_orders_pending(
@@ -664,7 +728,24 @@ async def process_okx(client: OkxClient) -> None:
 
 async def process_bitget(client: BitgetClient) -> None:
     """Get Bitget futures/swap wallet balances: show entry for USDT."""
-
+    # print("await client.get_contract_config('USDT-FUTURES')")
+    # print(
+    #     json.dumps(
+    #         await client.get_contract_config("USDT-FUTURES", symbol="BTCUSDT"), indent=4
+    #     )
+    # )
+    await client.set_position_mode(product_type="USDT-FUTURES", pos_mode="one_way_mode")
+    print(
+        json.dumps(
+            await client.get_single_account(
+                symbol="BTCUSDT",
+                product_type="USDT-FUTURES",
+                margin_coin="USDT",
+            ),
+            indent=4,
+        )
+    )
+    return
     try:
         exchange_symbol = to_exchange_symbol("bitget", PLACING_SYMBOL)
         print("Exchange symbol:", exchange_symbol)
@@ -701,7 +782,55 @@ async def process_bitget(client: BitgetClient) -> None:
 
 async def process_binance(client: BinanceClient) -> None:
     """Get Binance USD-M Futures account balances: show entry for USDT."""
+    print("await client.get_exchange_info()")
+    exchange_info = await client.get_exchange_info()
+    symbols = exchange_info.get("result", {}).get("symbols", [])
+    btcusdt_info = next((s for s in symbols if s.get("symbol") == "BTCUSDT"), None)
+    print(json.dumps(btcusdt_info, indent=4))
 
+    return
+    print("await client.get_position_info()")
+    # await client.change_position_mode(dual_side_position=True)
+    print(json.dumps(await client.get_position_info(), indent=4))
+
+    # Calculate start_time: 7 days ago (UTC timestamp in ms)
+    start_from_dt = datetime.now(UTC) - timedelta(days=7)
+    start_from_timestamp = int(start_from_dt.timestamp() * 1000)
+
+    total_pnls: list[dict[str, Any]] = []
+    req_limit = 1000
+    page = 1
+
+    while True:
+        try:
+            # Call get_income_history for "REALIZED_PNL", paginating by page
+            result = await client.get_income_history(
+                income_type="REALIZED_PNL",
+                start_time=start_from_timestamp,
+                page=page,
+                limit=req_limit,
+            )
+            # Some Binance APIs may use 'rows', 'data', or similar - this may be specific to your implementation
+            # Replace 'rows' with the correct key if needed
+            positions: list[dict[str, Any]] = result.get("result", {}).get("list", [])
+        except Exception as exc:
+            print(f"Binance income-history fetch error: {exc!s}")
+            break
+
+        if not positions:
+            break
+
+        total_pnls.extend(positions)
+
+        if len(positions) < req_limit:
+            break  # Last page reached
+
+        page += 1  # Move to next page
+
+    print(f"Loaded {len(total_pnls)} Binance PNL history rows in last 7 days.")
+    print(json.dumps(total_pnls, indent=2))
+
+    return
     try:
         exchange_symbol = to_exchange_symbol("binance", PLACING_SYMBOL)
         print("Exchange symbol:", exchange_symbol)

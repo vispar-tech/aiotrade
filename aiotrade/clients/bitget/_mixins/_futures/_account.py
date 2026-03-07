@@ -229,3 +229,37 @@ class AccountMixin:
             params=body,
             auth=True,
         )
+
+    async def set_asset_mode(
+        self: HttpClientProtocol,
+        product_type: ProductType,
+        asset_mode: Literal["single", "union"],
+    ) -> dict[str, Any]:
+        """
+        Set USDT-M Futures Asset Mode.
+
+        Frequency limit: 2 times/1s (uid).
+
+        API Docs:
+            POST /api/v2/mix/account/set-asset-mode
+
+        Args:
+            product_type: Product type, e.g. "USDT-FUTURES".
+            asset_mode: Asset mode,
+                "single" (Single asset mode) or "union" (Multi-assets mode).
+
+        Returns:
+            dict: API JSON response.
+
+        Example:
+            await client.set_asset_mode(
+                product_type="USDT-FUTURES",
+                asset_mode="union"
+            )
+        """
+        body = {"productType": product_type, "assetMode": asset_mode}
+        return await self.post(
+            "/api/v2/mix/account/set-asset-mode",
+            params=body,
+            auth=True,
+        )

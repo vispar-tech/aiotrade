@@ -5,6 +5,7 @@ from typing import Literal, NotRequired, TypedDict
 type TradeMode = Literal["cross", "isolated", "cash", "spot_isolated"]
 type OrderSide = Literal["buy", "sell"]
 type PositionSide = Literal["long", "short", "net"]
+type AlgoPositionSide = Literal["long", "short"]
 type OrderType = Literal[
     "market",
     "limit",
@@ -129,7 +130,7 @@ class AttachAlgorithmOrderNested(TypedDict, total=False):
     # Take-profit trigger ratio (float->str)
     tpTriggerRatio: NotRequired[float]
     # Take-profit trigger px type: last/index/mark
-    tpTriggerPxType: NotRequired[str]
+    tpTriggerPxType: NotRequired[TakeProfitStopLossTriggerPriceType]
     # Take-profit order price (float->str)
     tpOrdPx: NotRequired[float]
     # Stop-loss trigger price (float->str)
@@ -137,7 +138,7 @@ class AttachAlgorithmOrderNested(TypedDict, total=False):
     # Stop-loss trigger ratio (float->str)
     slTriggerRatio: NotRequired[float]
     # Stop-loss trigger px type: last/index/mark
-    slTriggerPxType: NotRequired[str]
+    slTriggerPxType: NotRequired[TakeProfitStopLossTriggerPriceType]
     # Stop-loss order price (float->str)
     slOrdPx: NotRequired[float]
 
@@ -148,11 +149,11 @@ class BaseAlgorithmOrderParams(TypedDict):
     # Instrument ID
     instId: str
     # Trade mode: cross/isolated/cash/spot_isolated
-    tdMode: str
-    # Order side: buy/sell
-    side: str
+    tdMode: TradeMode
+    # Order side (buy/sell)
+    side: OrderSide
     # Algo order type
-    ordType: str
+    ordType: AlgoOrderType
 
 
 class ConditionalAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
@@ -160,8 +161,8 @@ class ConditionalAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
 
     # Margin currency
     ccy: NotRequired[str]
-    # Position side: long or short
-    posSide: NotRequired[str]
+    # Position side: long, short, net
+    posSide: NotRequired[AlgoPositionSide]
     # Order quantity (float->str)
     sz: NotRequired[float]
     # Fraction to close; only '1' supported (float->str)
@@ -169,7 +170,7 @@ class ConditionalAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Order tag (max 16 chars)
     tag: NotRequired[str]
     # Quantity unit: base_ccy or quote_ccy (spot only)
-    tgtCcy: NotRequired[str]
+    tgtCcy: NotRequired[TargetCurrency]
     # Custom client order ID (max 32 chars)
     algoClOrdId: NotRequired[str]
     # Quote currency (spot only)
@@ -177,7 +178,7 @@ class ConditionalAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Take-profit trigger price (float->str)
     tpTriggerPx: NotRequired[float]
     # Take-profit trigger px type: last, index, mark
-    tpTriggerPxType: NotRequired[str]
+    tpTriggerPxType: NotRequired[TakeProfitStopLossTriggerPriceType]
     # Take-profit order price (float->str)
     tpOrdPx: NotRequired[float]
     # TP order kind: condition/limit
@@ -185,7 +186,7 @@ class ConditionalAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Stop-loss trigger price (float->str)
     slTriggerPx: NotRequired[float]
     # Stop-loss trigger px type: last, index, mark
-    slTriggerPxType: NotRequired[str]
+    slTriggerPxType: NotRequired[TakeProfitStopLossTriggerPriceType]
     # Stop-loss order price (float->str)
     slOrdPx: NotRequired[float]
     # Cancel on position close
@@ -202,7 +203,7 @@ class ChaseAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Margin currency
     ccy: NotRequired[str]
     # Position side: long/short
-    posSide: NotRequired[str]
+    posSide: NotRequired[AlgoPositionSide]
     # Order quantity (float->str)
     sz: NotRequired[float]
     # Fraction to close (float->str)
@@ -210,7 +211,7 @@ class ChaseAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Order tag (max 16 chars)
     tag: NotRequired[str]
     # Quantity unit: base_ccy/quote_ccy (spot)
-    tgtCcy: NotRequired[str]
+    tgtCcy: NotRequired[TargetCurrency]
     # Client Algo ID (max 32 chars)
     algoClOrdId: NotRequired[str]
     # Quote currency (spot only)
@@ -233,7 +234,7 @@ class TriggerAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Margin currency
     ccy: NotRequired[str]
     # Position side: long/short
-    posSide: NotRequired[str]
+    posSide: NotRequired[AlgoPositionSide]
     # Quantity (float->str)
     sz: NotRequired[float]
     # Fraction to close (float->str)
@@ -241,7 +242,7 @@ class TriggerAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Order tag (max 16 chars)
     tag: NotRequired[str]
     # Quantity unit: base_ccy/quote_ccy (spot)
-    tgtCcy: NotRequired[str]
+    tgtCcy: NotRequired[TargetCurrency]
     # Client Algo ID (max 32 chars)
     algoClOrdId: NotRequired[str]
     # Quote currency (spot only)
@@ -251,9 +252,9 @@ class TriggerAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Triggered order price, -1 for market (REQUIRED, float->str)
     orderPx: float
     # Trigger order advanced type: fok/ioc
-    advanceOrdType: NotRequired[str]
+    advanceOrdType: NotRequired[Literal["fok", "ioc"]]
     # Trigger px type: last/index/mark
-    triggerPxType: NotRequired[str]
+    triggerPxType: NotRequired[TakeProfitStopLossTriggerPriceType]
 
 
 class TrailingStopAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
@@ -262,7 +263,7 @@ class TrailingStopAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Margin currency
     ccy: NotRequired[str]
     # Position side: long/short
-    posSide: NotRequired[str]
+    posSide: NotRequired[AlgoPositionSide]
     # Quantity (float->str)
     sz: NotRequired[float]
     # Fraction to close (float->str)
@@ -270,7 +271,7 @@ class TrailingStopAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Order tag (max 16 chars)
     tag: NotRequired[str]
     # Quantity unit: base_ccy/quote_ccy (spot)
-    tgtCcy: NotRequired[str]
+    tgtCcy: NotRequired[TargetCurrency]
     # Client Algo ID (max 32 chars)
     algoClOrdId: NotRequired[str]
     # Quote currency (spot only)
@@ -291,7 +292,7 @@ class TwapAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Margin currency
     ccy: NotRequired[str]
     # Position side: long/short
-    posSide: NotRequired[str]
+    posSide: NotRequired[AlgoPositionSide]
     # Quantity (float->str)
     sz: NotRequired[float]
     # Fraction to close (float->str)
@@ -299,7 +300,7 @@ class TwapAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Order tag (max 16 chars)
     tag: NotRequired[str]
     # Quantity unit: base_ccy/quote_ccy (spot)
-    tgtCcy: NotRequired[str]
+    tgtCcy: NotRequired[TargetCurrency]
     # Client Algo ID (max 32 chars)
     algoClOrdId: NotRequired[str]
     # Quote currency (spot only)

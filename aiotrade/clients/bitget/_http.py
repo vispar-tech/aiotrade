@@ -169,7 +169,7 @@ class BitgetHttpClient(HttpClient):
         else:
             req_json = {k: params[k] for k in sorted(params) if params[k] is not None}
 
-        if logger.isEnabledFor(logging.DEBUG):
+        if self.verbose:
             logger.debug(
                 "Making async %s request to %s with params: %s", method, req_url, params
             )

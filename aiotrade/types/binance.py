@@ -80,9 +80,9 @@ class CreateOrderParams(TypedDict, total=False):
     symbol: str
     side: OrderSide
     type: OrderType
-    positionSide: NotRequired[PositionSide]
+    positionSide: PositionSide
+    quantity: float
     timeInForce: NotRequired[TimeInForce]
-    quantity: NotRequired[float]
     reduceOnly: NotRequired[BoolStr]
     price: NotRequired[float]
     newClientOrderId: NotRequired[str]

@@ -180,7 +180,7 @@ class OkxHttpClient(HttpClient):
             req_json = {k: params[k] for k in sorted(params) if params[k] is not None}
 
         # Logging fast, avoid joining or formatting unnecessarily unless debug
-        if logger.isEnabledFor(logging.DEBUG):
+        if self.verbose:
             logger.debug(
                 "Making async %s request to %s with params: %s", method, req_url, params
             )
@@ -224,7 +224,7 @@ class OkxHttpClient(HttpClient):
         ) as resp:
             try:
                 res_json: dict[str, Any] = await resp.json()
-                if res_json.get("code") not in (None, "0"):
+                if res_json.get("code") not in (None, "0", "2"):
                     raise ExchangeResponseError("okx", res_json)
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
