@@ -57,7 +57,7 @@ class BinanceHttpClient(HttpClient):
             api_secret: Trading API secret
             demo: Use demo trading
             recv_window: Receive window in milliseconds
-            referral_id: Referral ID
+            broker_id: Referral ID
         """
         self.api_key = api_key
         self.api_secret = api_secret

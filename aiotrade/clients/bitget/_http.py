@@ -47,6 +47,7 @@ class BitgetHttpClient(HttpClient):
             passphrase: Trading API passphrase
             demo: Use demo trading
             recv_window: Receive window in milliseconds
+            channel_api_code: Broker code
         """
         self.api_key = api_key
         self.api_secret = api_secret

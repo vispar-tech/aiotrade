@@ -46,11 +46,13 @@ class OkxHttpClient(HttpClient):
             passphrase: Trading API passphrase
             demo: Use demo trading
             recv_window: Receive window in milliseconds
+            broker_tag: Broker tag
         """
         self.api_key = api_key
         self.api_secret = api_secret
         self.passphrase = passphrase
         self.demo = demo
+        self.broker_tag = broker_tag
 
         super().__init__("https://www.okx.com", recv_window=recv_window)
 
