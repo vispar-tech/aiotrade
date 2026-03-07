@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.14.0 (2026-03-07)
+
+### Features
+
+- **clients**: :sparkles: enhance Binance and Bitget clients with new parameters
+  ([`7f1ecb6`](https://github.com/vispar-tech/aiotrade/commit/7f1ecb6b3d73966a4152fd6d5258f3df40331a24))
+
+
 ## v0.13.0 (2026-03-07)
 
 ### Features
