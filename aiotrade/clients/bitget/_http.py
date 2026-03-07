@@ -37,6 +37,7 @@ class BitgetHttpClient(HttpClient):
         passphrase: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
+        channel_api_code: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 
@@ -50,6 +51,7 @@ class BitgetHttpClient(HttpClient):
         self.api_key = api_key
         self.api_secret = api_secret
         self.passphrase = passphrase
+        self.channel_api_code = channel_api_code
         self.demo = demo
 
         super().__init__("https://api.bitget.com", recv_window=recv_window)
@@ -100,7 +102,7 @@ class BitgetHttpClient(HttpClient):
                 return "[]"
         return orjson.dumps(sanitized).decode().replace(":", ": ").replace(",", ", ")
 
-    async def _build_request_args(
+    async def _build_request_args(  # noqa: PLR0912
         self,
         method: HttpMethod,
         endpoint: str,
@@ -136,6 +138,8 @@ class BitgetHttpClient(HttpClient):
 
         if self.demo:
             req_headers["paptrading"] = "1"
+        if self.channel_api_code:
+            req_headers["X-CHANNEL-API-CODE"] = str(self.channel_api_code)
 
         req_payload = self._prepare_payload(method, params)
 

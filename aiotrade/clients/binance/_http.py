@@ -48,6 +48,7 @@ class BinanceHttpClient(HttpClient):
         api_secret: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
+        broker_id: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 
@@ -61,6 +62,7 @@ class BinanceHttpClient(HttpClient):
         self.api_key = api_key
         self.api_secret = api_secret
         self.demo = demo
+        self.broker_id = broker_id
 
         super().__init__(
             "https://api.binance.com",

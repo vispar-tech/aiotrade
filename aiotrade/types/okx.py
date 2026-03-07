@@ -182,13 +182,15 @@ class ConditionalAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     # Take-profit order price (float->str)
     tpOrdPx: NotRequired[float]
     # TP order kind: condition/limit
-    tpOrdKind: NotRequired[str]
+    tpOrdKind: NotRequired[Literal["condition", "limit"]]
     # Stop-loss trigger price (float->str)
     slTriggerPx: NotRequired[float]
     # Stop-loss trigger px type: last, index, mark
     slTriggerPxType: NotRequired[TakeProfitStopLossTriggerPriceType]
     # Stop-loss order price (float->str)
     slOrdPx: NotRequired[float]
+    # Sl order kind
+    slOrdKind: NotRequired[Literal["condition", "limit"]]
     # Cancel on position close
     cxlOnClosePos: NotRequired[bool]
     # Only reduce the position
@@ -284,6 +286,8 @@ class TrailingStopAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):
     activePx: NotRequired[float]
     # Only reduce the position
     reduceOnly: NotRequired[bool]
+    # Cancel on position close
+    cxlOnClosePos: NotRequired[bool]
 
 
 class TwapAlgorithmOrderParams(BaseAlgorithmOrderParams, total=False):

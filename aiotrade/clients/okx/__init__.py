@@ -28,6 +28,7 @@ class OkxClient(
         passphrase: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
+        broker_tag: str | None = None,
     ) -> None:
         """
         Initialize an OkxClient instance.
@@ -40,6 +41,7 @@ class OkxClient(
                 Default is False.
             recv_window: Optional custom receive window (ms) for requests.
                 Default is 5000.
+            broker_tag: Optional broker tag
 
         Example:
             ```python
@@ -54,7 +56,14 @@ class OkxClient(
             ```
 
         """
-        super().__init__(api_key, api_secret, passphrase, demo, recv_window)
+        super().__init__(
+            api_key=api_key,
+            api_secret=api_secret,
+            passphrase=passphrase,
+            demo=demo,
+            recv_window=recv_window,
+            broker_tag=broker_tag,
+        )
 
         # Utility class for helper methods
         self.helpers = OkxHelpers

@@ -57,7 +57,14 @@ class BybitClient(
             ```
 
         """
-        super().__init__(api_key, api_secret, testnet, demo, recv_window, referral_id)
+        super().__init__(
+            api_key=api_key,
+            api_secret=api_secret,
+            testnet=testnet,
+            demo=demo,
+            recv_window=recv_window,
+            referral_id=referral_id,
+        )
 
         # Utility class for helper methods
         self.helpers = BybitHelpers

@@ -80,11 +80,6 @@ class GetPendingTriggerOrdersParams(TypedDict, total=False):
         "normal_plan",
         "track_plan",
         "profit_loss",
-        "profit_plan",
-        "loss_plan",
-        "moving_plan",
-        "pos_profit",
-        "pos_loss",
     ]
     orderId: str
     clientOid: str

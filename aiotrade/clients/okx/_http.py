@@ -36,6 +36,7 @@ class OkxHttpClient(HttpClient):
         passphrase: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
+        broker_tag: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 

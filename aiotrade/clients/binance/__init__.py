@@ -20,6 +20,7 @@ class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, Spo
         api_secret: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
+        broker_id: str | None = None,
     ) -> None:
         """
         Initialize a BinanceClient instance.
@@ -31,6 +32,7 @@ class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, Spo
                 Default is False.
             recv_window: Optional custom receive window (ms) for requests.
                 Default is 5000.
+            broker_id: Optional broker id
 
         Example:
             ```python
@@ -44,7 +46,13 @@ class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, Spo
             ```
 
         """
-        super().__init__(api_key, api_secret, demo, recv_window)
+        super().__init__(
+            api_key=api_key,
+            api_secret=api_secret,
+            demo=demo,
+            recv_window=recv_window,
+            broker_id=broker_id,
+        )
 
         # Utility class for helper methods
         self.helpers = BinanceHelpers

@@ -53,7 +53,12 @@ class BingxClient(
             ```
 
         """
-        super().__init__(api_key, api_secret, demo, recv_window)
+        super().__init__(
+            api_key=api_key,
+            api_secret=api_secret,
+            demo=demo,
+            recv_window=recv_window,
+        )
 
         self.helpers = BingxHelpers
 

@@ -14,7 +14,6 @@ class TradeMixin:
     async def place_spot_order(
         self: HttpClientProtocol,
         params: PlaceSpotOrderParams,
-        channel_api_code: str,
     ) -> dict[str, Any]:
         """
         Place a spot order.
@@ -51,14 +50,12 @@ class TradeMixin:
                     "executeStopLossPrice",
                 },
             ),
-            headers={"X-CHANNEL-API-CODE": channel_api_code},
             auth=True,
         )
 
     async def batch_place_spot_orders(
         self: HttpClientProtocol,
         params: BatchPlaceSpotOrderParams,
-        channel_api_code: str,
     ) -> dict[str, Any]:
         """
         Place multiple spot orders in batch.
@@ -94,7 +91,6 @@ class TradeMixin:
                     "executeStopLossPrice",
                 },
             ),
-            headers={"X-CHANNEL-API-CODE": channel_api_code},
             auth=True,
         )
 

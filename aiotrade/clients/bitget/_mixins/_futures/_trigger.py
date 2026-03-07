@@ -95,8 +95,6 @@ class TriggerMixin:
     async def place_trigger_order(
         self: HttpClientProtocol,
         params: PlaceTriggerOrderParams,
-        *,
-        channel_api_code: str,
     ) -> dict[str, Any]:
         """
         Place a trigger/plan (normal or trailing stop) order.
@@ -133,14 +131,11 @@ class TriggerMixin:
                 },
             ),
             auth=True,
-            headers={"X-CHANNEL-API-CODE": channel_api_code},
         )
 
     async def place_tpsl_plan_order(
         self: HttpClientProtocol,
         params: PlaceTpslPlanOrderParams,
-        *,
-        channel_api_code: str,
     ) -> dict[str, Any]:
         """
         Place a stop-profit (take-profit) or stop-loss plan order.
@@ -167,5 +162,4 @@ class TriggerMixin:
                 {"triggerPrice", "executePrice", "size", "rangeRate"},
             ),
             auth=True,
-            headers={"X-CHANNEL-API-CODE": channel_api_code},
         )

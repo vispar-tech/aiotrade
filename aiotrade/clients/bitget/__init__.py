@@ -14,6 +14,7 @@ class BitgetClient(BitgetHttpClient, FuturesMixin, SpotMixin, PublicMixin):
         api_key: str | None = None,
         api_secret: str | None = None,
         passphrase: str | None = None,
+        channel_api_code: str | None = None,
         demo: bool = False,
         recv_window: int = 5000,
     ) -> None:
@@ -42,7 +43,14 @@ class BitgetClient(BitgetHttpClient, FuturesMixin, SpotMixin, PublicMixin):
             ```
 
         """
-        super().__init__(api_key, api_secret, passphrase, demo, recv_window)
+        super().__init__(
+            api_key=api_key,
+            api_secret=api_secret,
+            passphrase=passphrase,
+            demo=demo,
+            recv_window=recv_window,
+            channel_api_code=channel_api_code,
+        )
 
         # Utility class for helper methods
         self.helpers = BitgetHelpers
