@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.13.0 (2026-03-07)
+
+### Features
+
+- **clients**: :sparkles: update logging and add new methods across exchange clients
+  ([`119ed0f`](https://github.com/vispar-tech/aiotrade/commit/119ed0f3473e2e58577f07920d71d822689a008f))
+
+
 ## v0.12.0 (2026-02-27)
 
 ### Features
