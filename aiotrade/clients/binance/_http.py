@@ -285,7 +285,11 @@ class BinanceHttpClient(HttpClient):
                         response_message = response_content.pop("msg")
                     # Pop 'code' if present for code override
                     if "code" in response_content:
-                        response_code = response_content.pop("code")
+                        code_val = response_content.pop("code")
+                        try:
+                            response_code = int(code_val)
+                        except Exception:
+                            raise
                 elif isinstance(response_content, list):
                     # Always wrap lists in a result container
                     response_content = {"list": response_content}
