@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.14.2 (2026-03-09)
+
+### Bug Fixes
+
+- **clients**: :bug: ensure proper handling of response codes in BinanceHttpClient
+  ([`6e59328`](https://github.com/vispar-tech/aiotrade/commit/6e5932830f1a721e3df2eb0830c41fd92755b9bb))
+
+
 ## v0.14.1 (2026-03-07)
 
 ### Bug Fixes
