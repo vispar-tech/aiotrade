@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.16.3 (2026-03-10)
+
+### Bug Fixes
+
+- Update content type and data handling in BrokerClient
+  ([`c365000`](https://github.com/vispar-tech/aiotrade/commit/c36500036881a0276da9cce2f1baf26a8b21f220))
+
+
 ## v0.16.2 (2026-03-10)
 
 ### Bug Fixes
