@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.15.0 (2026-03-10)
+
+### Features
+
+- **clients**: :sparkles: integrate BrokerClient into Bitget and OKX clients
+  ([`9914d56`](https://github.com/vispar-tech/aiotrade/commit/9914d56f26f417bd1af13ef6152947278378e9c7))
+
+
 ## v0.14.2 (2026-03-09)
 
 ### Bug Fixes
