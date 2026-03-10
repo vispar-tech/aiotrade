@@ -124,7 +124,7 @@ class BrokerClient:
             )
 
         headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
             "user-agent": (
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -142,7 +142,7 @@ class BrokerClient:
             data["code_verifier"] = code_verifier
 
         async with self._session.post(
-            BrokerClient.TOKEN_URL, headers=headers, data=data
+            BrokerClient.TOKEN_URL, headers=headers, json=data
         ) as resp:
             resp.raise_for_status()
             return await resp.json()  # type: ignore[no-any-return]
