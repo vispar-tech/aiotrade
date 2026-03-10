@@ -138,9 +138,6 @@ class BrokerClient:
         client_user_id: str,
         redirect_url: str,
         serial_no: str,
-        scope: str = "broker:account:read broker:account:write",
-        response_type: str = "code",
-        state: str = "",
         timestamp: int | None = None,
     ) -> str:
         """
@@ -179,11 +176,7 @@ class BrokerClient:
             "redirectUrl": redirect_url,
             "serialNo": serial_no,
             "sign": sign,
-            "responseType": response_type,
-            "scope": scope,
         }
-        if state:
-            url_params["state"] = state
 
         return f"{self.AUTHORIZATION_URL}?" + urllib.parse.urlencode(url_params)
 

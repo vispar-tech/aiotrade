@@ -116,6 +116,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+public_key.pem
+private_key.pem
 
 # Spyder project settings
 .spyderproject
@@ -154,3 +156,4 @@ cython_debug/
 logs
 
 .cursor
+
