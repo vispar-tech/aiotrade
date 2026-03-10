@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.16.2 (2026-03-10)
+
+### Bug Fixes
+
+- Update TOKEN_URL for OKX API endpoint
+  ([`8ef7c2e`](https://github.com/vispar-tech/aiotrade/commit/8ef7c2ed32492c344eb093c2652895792a4a7a52))
+
+
 ## v0.16.1 (2026-03-10)
 
 ### Bug Fixes
