@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.16.0 (2026-03-10)
+
+### Features
+
+- **clients**: :sparkles: add client_user_id parameter to BrokerClient
+  ([`48c60ca`](https://github.com/vispar-tech/aiotrade/commit/48c60caf27927ea7cfbe2dbcf06a2a1c10acf494))
+
+
 ## v0.15.0 (2026-03-10)
 
 ### Features
