@@ -11,16 +11,6 @@ class BybitClient(
 ):
     """ByBit Trading API Client with all available methods."""
 
-    @staticmethod
-    def broker(client_id: str, client_secret: str) -> BrokerClient:
-        """
-        Return a Bybit OAuth BrokerClient for API integration.
-
-        Usage:
-            broker = BybitClient.broker(client_id="...", client_secret="...")
-        """
-        return BrokerClient(client_id, client_secret)
-
     def __init__(
         self,
         api_key: str | None = None,
@@ -68,6 +58,16 @@ class BybitClient(
 
         # Utility class for helper methods
         self.helpers = BybitHelpers
+
+    @staticmethod
+    def broker(client_id: str, client_secret: str) -> BrokerClient:
+        """
+        Return a Bybit OAuth BrokerClient for API integration.
+
+        Usage:
+            broker = BybitClient.broker(client_id="...", client_secret="...")
+        """
+        return BrokerClient(client_id, client_secret)
 
 
 __all__ = ["BybitClient"]

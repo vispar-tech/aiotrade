@@ -1,5 +1,6 @@
 """Bitget client package."""
 
+from aiotrade.clients.bitget._broker import BrokerClient
 from aiotrade.clients.bitget._mixins import FuturesMixin, PublicMixin, SpotMixin
 
 from ._helpers import BitgetHelpers
@@ -54,6 +55,33 @@ class BitgetClient(BitgetHttpClient, FuturesMixin, SpotMixin, PublicMixin):
 
         # Utility class for helper methods
         self.helpers = BitgetHelpers
+
+    @staticmethod
+    def broker(
+        client_id: str,
+        rsa_public_key: str | None = None,
+        rsa_private_key: str | None = None,
+    ) -> BrokerClient:
+        """
+        Return a Bitget OAuth BrokerClient for API integration.
+
+        Args:
+            client_id: Bitget app client ID.
+            rsa_public_key: (optional) RSA public key for encryption.
+            rsa_private_key: (optional) RSA private key for decryption.
+
+        Usage:
+            broker = BitgetClient.broker(
+                client_id="...",
+                rsa_public_key="...",
+                rsa_private_key="...",
+            )
+        """
+        return BrokerClient(
+            client_id,
+            rsa_public_key=rsa_public_key,
+            rsa_private_key=rsa_private_key,
+        )
 
 
 __all__ = ["BitgetClient"]

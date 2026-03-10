@@ -54,9 +54,8 @@ class BrokerClient:
             await self._session.close()
             self._session = None
 
-    @staticmethod
     def build_authorization_url(
-        client_id: str,
+        self,
         redirect_uri: str,
         state: str,
         scope: str = "openapi",
@@ -76,7 +75,7 @@ class BrokerClient:
             URL to redirect user for authorization.
         """
         params = {
-            "client_id": client_id,
+            "client_id": self.client_id,
             "response_type": response_type,
             "redirect_uri": redirect_uri,
             "scope": scope,

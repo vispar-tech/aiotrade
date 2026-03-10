@@ -1,5 +1,7 @@
 """OKX client package."""
 
+from aiotrade.clients.okx._broker import BrokerClient
+
 from ._helpers import OkxHelpers
 from ._http import OkxHttpClient
 from ._mixins import (
@@ -67,6 +69,16 @@ class OkxClient(
 
         # Utility class for helper methods
         self.helpers = OkxHelpers
+
+    @staticmethod
+    def broker(client_id: str, client_secret: str) -> BrokerClient:
+        """
+        Return a Okx OAuth BrokerClient for API integration.
+
+        Usage:
+            broker = OkxClient.broker(client_id="...", client_secret="...")
+        """
+        return BrokerClient(client_id, client_secret)
 
 
 __all__ = ["OkxClient"]
