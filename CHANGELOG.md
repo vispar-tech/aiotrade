@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.16.1 (2026-03-10)
+
+### Bug Fixes
+
+- Downgrade pycryptodome version to 3.20.0 in dependencies
+  ([`4f33560`](https://github.com/vispar-tech/aiotrade/commit/4f33560aa992400beab985b767e8689c364df8a5))
+
+
 ## v0.16.0 (2026-03-10)
 
 ### Features
