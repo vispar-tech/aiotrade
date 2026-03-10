@@ -44,14 +44,16 @@ def parse_broker_env(
     return client_id, client_secret, redirect_uri
 
 
-def parse_bitget_client_id() -> str | None:
-    """Parse the Bitget broker CLIENT_ID from .env."""
+def parse_bitget_client_info() -> tuple[str | None, str | None]:
+    """Parse the Bitget broker CLIENT_ID and CLIENT_USER_ID from .env."""
     bitget_client_id = os.getenv("BITGET_CLIENT_ID")
+    bitget_client_user_id = os.getenv("BITGET_CLIENT_USER_ID")
     print(f"[DEBUG] BITGET_CLIENT_ID: {bitget_client_id}")
-    if not bitget_client_id:
-        print("❌ Missing BITGET_CLIENT_ID in .env")
-        return None
-    return bitget_client_id
+    print(f"[DEBUG] BITGET_CLIENT_USER_ID: {bitget_client_user_id}")
+    if not bitget_client_id or not bitget_client_user_id:
+        print("❌ Missing BITGET_CLIENT_ID or BITGET_CLIENT_USER_ID in .env")
+        return None, None
+    return bitget_client_id, bitget_client_user_id
 
 
 async def test_okx_broker() -> None:
@@ -85,7 +87,7 @@ async def test_bitget_broker() -> None:
     bitget_rsa_public_key_path = os.getenv("BITGET_RSA_PUBLIC_KEY")
     bitget_rsa_private_key_path = os.getenv("BITGET_RSA_PRIVATE_KEY")
     bitget_redirect_uri = os.getenv("BITGET_REDIRECT_URI")
-    bitget_client_id = parse_bitget_client_id()
+    bitget_client_id, bybit_client_user_id = parse_bitget_client_info()
     # Print values for debugging
     print(f"[DEBUG] BITGET_RSA_PUBLIC_KEY: {bitget_rsa_public_key_path}")
     print(f"[DEBUG] BITGET_RSA_PRIVATE_KEY: {bitget_rsa_private_key_path}")
@@ -93,6 +95,7 @@ async def test_bitget_broker() -> None:
     if not all(
         [
             bitget_client_id,
+            bybit_client_user_id,
             bitget_rsa_public_key_path,
             bitget_rsa_private_key_path,
             bitget_redirect_uri,
@@ -114,12 +117,14 @@ async def test_bitget_broker() -> None:
         return
 
     async with BitgetClient.broker(
-        cast(str, bitget_client_id), bitget_rsa_public_key, bitget_rsa_private_key
+        cast(str, bitget_client_id),
+        cast(str, bybit_client_user_id),
+        bitget_rsa_public_key,
+        bitget_rsa_private_key,
     ) as client:
         # Use build_authorization_url and print the result
         print(
             client.build_authorization_url(
-                client_user_id="test_user",
                 redirect_url=cast(str, bitget_redirect_uri),
                 serial_no="test_user",
             )

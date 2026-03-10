@@ -59,6 +59,7 @@ class BitgetClient(BitgetHttpClient, FuturesMixin, SpotMixin, PublicMixin):
     @staticmethod
     def broker(
         client_id: str,
+        bybit_client_user_id: str,
         rsa_public_key: str | None = None,
         rsa_private_key: str | None = None,
     ) -> BrokerClient:
@@ -79,6 +80,7 @@ class BitgetClient(BitgetHttpClient, FuturesMixin, SpotMixin, PublicMixin):
         """
         return BrokerClient(
             client_id,
+            bybit_client_user_id,
             rsa_public_key=rsa_public_key,
             rsa_private_key=rsa_private_key,
         )

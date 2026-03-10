@@ -102,6 +102,7 @@ class BrokerClient:
     def __init__(
         self,
         client_id: str,
+        client_user_id: str,
         rsa_public_key: str | None = None,
         rsa_private_key: str | None = None,
     ) -> None:
@@ -114,6 +115,7 @@ class BrokerClient:
             rsa_private_key: RSA private key for decryption/signing.
         """
         self.client_id = client_id
+        self.client_user_id = client_user_id
         self.rsa_public_key = rsa_public_key
         self._rsa_private_key = rsa_private_key
         self._session: aiohttp.ClientSession | None = None
@@ -135,7 +137,6 @@ class BrokerClient:
 
     def build_authorization_url(
         self,
-        client_user_id: str,
         redirect_url: str,
         serial_no: str,
         timestamp: int | None = None,
@@ -164,14 +165,14 @@ class BrokerClient:
         sign_map = {
             "timestamp": str(timestamp),
             "clientId": self.client_id,
-            "clientUserId": client_user_id,
+            "clientUserId": self.client_user_id,
         }
         sign_data = RSAUtils.get_sign_data(sign_map)
         sign = RSAUtils.sign(sign_data, self._rsa_private_key)
 
         url_params = {
             "clientId": self.client_id,
-            "clientUserId": client_user_id,
+            "clientUserId": self.client_user_id,
             "timestamp": str(timestamp),
             "redirectUrl": redirect_url,
             "serialNo": serial_no,
