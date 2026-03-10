@@ -20,7 +20,7 @@ class BrokerClient:
     """
 
     AUTHORIZATION_URL = "https://www.okx.com/account/oauth"
-    TOKEN_URL = "https://www.okx.com/api/v5/users/oauth/token"  # noqa: S105
+    TOKEN_URL = "https://www.okx.com/v5/users/oauth/token"  # noqa: S105
     OPENAPI_URL = "https://www.okx.com/api/v5/users/oauth/apikey"
 
     def __init__(
