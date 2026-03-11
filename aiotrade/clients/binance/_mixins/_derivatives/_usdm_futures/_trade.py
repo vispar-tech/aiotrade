@@ -415,6 +415,34 @@ class TradeMixin:
         (only symbol that has position or open orders will be returned).
 
         API Docs:
+            GET /fapi/v2/positionRisk
+
+        Args:
+            symbol: Trading pair symbol (optional). If not provided,
+                returns positions for all symbols.
+
+        Returns:
+            dict: API JSON response containing position risk information.
+        """
+        params: dict[str, Any] = {}
+        if symbol is not None:
+            params["symbol"] = symbol
+        return await self.get(
+            "/fapi/v2/positionRisk",
+            params=params,
+            auth=True,
+        )
+
+    async def get_position_info_v3(
+        self: "HttpClientProtocol",
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Get current position information.
+
+        (only symbol that has position or open orders will be returned).
+
+        API Docs:
             GET /fapi/v3/positionRisk
 
         Args:
