@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.17.0 (2026-03-11)
+
+### Features
+
+- **trade**: Add get_position_info_v3 method for retrieving current position information
+  ([`2218505`](https://github.com/vispar-tech/aiotrade/commit/2218505430337e3ccd096dd72f67dd72ce5b29c7))
+
+
 ## v0.16.3 (2026-03-10)
 
 ### Bug Fixes
