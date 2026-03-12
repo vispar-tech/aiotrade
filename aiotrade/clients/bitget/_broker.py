@@ -6,87 +6,102 @@ from types import TracebackType
 from typing import Any, Self
 
 import aiohttp
-from Crypto import Random
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Signature import pkcs1_15
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives.asymmetric.padding import MGF1, OAEP
 
 
 class RSAUtils:
-    """Utility class for performing RSA-related operations."""
+    """Minimal RSA helper (cryptography primitives)."""
 
     @staticmethod
-    def encrypt_rsa(plaintext: str, public_key_str: str) -> str:
-        public_key = RSAUtils.get_public_key(public_key_str)
-        cipher = PKCS1_v1_5.new(public_key)
-        encrypted_data = cipher.encrypt(plaintext.encode("utf-8"))
-        return base64.b64encode(encrypted_data).decode("utf-8")
-
-    @staticmethod
-    def decrypt_rsa(encrypted_data: str, private_key_str: str) -> str:
-        private_key = RSAUtils.get_private_key(private_key_str)
-        cipher = PKCS1_v1_5.new(private_key)
-        ciphertext = base64.b64decode(encrypted_data)
-        sentinel = Random.new().read(15)
-        decrypted = cipher.decrypt(ciphertext, sentinel)
-        if decrypted == sentinel:
-            raise ValueError("Failed to decrypt: incorrect padding or key")
-        return decrypted.decode("utf-8")
-
-    @staticmethod
-    def get_public_key(key: str) -> RSA.RsaKey:
-        """Decode PEM or Base64 public key string to RSA RsaKey."""
+    def get_public_key(key: str) -> rsa.RSAPublicKey:
         try:
-            key_bytes = key.encode() if "-----BEGIN" in key else base64.b64decode(key)
-            return RSA.import_key(key_bytes)
+            pubkey = serialization.load_pem_public_key(key.encode("utf-8"))
+            if not isinstance(pubkey, rsa.RSAPublicKey):
+                raise ValueError("Not an RSA public key")
+            return pubkey
         except Exception as exc:
-            raise ValueError(f"Invalid public key format: {exc}") from exc
+            raise ValueError(f"Invalid public key: {exc}") from exc
 
     @staticmethod
-    def get_private_key(key: str) -> RSA.RsaKey:
-        """Decode PEM or Base64 private key string to RSA RsaKey."""
+    def get_private_key(key: str) -> rsa.RSAPrivateKey:
         try:
-            key_bytes = key.encode() if "-----BEGIN" in key else base64.b64decode(key)
-            return RSA.import_key(key_bytes)
+            privkey = serialization.load_pem_private_key(
+                key.encode("utf-8"), password=None
+            )
+            if not isinstance(privkey, rsa.RSAPrivateKey):
+                raise ValueError("Not an RSA private key")
+            return privkey
         except Exception as exc:
-            raise ValueError(f"Invalid private key format: {exc}") from exc
+            raise ValueError(f"Invalid private key: {exc}") from exc
 
     @staticmethod
     def sign(data: str, private_key_str: str) -> str:
-        private_key = RSAUtils.get_private_key(private_key_str)
-        hasher = SHA256.new(data.encode("utf-8"))
-        signature = pkcs1_15.new(private_key).sign(hasher)
+        """Sign (RSA PKCS1v15 MD5), return base64."""
+        priv_key = RSAUtils.get_private_key(private_key_str.strip())
+        signature = priv_key.sign(
+            data.encode("utf-8"),
+            padding.PKCS1v15(),
+            hashes.MD5(),  # noqa: S303
+        )
         return base64.b64encode(signature).decode("utf-8")
 
     @staticmethod
+    def encrypt_rsa(plaintext: str, public_key_str: str) -> str:
+        pub_key = RSAUtils.get_public_key(public_key_str)
+        encrypted = pub_key.encrypt(
+            plaintext.encode("utf-8"),
+            OAEP(
+                mgf=MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None,
+            ),
+        )
+        return base64.b64encode(encrypted).decode("utf-8")
+
+    @staticmethod
+    def decrypt_rsa(encrypted_b64: str, private_key_str: str) -> str:
+        priv_key = RSAUtils.get_private_key(private_key_str.strip())
+        ciphertext = base64.b64decode(encrypted_b64)
+        try:
+            decrypted = priv_key.decrypt(
+                ciphertext,
+                OAEP(
+                    mgf=MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+            return decrypted.decode("utf-8")
+        except UnicodeDecodeError:
+            return base64.b64encode(decrypted).decode("ascii")
+        except Exception as e:
+            raise ValueError("Decrypt error: bad key/data/padding") from e
+
+    @staticmethod
     def get_sign_data(params: dict[str, str]) -> str:
-        """Sort params by key and return a concatenated string of key+value."""
-        return "".join(f"{k}{params[k]}" for k in sorted(params.keys()))
+        """Sort keys and concat key+value for signing."""
+        return "".join(f"{k}{params[k]}" for k in sorted(params))
 
     @staticmethod
     def encrypt_state(state: str, public_key_str: str) -> str:
-        """Encrypt state string ('SUCCESS'/'FAIL') using the broker's public key."""
+        """Encrypt state with public key (OAEP-SHA256)."""
         return RSAUtils.encrypt_rsa(state, public_key_str)
 
     @staticmethod
     def decrypt_state(encrypted_state: str, private_key_str: str) -> str:
-        """Decrypt state string using the broker's private key."""
+        """Decrypt state with private key (OAEP-SHA256)."""
         return RSAUtils.decrypt_rsa(encrypted_state, private_key_str)
 
     @staticmethod
     def encrypt_serial_no(serial_no: str, public_key_str: str) -> str:
-        """
-        Encrypt serialNo with broker public key for 'sign' param.
-
-        Bitget should encrypt 'serialNo' with the broker's public key and
-        pass in 'sign'.
-        """
+        """Encrypt serialNo for Bitget API (OAEP-SHA256)."""
         return RSAUtils.encrypt_rsa(serial_no, public_key_str)
 
     @staticmethod
     def decrypt_sign(sign: str, private_key_str: str) -> str:
-        """Decrypt Bitget 'sign' param (should yield the serialNo)."""
+        """Decrypt Bitget 'sign' with private key (OAEP-SHA256)."""
         return RSAUtils.decrypt_rsa(sign, private_key_str)
 
 
@@ -97,7 +112,7 @@ class BrokerClient:
     Handles Bitget API credential delivery/callback as well.
     """
 
-    AUTHORIZATION_URL = "https://www.bitget.com/oauth/v2/authorize"
+    AUTHORIZATION_URL = "https://www.bitget.com/account/oauth"
 
     def __init__(
         self,
@@ -147,7 +162,7 @@ class BrokerClient:
         Steps:
             1. Prepare param dict: clientId, clientUserId, timestamp.
             2. Generate sign_data string using get_sign_data.
-            3. Sign the string with rsa_private_key.
+            3. Sign the string with rsa_private_key (simple RSA).
             4. Add sign and build the authorization URL.
 
         Returns:
@@ -164,8 +179,8 @@ class BrokerClient:
         # Prepare data to sign
         sign_map = {
             "timestamp": str(timestamp),
-            "clientId": self.client_id,
-            "clientUserId": self.client_user_id,
+            "clientId": str(self.client_id),
+            "clientUserId": str(self.client_user_id),
         }
         sign_data = RSAUtils.get_sign_data(sign_map)
         sign = RSAUtils.sign(sign_data, self._rsa_private_key)
@@ -173,13 +188,12 @@ class BrokerClient:
         url_params = {
             "clientId": self.client_id,
             "clientUserId": self.client_user_id,
-            "timestamp": str(timestamp),
+            "timestamp": timestamp,
             "redirectUrl": redirect_url,
             "serialNo": serial_no,
             "sign": sign,
         }
-
-        return f"{self.AUTHORIZATION_URL}?" + urllib.parse.urlencode(url_params)
+        return f"{self.AUTHORIZATION_URL}?{urllib.parse.urlencode(url_params)}"
 
     def decode_api_keys(
         self,

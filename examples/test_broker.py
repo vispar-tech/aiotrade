@@ -17,7 +17,7 @@ from aiotrade import (
 
 load_dotenv()
 
-logging.basicConfig(stream=sys.stdout, level="CRITICAL")
+logging.basicConfig(stream=sys.stdout, level="DEBUG")
 logger = logging.getLogger(__name__)
 
 
@@ -126,7 +126,7 @@ async def test_bitget_broker() -> None:
         print(
             client.build_authorization_url(
                 redirect_url=cast(str, bitget_redirect_uri),
-                serial_no="test_user",
+                serial_no=cast(str, bybit_client_user_id),
             )
         )
     print("✅ Bitget Broker test complete.\n")
