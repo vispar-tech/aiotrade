@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.18.0 (2026-03-12)
+
+### Features
+
+- Integrate cryptography library for RSA operations
+  ([`21dc2c1`](https://github.com/vispar-tech/aiotrade/commit/21dc2c116afb6f2c01db632a9c56c5fa35343b0b))
+
+
 ## v0.17.0 (2026-03-11)
 
 ### Features
