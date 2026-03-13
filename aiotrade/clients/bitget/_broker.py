@@ -67,11 +67,7 @@ class RSAUtils:
         try:
             decrypted = priv_key.decrypt(
                 ciphertext,
-                OAEP(
-                    mgf=MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None,
-                ),
+                padding.PKCS1v15(),
             )
             return decrypted.decode("utf-8")
         except UnicodeDecodeError:
