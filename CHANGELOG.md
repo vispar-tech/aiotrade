@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.18.1 (2026-03-13)
+
+### Bug Fixes
+
+- Update RSA decryption padding method in RSAUtils
+  ([`9a661f9`](https://github.com/vispar-tech/aiotrade/commit/9a661f933105468353194ff0227dda13d1791c64))
+
+
 ## v0.18.0 (2026-03-12)
 
 ### Features
