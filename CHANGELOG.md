@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.19.0 (2026-03-18)
+
+### Features
+
+- **kucoin**: :sparkles: add KuCoin support and update dependencies
+  ([`1b18673`](https://github.com/vispar-tech/aiotrade/commit/1b1867369b48ad9b9220516b5c9cb54488c99ae8))
+
+
 ## v0.18.1 (2026-03-13)
 
 ### Bug Fixes
