@@ -24,20 +24,20 @@ class BitgetHelpers:
             Wallet balance as float if found, else None.
         """
         # The v5 futures/spot account API for Bitget returns a list under "data",
-        # each item (dict) is an account, with field "marginCoin"/"accountEquity"
+        # each item (dict) is an account, with field "marginCoin"/"usdtEquity"
         accounts = resp.get("data", [])
         for account in accounts:
             # Use the outer account's marginCoin to match the asset
             margin_coin = account.get("marginCoin")
             if margin_coin == asset:
-                account_available = account.get("available")
-                if account_available is None:
+                usdt_equity = account.get("usdtEquity")
+                if usdt_equity is None:
                     continue
                 try:
-                    return float(account_available)
+                    return float(usdt_equity)
                 except Exception:
                     logger.warning(
-                        "`available` is not parseable as float: %r", account_available
+                        "`usdtEquity` is not parseable as float: %r", usdt_equity
                     )
                     return None
         return None

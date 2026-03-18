@@ -2,9 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![Python versions](https://img.shields.io/pypi/pyversions/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/) [![Binance](https://img.shields.io/badge/Binance-supported-yellow?logo=binance)](https://www.binance.com/)
+[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/) [![Binance](https://img.shields.io/badge/Binance-supported-yellow?logo=binance)](https://www.binance.com/) [![KuCoin](https://img.shields.io/badge/KuCoin-supported-lightgreen?logo=kucoin)](https://www.kucoin.com/)
 
-High-performance async trading API client for Python supporting BingX, Bybit, OKX, Bitget and Binance exchanges with intelligent session and cache management.
+High-performance async trading API client for Python supporting BingX, Bybit, OKX, Bitget, Binance and Kucoin exchanges with intelligent session and cache management.
 
 ## Architecture
 
@@ -92,7 +92,7 @@ OkxClient methods (22):
  get_funding_balance      set_leverage
  get_instruments          set_position_mode
 
-BitgetClient methods (33):
+BitgetClient methods (34):
  batch_cancel_futures_orders  get_order_detail
  batch_cancel_spot_orders     get_pending_orders
  batch_place_futures_orders   get_pending_trigger_orders
@@ -106,12 +106,12 @@ BitgetClient methods (33):
  get_account_info             place_spot_order
  get_account_list             place_tpsl_plan_order
  get_all_positions            place_trigger_order
- get_contract_config          set_leverage
- get_futures_history_orders   set_margin_mode
- get_historical_position      set_position_mode
- get_isolated_symbols
+ get_contract_config          set_asset_mode
+ get_futures_history_orders   set_leverage
+ get_historical_position      set_margin_mode
+ get_isolated_symbols         set_position_mode
 
-BinanceClient methods (33):
+BinanceClient methods (34):
  cancel_algo_order            get_all_orders
  cancel_all_algo_open_orders  get_api_key_permissions
  cancel_all_open_orders       get_exchange_info
@@ -123,12 +123,30 @@ BinanceClient methods (33):
  change_position_mode         get_open_orders
  create_algo_order            get_order
  create_batch_orders          get_position_info
- create_order                 get_position_mode
- get_account_balance          get_spot_account_info
- get_account_config           get_spot_all_orders
- get_account_info             get_spot_open_orders
- get_algo_order               get_symbol_config
- get_all_algo_orders
+ create_order                 get_position_info_v3
+ get_account_balance          get_position_mode
+ get_account_config           get_spot_account_info
+ get_account_info             get_spot_all_orders
+ get_algo_order               get_spot_open_orders
+ get_all_algo_orders          get_symbol_config
+
+KuCoinClient methods (32):
+ add_order                       get_margin_mode
+ add_order_test                  get_order_by_client_oid
+ add_tp_sl_order                 get_order_by_order_id
+ batch_add_orders                get_order_list
+ batch_cancel_orders             get_position_details
+ batch_switch_margin_mode        get_position_mode
+ cancel_all_orders               get_positions
+ cancel_all_stop_orders          get_positions_history
+ cancel_order_by_client_oid      get_recent_closed_orders
+ cancel_order_by_id              get_recent_trade_history
+ get_all_symbols                 get_server_time
+ get_all_tickers                 get_service_status
+ get_api_key_info                get_stop_orders
+ get_futures_account             get_trade_history
+ get_isolated_margin_risk_limit  switch_margin_mode
+ get_klines                      switch_position_mode
 ```
 
 ## Installation

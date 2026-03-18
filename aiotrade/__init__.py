@@ -42,9 +42,17 @@ from .caches import (
     BingxClientsCache,
     BitgetClientsCache,
     BybitClientsCache,
+    KuCoinClientsCache,
     OkxClientsCache,
 )
-from .clients import BinanceClient, BingxClient, BitgetClient, BybitClient, OkxClient
+from .clients import (
+    BinanceClient,
+    BingxClient,
+    BitgetClient,
+    BybitClient,
+    KuCoinClient,
+    OkxClient,
+)
 
 __all__ = [
     "BinanceClient",
@@ -57,6 +65,8 @@ __all__ = [
     "BybitClientsCache",
     "ExchangeLiteral",
     "ExchangeResponseError",
+    "KuCoinClient",
+    "KuCoinClientsCache",
     "OkxClient",
     "OkxClientsCache",
     "SharedSessionManager",

@@ -224,35 +224,9 @@ async def test_bingx_spot_assets_and_positions() -> None:
         demo=demo,
     )
 
-    # await print_spot_account_assets(client)
+    await print_spot_account_assets(client)
     await print_swap_positions(client)
-    orders = await client.get_swap_open_orders()
-
-    with open("bingx_open_orders.json", "w", encoding="utf-8") as f:
-        json.dump(orders, f, indent=2, ensure_ascii=False)
-    print("✅ Orders saved to bingx_open_orders.json")
-
-    # pprint(
-    #     await client.cancel_swap_batch_orders(
-    #         symbol="BTC-USDT", order_id_list=[2027346919806316544, 2027096348193042432]
-    #     )
-    # )
-
-    # pprint(await client.close_swap_position(position_id="2027064920269615105"))
-
-    # pprint(
-    #     await client.place_swap_order(
-    #         PlaceSwapOrderParams(
-    #             symbol="BTC-USDT",
-    #             quantity=0.0011,
-    #             position_side="BOTH",
-    #             side="SELL",
-    #             order_type="STOP_MARKET",
-    #             price=62_000,
-    #             stop_price=62_000,
-    #         )
-    #     )
-    # )
+    print(json.dumps(await client.get_swap_contracts(symbol="BTC-USDT"), indent=2))
 
     if PLACE_ORDER:
         try:

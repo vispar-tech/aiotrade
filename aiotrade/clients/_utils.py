@@ -5,11 +5,13 @@ from typing import Any, overload
 def _float_to_str(val: float, use_exp: bool) -> str:
     if use_exp:
         return str(val)
-    # Represent val as a decimal string, never scientific (no 'e').
-    s = format(val, "f")
-    # Strip trailing unnecessary zeros, but preserve at least one zero after decimal
-    if "." in s:
-        s = s.rstrip("0").rstrip(".")
+    # Use repr to avoid rounding (almost full machine precision as str)
+    s = repr(val)
+    # Only switch to non-scientific if present, else leave as-is
+    if "e" in s or "E" in s:
+        # Convert to decimal with max double precision, avoid scientific
+        # 17 digits are usually the max guaranteed precision for a double
+        s = format(val, ".17f").rstrip("0").rstrip(".")
         if s == "":
             s = "0"
         elif "." in s and s[-1] == ".":

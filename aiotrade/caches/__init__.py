@@ -4,6 +4,7 @@ from .binance import BinanceClientsCache
 from .bingx import BingxClientsCache
 from .bitget import BitgetClientsCache
 from .bybit import BybitClientsCache
+from .kucoin import KuCoinClientsCache
 from .okx import OkxClientsCache
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "BingxClientsCache",
     "BitgetClientsCache",
     "BybitClientsCache",
+    "KuCoinClientsCache",
     "OkxClientsCache",
 ]

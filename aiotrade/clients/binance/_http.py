@@ -251,12 +251,14 @@ class BinanceHttpClient(HttpClient):
         )
         if self.verbose:
             logger.info(
-                "Request args: headers=%r, url=%r, params=%r, json=%r, data=%r",
+                "Request args: headers=%r, url=%r, params=%r, "
+                "json=%r, data=%r, base_url=%r",
                 req_headers,
                 req_url,
                 req_params,
                 req_json,
                 req_data,
+                base_url,
             )
 
         wrapped: dict[str, Any]

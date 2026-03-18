@@ -161,7 +161,7 @@ class BitgetHttpClient(HttpClient):
         else:
             signature = None
 
-        req_url = f"{self.base_url}{endpoint}"
+        req_url = f"{base_url if base_url else self.base_url}{endpoint}"
         req_json: list[dict[str, Any]] | dict[str, Any] | None
 
         if method == "GET":
@@ -196,7 +196,9 @@ class BitgetHttpClient(HttpClient):
             req_params,
             req_json,
             req_data,
-        ) = await self._build_request_args(method, endpoint, params, headers, auth)
+        ) = await self._build_request_args(
+            method, endpoint, params, headers, auth, base_url
+        )
 
         async with self._session.request(
             method,

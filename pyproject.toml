@@ -43,6 +43,7 @@ ruff = "^0.14.14"
 
 [tool.poetry.group.examples.dependencies]
 dotenv = "^0.9.9"
+aiolimiter = "^1.2.1"
 
 [tool.poetry]
 packages = [

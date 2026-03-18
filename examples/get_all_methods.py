@@ -7,7 +7,14 @@ from collections import Counter
 from contextlib import suppress
 from typing import Any
 
-from aiotrade import BinanceClient, BingxClient, BitgetClient, BybitClient, OkxClient
+from aiotrade import (
+    BinanceClient,
+    BingxClient,
+    BitgetClient,
+    BybitClient,
+    KuCoinClient,
+    OkxClient,
+)
 
 
 def is_method(obj: Any) -> bool:
@@ -72,7 +79,16 @@ def implemented_methods(client_cls: type) -> list[str]:
             if is_effectively_not_implemented(func):
                 continue
             methods.append(name)
-    excluded = {"close", "get", "post", "put", "delete", "set_recv_window", "set_dcp"}
+    excluded = {
+        "close",
+        "get",
+        "post",
+        "put",
+        "delete",
+        "set_recv_window",
+        "set_dcp",
+        "broker",
+    }
     return [m for m in methods if m not in excluded]
 
 
@@ -121,6 +137,7 @@ def main() -> None:
         ("OkxClient", OkxClient),
         ("BitgetClient", BitgetClient),
         ("BinanceClient", BinanceClient),
+        ("KuCoinClient", KuCoinClient),
     ]
     for client_name, client_cls in client_data:
         methods = implemented_methods(client_cls)

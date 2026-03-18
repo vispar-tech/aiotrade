@@ -174,7 +174,7 @@ class BybitHttpClient(HttpClient):
         else:
             signature = None
 
-        req_url = f"{self.base_url}{endpoint}"
+        req_url = f"{base_url if base_url else self.base_url}{endpoint}"
 
         if method == "GET":
             req_url = f"{req_url}?{req_payload}" if req_payload else req_url
@@ -205,16 +205,20 @@ class BybitHttpClient(HttpClient):
             req_params,
             req_json,
             req_data,
-        ) = await self._build_request_args(method, endpoint, params, headers, auth)
+        ) = await self._build_request_args(
+            method, endpoint, params, headers, auth, base_url
+        )
 
         if self.verbose:
             logger.info(
-                "Request args: headers=%r, url=%r, params=%r, json=%r, data=%r",
+                "Request args: headers=%r, url=%r, params=%r, "
+                "json=%r, data=%r, base_url=%r",
                 req_headers,
                 req_url,
                 req_params,
                 req_json,
                 req_data,
+                base_url,
             )
 
         async with self._session.request(

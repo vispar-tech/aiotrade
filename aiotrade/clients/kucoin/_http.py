@@ -2,8 +2,8 @@ import base64
 import hashlib
 import hmac
 import logging
+import time
 from collections.abc import Mapping
-from datetime import UTC, datetime
 from typing import Any
 
 import orjson
@@ -13,30 +13,28 @@ from aiotrade._http import HttpClient
 from aiotrade._protocols import ParamsType
 from aiotrade._types import HttpMethod
 
-logger = logging.getLogger("aiotrade.okx")
+logger = logging.getLogger("aiotrade.kucoin")
 
 
 def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
     masked: dict[str, Any] = {}
     for k, v in headers.items():
-        if k in ("OK-ACCESS-KEY", "OK-ACCESS-SIGN", "OK-ACCESS-PASSPHRASE"):
+        if k in ("KC-API-KEY", "KC-API-SIGN", "KC-API-PASSPHRASE"):
             masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
         else:
             masked[k] = v
     return masked
 
 
-class OkxHttpClient(HttpClient):
-    """Okx HTTP client."""
+class KuCoinHttpClient(HttpClient):
+    """KuCoin HTTP client."""
 
     def __init__(
         self,
         api_key: str | None = None,
         api_secret: str | None = None,
         passphrase: str | None = None,
-        demo: bool = False,
         recv_window: int = 5000,
-        broker_tag: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 
@@ -44,17 +42,22 @@ class OkxHttpClient(HttpClient):
             api_key: Trading API key
             api_secret: Trading API secret
             passphrase: Trading API passphrase
-            demo: Use demo trading
             recv_window: Receive window in milliseconds
             broker_tag: Broker tag
         """
         self.api_key = api_key
         self.api_secret = api_secret
         self.passphrase = passphrase
-        self.demo = demo
-        self.broker_tag = broker_tag
+        if api_secret is not None and passphrase is not None:
+            # Encode KuCoin passphrase using HMAC SHA256, result should be Base64 str
+            hm = hmac.new(
+                api_secret.encode("utf-8"), passphrase.encode("utf-8"), hashlib.sha256
+            )
+            self.passphrase = base64.b64encode(hm.digest()).decode()
+        else:
+            self.passphrase = None
 
-        super().__init__("https://www.okx.com", recv_window=recv_window)
+        super().__init__("https://api.kucoin.com", recv_window=recv_window)
 
     def _generate_signature(
         self,
@@ -62,9 +65,9 @@ class OkxHttpClient(HttpClient):
         method: HttpMethod,
         path: str,
         payload: str,
-        timestamp: str,
+        timestamp: int,
     ) -> str:
-        """OKX signature.
+        """KuCoin signature.
 
         Signature is generated as:
         Base64(HMAC_SHA256(apiSecret, prehash))
@@ -75,6 +78,7 @@ class OkxHttpClient(HttpClient):
         """
         body_str = "?" + payload if payload and method == "GET" else payload
         prehash = f"{timestamp}{method.upper()}{path}{body_str}"
+
         signature = hmac.new(
             api_secret.encode("utf-8"),
             prehash.encode("utf-8"),
@@ -89,7 +93,7 @@ class OkxHttpClient(HttpClient):
                     f"{k}={v}" for k, v in sorted(params.items()) if v is not None
                 )
             raise TypeError(
-                "OKX client does not support list params for GET requests. "
+                "KuCoin client does not support list params for GET requests. "
                 "Only dict is supported."
             )
         sanitized: list[dict[str, Any]] | dict[str, Any]
@@ -138,13 +142,7 @@ class OkxHttpClient(HttpClient):
         # Prefer local assignment for micro-speed-up
         req_headers: dict[str, str] = headers if headers is not None else {}
 
-        timestamp = (
-            datetime.now(tz=UTC).replace(tzinfo=None).isoformat("T", "milliseconds")
-            + "Z"
-        )
-
-        if self.demo:
-            req_headers["x-simulated-trading"] = "1"
+        timestamp = int(time.time() * 1000)
 
         # Fast payload prep
         req_payload = self._prepare_payload(method, params)
@@ -159,10 +157,11 @@ class OkxHttpClient(HttpClient):
             signature = self._generate_signature(
                 self.api_secret, method, endpoint, req_payload, timestamp
             )
-            req_headers["OK-ACCESS-KEY"] = self.api_key
-            req_headers["OK-ACCESS-PASSPHRASE"] = self.passphrase
-            req_headers["OK-ACCESS-SIGN"] = signature
-            req_headers["OK-ACCESS-TIMESTAMP"] = str(timestamp)
+            req_headers["KC-API-KEY"] = self.api_key
+            req_headers["KC-API-PASSPHRASE"] = self.passphrase
+            req_headers["KC-API-SIGN"] = signature
+            req_headers["KC-API-KEY-VERSION"] = "3"
+            req_headers["KC-API-TIMESTAMP"] = str(timestamp)
         else:
             signature = None
 
@@ -229,9 +228,22 @@ class OkxHttpClient(HttpClient):
             headers=req_headers,
         ) as resp:
             try:
-                res_json: dict[str, Any] = await resp.json()
-                if res_json.get("code") not in (None, "0", "2"):
-                    raise ExchangeResponseError("okx", res_json)
+                content_type = resp.headers.get("Content-Type", "")
+                res_json: dict[str, Any]
+                if "application/json" in content_type:
+                    res_json = await resp.json()
+                elif "text/plain" in content_type:
+                    text = await resp.text()
+                    try:
+                        res_json = orjson.loads(text)
+                    except Exception:
+                        res_json = {"code": resp.status * 10000, "data": {"raw": text}}
+                else:
+                    # Default: try JSON, fallback error
+                    res_json = await resp.json()
+                if res_json.get("code") != "200000":
+                    raise ExchangeResponseError("kucoin", res_json)
+                return res_json
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
@@ -252,4 +264,3 @@ class OkxHttpClient(HttpClient):
                         f"err={err!r}"
                     )
                 raise
-            return res_json
