@@ -55,7 +55,7 @@ class KuCoinClient(KuCoinHttpClient, AccountMixin, FuturesMixin):
         self.helpers = KuCoinHelpers
 
     @staticmethod
-    def broker(broker_name: str, broker_partner: str, broker_key: str) -> BrokerClient:
+    def broker(client_id: str, client_secret: str) -> BrokerClient:
         """
         Return a KuCoin OAuth BrokerClient for API integration.
 
@@ -63,16 +63,11 @@ class KuCoinClient(KuCoinHttpClient, AccountMixin, FuturesMixin):
 
         Usage:
             broker = KuCoinClient.broker(
-                broker_name="name",
-                broker_partner="partner",
-                broker_key="key"
+                client_id="your_client_id",
+                client_secret="your_client_secret"
             )
         """
-        return BrokerClient(
-            broker_name=broker_name,
-            broker_partner=broker_partner,
-            broker_key=broker_key,
-        )
+        return BrokerClient(client_id=client_id, client_secret=client_secret)
 
 
 __all__ = ["KuCoinClient"]
