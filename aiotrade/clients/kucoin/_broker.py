@@ -104,15 +104,18 @@ class BrokerClient:
             raise RuntimeError(
                 "BrokerClient session is not initialized. Use 'async with' context."
             )
+        # All query string except redirect_uri, which we'll append unencoded
         params = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": redirect_uri,
             "client_id": self.client_id,
             "client_secret": self.client_secret,
         }
-        # Per docs, use GET, do not urlencode redirect_uri
-        async with self._session.get(BrokerClient.TOKEN_URL, params=params) as resp:
+        # urlencode params, then add redirect_uri (not encoded)
+        query = urllib.parse.urlencode(params)
+        url = f"{BrokerClient.TOKEN_URL}?{query}&redirect_uri={redirect_uri}"
+
+        async with self._session.get(url) as resp:
             resp.raise_for_status()
             return await resp.json()  # type: ignore[no-any-return]
 
