@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.20.0 (2026-03-18)
+
+### Bug Fixes
+
+- **kucoin**: :wrench: update token request URL construction in BrokerClient
+  ([`dffa545`](https://github.com/vispar-tech/aiotrade/commit/dffa5452392ef3b0fa7f1369f99dd73f31af8b04))
+
+### Features
+
+- **kucoin**: :sparkles: implement OAuth 2.0 flow and enhance BrokerClient functionality
+  ([`005590d`](https://github.com/vispar-tech/aiotrade/commit/005590d107192fc6891afe48fd78f52c1582305a))
+
+
 ## v0.19.0 (2026-03-18)
 
 ### Features
