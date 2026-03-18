@@ -85,40 +85,47 @@ def extract_symbol_asset(symbol: str) -> str:
     """
     Extracts the base asset from a trading symbol.
 
-    E.g., 'BTCUSDT' -> 'BTC', 'ETH_USDT' -> 'ETH'.
-    Takes into account symbols like 'BTC-USDT-SWAP', 'ETHUSDT', etc.
-    Removes trailing '-' or '_'.
+    Examples:
+        'BTCUSDT'          -> 'BTC'
+        'ETH_USDT'         -> 'ETH'
+        'BTC-USDT-SWAP'    -> 'BTC'
+        'BTCUSDTM'         -> 'BTC'
+        'ETHUSDC'          -> 'ETH'
+        'BTCUSDUSD'        -> 'BTC'
+        'BTC-USDC'         -> 'BTC'
+        'XRP-USD'          -> 'XRP'
+        'BTCUSDC'          -> 'BTC'
+        'BTC-USDT'         -> 'BTC'
+        'ETHUSDTM'         -> 'ETH'
+        'BTCUSD'           -> 'BTC'
     """
-    # Handle most common quote assets
+
+    # List quote assets (longest first for matching)
     quote_assets = [
         "-USDT-SWAP",
         "-USDUSD",
         "-USDT",
         "-USDC",
         "-USD",
+        "USDTM",  # Matches e.g. KuCoin/BTCUSDTM
         "USDT",
         "USDC",
         "USDUSD",
         "USD",
     ]
 
-    # Search for the longest quote first
+    # Look for matching suffix from the list above
     for asset in sorted(quote_assets, key=len, reverse=True):
         if symbol.endswith(asset):
             base = symbol[: -len(asset)]
-            # Remove any trailing '-' or '_' before returning
-            return base.rstrip("-_")
+            return base.rstrip("-_")  # remove trailing separator if present
 
-    # If symbol contains '_', treat part before as base
-    if "_" in symbol:
-        return symbol.split("_")[0].rstrip("-_")
+    # If symbol contains '_' or '-', take left-part as base
+    for sep in ("_", "-"):
+        if sep in symbol:
+            return symbol.split(sep)[0].rstrip("-_")
 
-    # If symbol contains '-', get the first
-    # part only if common in format like BTC-USDT-SWAP
-    if "-" in symbol:
-        return symbol.split("-")[0].rstrip("-_")
-
-    # Otherwise, fallback to entire symbol, stripped
+    # Fallback: just strip any trailing separators and return as is
     return symbol.rstrip("-_").lstrip()
 
 
