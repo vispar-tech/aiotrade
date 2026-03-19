@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.21.0 (2026-03-19)
+
+### Features
+
+- **kucoin**: :sparkles: enhance KuCoin client tests and update URLs
+  ([`c3c77f9`](https://github.com/vispar-tech/aiotrade/commit/c3c77f9962ecfb3c7fb3263961820d1cc250cec0))
+
+
 ## v0.20.0 (2026-03-18)
 
 ### Bug Fixes
