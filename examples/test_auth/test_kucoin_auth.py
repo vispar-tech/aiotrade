@@ -8,6 +8,7 @@ import sys
 from typing import Any
 
 from aiotrade import KuCoinClient
+from aiotrade.types.kucoin import TakeProfitStopLossOrderParams
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -31,22 +32,62 @@ async def main() -> None:
     )
     client.set_verbose(True)
 
-    def print_json_limited(data: dict[str, Any]) -> None:
+    def print_json(data: dict[str, Any]) -> None:
         s = json.dumps(data, ensure_ascii=False, indent=2)
-        if len(s) > 400:
-            s = s[:390] + "...(truncated)"
         print(s)
 
-    result = await client.get_futures_account()
-    print_json_limited(result)
-    result = await client.get_all_symbols()
-    print_json_limited(result)
-    result = await client.get_all_tickers()
-    print_json_limited(result)
-    result = await client.get_server_time()
-    print_json_limited(result)
-    result = await client.get_service_status()
-    print_json_limited(result)
+    print_json(
+        await client.add_tp_sl_order(
+            # standart limit order
+            # commented with tp/sl
+            params=TakeProfitStopLossOrderParams(
+                clientOid="123123213213",
+                side="buy",
+                symbol="PEPEUSDTM",
+                leverage=3,
+                type="limit",
+                reduceOnly=False,
+                marginMode="ISOLATED",
+                positionSide="BOTH",
+                price=0.0000032675,
+                size=1,
+                # timeInForce="GTC",
+                # triggerStopUpPrice=0.0000036675,
+                # triggerStopDownPrice=0.0000031675,
+                # stopPriceType="TP",
+            )
+        )
+    )
+    # print_json(
+    #     await client.batch_add_orders(
+    #         orders=[
+    #             PlaceOrderParams(
+    #                 clientOid="testing",
+    #                 symbol="PEPEUSDTM",
+    #                 side="buy",
+    #                 leverage=7,
+    #                 type="market",
+    #                 size=1,
+    #             ),
+    #             PlaceOrderParams(
+    #                 symbol="PEPEUSDTM",
+    #                 side="buy",
+    #                 leverage=7,
+    #                 type="limit",
+    #                 price=0.0000036640,
+    #                 size=1,
+    #             ),
+    #             PlaceOrderParams(
+    #                 symbol="PEPEUSDTM",
+    #                 side="buy",
+    #                 leverage=7,
+    #                 type="limit",
+    #                 price=0.0000036640,
+    #                 size=3,
+    #             ),
+    #         ]
+    #     )
+    # )
     await client.close()
 
 

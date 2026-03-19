@@ -13,9 +13,9 @@ class BrokerClient:
     https://www.kucoin.xxx documentation reference.
     """
 
-    AUTHORIZATION_URL = "https://www.kucoin.xxx/oauth"
-    TOKEN_URL = "https://www.kucoin.xxx/_oauth/access-token"  # noqa: S105
-    OPENAPI_URL = "https://www.kucoin.xxx/_oauth/resource/ucenter/outer/api-key/add"
+    AUTHORIZATION_URL = "https://www.kucoin.com/oauth"
+    TOKEN_URL = "https://www.kucoin.com/_oauth/access-token"  # noqa: S105
+    OPENAPI_URL = "https://www.kucoin.com/_oauth/resource/ucenter/outer/api-key/add"
 
     def __init__(
         self,

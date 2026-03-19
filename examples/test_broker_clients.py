@@ -1,4 +1,4 @@
-"""Test broker clients for OKX, Bitget, and Bybit using broker/OAuth mode."""
+"""Test broker clients for OKX, Bitget, Bybit, and Kucoin using broker/OAuth mode."""
 
 import asyncio
 import logging
@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from aiotrade import (
     BitgetClient,
     BybitClient,
+    KuCoinClient,
     OkxClient,
 )
 
@@ -156,10 +157,35 @@ async def test_bybit_broker() -> None:
     print("✅ Bybit Broker test complete.\n")
 
 
+async def test_kucoin_broker() -> None:
+    print("=== Kucoin Broker ===")
+    kucoin_client_id, kucoin_client_secret, kucoin_redirect_uri = parse_broker_env(
+        "Kucoin", "KUCOIN_CLIENT_ID", "KUCOIN_CLIENT_SECRET", "KUCOIN_REDIRECT_URI"
+    )
+    print(f"[DEBUG] KUCOIN_CLIENT_ID: {kucoin_client_id}")
+    print(f"[DEBUG] KUCOIN_CLIENT_SECRET: {kucoin_client_secret}")
+    print(f"[DEBUG] KUCOIN_REDIRECT_URI: {kucoin_redirect_uri}")
+    if not all([kucoin_client_id, kucoin_client_secret, kucoin_redirect_uri]):
+        return
+
+    async with KuCoinClient.broker(
+        cast(str, kucoin_client_id), cast(str, kucoin_client_secret)
+    ) as client:
+        # Use build_authorization_url and print the result
+        print(
+            client.build_authorization_url(
+                redirect_uri=cast(str, kucoin_redirect_uri),
+                state="c8e5a7e3e8bd438e8d37dee824527c18",
+            )
+        )
+    print("✅ Kucoin Broker test complete.\n")
+
+
 async def main() -> None:
     await test_okx_broker()
     await test_bitget_broker()
     await test_bybit_broker()
+    await test_kucoin_broker()
 
 
 if __name__ == "__main__":
