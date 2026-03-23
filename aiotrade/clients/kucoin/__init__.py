@@ -20,6 +20,9 @@ class KuCoinClient(KuCoinHttpClient, AccountMixin, FuturesMixin):
         api_secret: str | None = None,
         passphrase: str | None = None,
         recv_window: int = 5000,
+        broker_partner: str | None = None,
+        broker_key: str | None = None,
+        broker_name: str | None = None,
     ) -> None:
         """
         Initialize a KuCoinClient instance.
@@ -32,6 +35,9 @@ class KuCoinClient(KuCoinHttpClient, AccountMixin, FuturesMixin):
             passphrase: KuCoin API passphrase.
             recv_window: Optional custom receive window (ms) for requests.
                 Default is 5000.
+            broker_partner: Optional KuCoin broker partner identifier.
+            broker_key: Optional KuCoin broker key.
+            broker_name: Optional KuCoin broker name.
 
         Example:
             ```python
@@ -41,6 +47,9 @@ class KuCoinClient(KuCoinHttpClient, AccountMixin, FuturesMixin):
                 api_key="your_api_key",
                 api_secret="your_api_secret",
                 passphrase="your_passphrase",
+                broker_partner="your_partner",
+                broker_key="your_broker_key",
+                broker_name="your_broker_name",
             )
             ```
         """
@@ -49,6 +58,9 @@ class KuCoinClient(KuCoinHttpClient, AccountMixin, FuturesMixin):
             api_secret=api_secret,
             passphrase=passphrase,
             recv_window=recv_window,
+            broker_partner=broker_partner,
+            broker_key=broker_key,
+            broker_name=broker_name,
         )
 
         # Utility class for helper methods

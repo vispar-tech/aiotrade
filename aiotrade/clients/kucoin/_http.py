@@ -35,6 +35,9 @@ class KuCoinHttpClient(HttpClient):
         api_secret: str | None = None,
         passphrase: str | None = None,
         recv_window: int = 5000,
+        broker_partner: str | None = None,
+        broker_key: str | None = None,
+        broker_name: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 
@@ -43,11 +46,17 @@ class KuCoinHttpClient(HttpClient):
             api_secret: Trading API secret
             passphrase: Trading API passphrase
             recv_window: Receive window in milliseconds
-            broker_tag: Broker tag
+            broker_partner: KuCoin broker partner identifier (optional)
+            broker_key: KuCoin broker key (optional)
+            broker_name: KuCoin broker name (optional)
         """
         self.api_key = api_key
         self.api_secret = api_secret
         self.passphrase = passphrase
+        self.broker_partner = broker_partner
+        self.broker_key = broker_key
+        self.broker_name = broker_name
+
         if api_secret is not None and passphrase is not None:
             # Encode KuCoin passphrase using HMAC SHA256, result should be Base64 str
             hm = hmac.new(
@@ -154,6 +163,7 @@ class KuCoinHttpClient(HttpClient):
                     "API key, API secret and passphrase "
                     "must be set for authenticated requests."
                 )
+
             signature = self._generate_signature(
                 self.api_secret, method, endpoint, req_payload, timestamp
             )
@@ -162,6 +172,23 @@ class KuCoinHttpClient(HttpClient):
             req_headers["KC-API-SIGN"] = signature
             req_headers["KC-API-KEY-VERSION"] = "3"
             req_headers["KC-API-TIMESTAMP"] = str(timestamp)
+            # Add broker headers only if all variables are not None
+            if (
+                self.broker_partner is not None
+                and self.broker_key is not None
+                and self.broker_name is not None
+            ):
+                # Set broker headers explicitly as requested in the prompt
+                req_headers["KC-BROKER-NAME"] = self.broker_name
+                req_headers["KC-API-PARTNER"] = self.broker_partner
+                req_headers["KC-API-PARTNER-SIGN"] = base64.b64encode(
+                    hmac.new(
+                        self.broker_key.encode("utf-8"),
+                        f"{timestamp}{self.broker_partner}{self.api_key}".encode(),
+                        digestmod=hashlib.sha256,
+                    ).digest()
+                ).decode("utf-8")
+                req_headers["KC-API-PARTNER-VERIFY"] = "true"
         else:
             signature = None
 
