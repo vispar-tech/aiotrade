@@ -19,7 +19,12 @@ logger = logging.getLogger("aiotrade.kucoin")
 def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
     masked: dict[str, Any] = {}
     for k, v in headers.items():
-        if k in ("KC-API-KEY", "KC-API-SIGN", "KC-API-PASSPHRASE"):
+        if k in (
+            "KC-API-KEY",
+            "KC-API-SIGN",
+            "KC-API-PASSPHRASE",
+            "KC-API-PARTNER-SIGN",
+        ):
             masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
         else:
             masked[k] = v
