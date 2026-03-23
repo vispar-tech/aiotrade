@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.22.0 (2026-03-23)
+
+### Features
+
+- **kucoin**: :sparkles: add broker parameters to KuCoin client and HTTP client
+  ([`5332b03`](https://github.com/vispar-tech/aiotrade/commit/5332b039ebaafdc54321a9a9d76511d794b2dac4))
+
+- **kucoin**: :sparkles: add support for additional API partner header masking
+  ([`a630673`](https://github.com/vispar-tech/aiotrade/commit/a630673f885b40f0b67079c974008d5d027a8be4))
+
+
 ## v0.21.0 (2026-03-19)
 
 ### Features
