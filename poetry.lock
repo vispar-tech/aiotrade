@@ -160,7 +160,7 @@ version = "1.2.1"
 description = "asyncio rate limiter, a leaky bucket implementation"
 optional = false
 python-versions = "<4.0,>=3.8"
-groups = ["examples"]
+groups = ["main", "examples"]
 files = [
     {file = "aiolimiter-1.2.1-py3-none-any.whl", hash = "sha256:d3f249e9059a20badcb56b61601a83556133655c11d1eb3dd3e04ff069e5f3c7"},
     {file = "aiolimiter-1.2.1.tar.gz", hash = "sha256:e02a37ea1a855d9e832252a105420ad4d15011505512a1a1d814647451b5cca9"},
@@ -1681,4 +1681,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "15d82f2e63fb2a94d5a7ecff3baee7eb418fc6039e58928616407f5e5fcf920c"
+content-hash = "0934b3208a2c367b7b7e1a188fa8f7ce0293536e6093d76adf5352a5e8bc2292"
