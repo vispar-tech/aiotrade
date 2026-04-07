@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.24.0 (2026-04-07)
+
+### Features
+
+- **dependencies**: :sparkles: add aiolimiter as a dependency and update poetry.lock
+  ([`b16b308`](https://github.com/vispar-tech/aiotrade/commit/b16b308d96ec6f77319e204316c5f911d740dd40))
+
+
 ## v0.23.0 (2026-04-07)
 
 ### Features
