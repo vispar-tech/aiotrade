@@ -4,8 +4,13 @@ from typing import Any, Literal
 
 from aiotrade import KuCoinClient
 from aiotrade.types.kucoin import PlaceOrderParams, TakeProfitStopLossOrderParams
-
-from ..types import (
+from aiotrade.unified.converters.pending_order import unified_pending_order_from_kucoin
+from aiotrade.unified.converters.place.futures import (
+    convert_unified_place_order_to_kucoin,
+)
+from aiotrade.unified.converters.position import unified_position_info_from_kucoin
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedPendingOrder,
@@ -13,12 +18,9 @@ from ..types import (
     UnifiedPlaceSpotOrderRequest,
     UnifiedPositionInfo,
     UnifiedSide,
-    convert_unified_to_kucoin,
-    unified_history_order_from_kucoin,
-    unified_position_info_from_kucoin,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("aiotrade.unified")
 SET_TRADING_STOP_MAX_RETRIES = 3
 SET_TRADING_STOP_RETRY_DELAY = 2  # seconds
 MAX_CANCEL_BATCH = 10
@@ -34,13 +36,20 @@ class UnifiedKuCoinClient:
         api_secret: str | None = None,
         passphrase: str | None = None,
         recv_window: int = 5000,
+        broker_partner: str | None = None,
+        broker_key: str | None = None,
+        broker_name: str | None = None,
     ) -> None:
         self._account_display = account_display
+
         self._client = KuCoinClient(
             api_key=api_key,
             api_secret=api_secret,
             passphrase=passphrase,
             recv_window=recv_window,
+            broker_partner=broker_partner,
+            broker_key=broker_key,
+            broker_name=broker_name,
         )
 
     async def get_margin_mode(self, symbol: str | None) -> UnifiedMarginMode:
@@ -80,11 +89,11 @@ class UnifiedKuCoinClient:
         """Enable or disable hedge mode."""
         await self._client.switch_position_mode(position_mode=enabled)
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError("KuCoin does not support querying asset mode.")
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError("KuCoin does not support setting asset mode.")
 
@@ -127,8 +136,10 @@ class UnifiedKuCoinClient:
         self, position: UnifiedPositionInfo, order: UnifiedPlaceOrderRequest
     ) -> dict[str, Any]:
         """Close position."""
-        side = "sell" if position["side"] == UnifiedSide.LONG else "buy"
-        order_type = "market"
+        side: Literal["sell", "buy"] = (
+            "sell" if position["side"] == UnifiedSide.LONG else "buy"
+        )
+        order_type: Literal["market", "limit"] = "market"
         close_params = PlaceOrderParams(
             symbol=position["symbol"],
             side=side,
@@ -160,64 +171,112 @@ class UnifiedKuCoinClient:
     async def batch_place_order(
         self, has_existing_position: bool, requests: list[UnifiedPlaceOrderRequest]
     ) -> dict[str, Any]:
-        """Place multiple orders at once."""
+        """
+        Place multiple orders at once and return all results.
+
+        Unified response schema for each order result:
+        {
+            "orderId": ...,
+            "clientOid": ...,
+            "symbol": ...,
+            "code": ...,
+            "success": True/False,
+            "raw": ...,
+        }
+        """
         main_orders: list[PlaceOrderParams] = []
         tp_sl_orders: list[TakeProfitStopLossOrderParams] = []
 
         for req in requests:
-            main_params, tp_sl_params = convert_unified_to_kucoin(req)
-            if main_params:
+            main_params, tp_sl_params = convert_unified_place_order_to_kucoin(req)
+            if main_params is not None:
                 main_orders.append(main_params)
-            # Only add TP/SL orders if there is no existing position
-            if not has_existing_position:
-                if tp_sl_params is not None:
-                    tp_sl_orders.append(tp_sl_params)
-            elif tp_sl_params is not None:
-                symbol = (
-                    main_params.get("symbol", "<unknown>")
-                    if main_params
-                    else "<unknown>"
-                )
-                logger.info(
-                    "%s has_existing_position=True, skipping TP/SL "
-                    "(conditional) orders for symbol: %s",
-                    self._account_display,
-                    symbol,
-                )
+            if tp_sl_params is not None:
+                tp_sl_orders.append(tp_sl_params)
 
-        batch_result = None
+        results: list[dict[str, Any]] = []
         batch_error = None
-        try:
-            batch_result = await self._client.batch_add_orders(orders=main_orders)
-        except Exception as e:
-            batch_error = e
 
-        tp_sl_results: list[dict[str, Any]] = []
-        tp_sl_errors: list[Exception] = []
+        # Handle main group (batch)
+        if main_orders:
+            try:
+                batch_result = await self._client.batch_add_orders(orders=main_orders)
+                res_list: list[dict[str, Any]] = batch_result.get("data", [])
+
+                for entry in res_list:
+                    results.append(
+                        {
+                            "orderId": entry.get("orderId"),
+                            "clientOid": entry.get("clientOid"),
+                            "symbol": entry.get("symbol"),
+                            "code": entry.get("code"),
+                            "success": entry.get("code") == "200000",
+                            "raw": entry,
+                        }
+                    )
+            except Exception as e:
+                batch_error = e
+                logger.warning(
+                    "%s Exception during batch_add_orders: %s",
+                    self._account_display,
+                    str(e),
+                    exc_info=True,
+                )
+                for main_order in main_orders:
+                    results.append(
+                        {
+                            "orderId": None,
+                            "clientOid": main_order.get("clientOid"),
+                            "symbol": main_order.get("symbol"),
+                            "code": None,
+                            "success": False,
+                            "raw": None,
+                        }
+                    )
+
+        # Handle individual TP/SL orders
         for tp_sl in tp_sl_orders:
             try:
                 result = await self._client.add_tp_sl_order(params=tp_sl)
-                tp_sl_results.append({"result": result})
+                code = result.get("code")
+                success = code == "200000"
+                data = result.get("data", {})
+                results.append(
+                    {
+                        "orderId": data.get("orderId"),
+                        "clientOid": data.get("clientOid", tp_sl.get("clientOid")),
+                        "symbol": tp_sl.get("symbol"),
+                        "code": code,
+                        "success": success,
+                        "raw": result,
+                    }
+                )
             except Exception as e:
-                tp_sl_results.append({"error": repr(e)})
-                tp_sl_errors.append(e)
+                logger.warning(
+                    "%s Exception during add_tp_sl_order: %s",
+                    self._account_display,
+                    str(e),
+                    exc_info=True,
+                )
+                results.append(
+                    {
+                        "orderId": None,
+                        "clientOid": tp_sl.get("clientOid"),
+                        "symbol": tp_sl.get("symbol"),
+                        "code": None,
+                        "success": False,
+                        "raw": None,
+                    }
+                )
 
-        all_tp_sl_failed = len(tp_sl_orders) > 0 and len(tp_sl_errors) == len(
-            tp_sl_orders
-        )
-        batch_failed = batch_error is not None
-
-        if batch_failed and (not tp_sl_orders or all_tp_sl_failed):
+        # Если не удалось отправить ни одного ордера — бросаем ошибку
+        if batch_error is not None and not tp_sl_orders:
             raise Exception(
                 "Batch orders failed: "
                 + (repr(batch_error) if batch_error else "Unknown error")
-                + f", TP/SL orders results: {tp_sl_results}"
             )
 
-        return {
-            "main_orders_result": batch_result,
-            "tp_sl_orders_result": tp_sl_results,
-        }
+        return {"results": results}
 
     async def batch_cancel_order(
         self, requests: list[UnifiedCancelOrderRequest]
@@ -281,7 +340,17 @@ class UnifiedKuCoinClient:
         orders_list: list[dict[str, Any]] = orders_response.get("data", {}).get(
             "items", []
         )
-        return [unified_history_order_from_kucoin(x) for x in orders_list]
+
+        # Also fetch stop/algo orders, from Kucoin's stop order API
+        stop_orders_response = await self._client.get_stop_orders(page_size=1000)
+        stop_orders_list: list[dict[str, Any]] = stop_orders_response.get(
+            "data", {}
+        ).get("items", [])
+
+        # Combine regular and stop orders
+        combined_orders = orders_list + stop_orders_list
+
+        return [unified_pending_order_from_kucoin(x) for x in combined_orders]
 
     # Trading methods
     async def _cancel_trading_stop_orders(
@@ -378,7 +447,6 @@ class UnifiedKuCoinClient:
         qty: float | None = None,
     ) -> None:
         """Set trading stop on KuCoin."""
-
         await self._cancel_trading_stop_orders(
             symbol=symbol,
             position=position,
@@ -389,7 +457,12 @@ class UnifiedKuCoinClient:
         )
 
         order_side: Literal["buy", "sell"]
-        size: float | None = position["size"] if position else None
+        size: float | None = position["size"] if position else qty
+        if size is None:
+            raise ValueError(
+                "set_trading_stop: Either a valid 'position' or "
+                "'qty' must be provided for KuCoin."
+            )
         if position is not None:
             order_side = "buy" if position["side"] == UnifiedSide.LONG else "sell"
         elif side is not None:
@@ -405,10 +478,10 @@ class UnifiedKuCoinClient:
         def _append_trading_stop(
             price: float,
             remark: str,
-            stop_direction: str,
+            stop_direction: Literal["down", "up"],
         ) -> None:
-            params: dict[str, Any] = {
-                "clientOid": str(uuid.uuid4()),
+            params: PlaceOrderParams = {
+                "clientOid": uuid.uuid4().hex,
                 "symbol": symbol,
                 "positionSide": "BOTH",
                 "side": "sell" if order_side == "buy" else "buy",
@@ -417,22 +490,21 @@ class UnifiedKuCoinClient:
                 "stop": stop_direction,
                 "stopPriceType": "TP",
                 "reduceOnly": True,
+                "size": int(size),
                 "remark": remark,
             }
-            if qty is not None:
-                params["qty"] = qty
-            elif size is not None:
-                params["size"] = int(size)
-            else:
-                raise ValueError(
-                    "Either qty or size must be provided "
-                    f"(not None) for {remark} order on KuCoin."
-                )
-            batch_orders.append(PlaceOrderParams(**params))
+
+            batch_orders.append(params)
 
         if take_profit is not None:
             _append_trading_stop(
                 price=take_profit,
+                remark="set_trading_stop_tp",
+                stop_direction="up" if order_side == "buy" else "down",
+            )
+        if active_price is not None:
+            _append_trading_stop(
+                price=active_price,
                 remark="set_trading_stop_tp",
                 stop_direction="up" if order_side == "buy" else "down",
             )

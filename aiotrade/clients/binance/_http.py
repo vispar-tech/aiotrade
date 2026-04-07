@@ -130,8 +130,9 @@ class BinanceHttpClient(HttpClient):
         return params
 
     def _fix_batch_orders_request(self, params: dict[str, Any]) -> dict[str, Any]:
-        for order in params["batchOrders"]:
-            order = self._order_params(order)
+        params["batchOrders"] = [
+            self._order_params(order) for order in params["batchOrders"]
+        ]
         query_string = parse.urlencode(params).replace("%40", "@").replace("%27", "%22")
         params["batchOrders"] = query_string[12:]
         return params

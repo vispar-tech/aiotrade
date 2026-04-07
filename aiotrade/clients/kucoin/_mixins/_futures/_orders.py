@@ -1,13 +1,13 @@
 from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
-from aiotrade.clients._utils import to_str_fields
 from aiotrade.clients.kucoin._consts import base_url
 from aiotrade.types.kucoin import (
     BatchCancelOrdersPayload,
     PlaceOrderParams,
     TakeProfitStopLossOrderParams,
 )
+from aiotrade.utils import to_str_fields
 
 
 class OrdersMixin:

@@ -37,14 +37,6 @@ from importlib.metadata import version as get_version
 from ._errors import ExchangeResponseError
 from ._session import SharedSessionManager
 from ._types import Exchange as ExchangeLiteral
-from .caches import (
-    BinanceClientsCache,
-    BingxClientsCache,
-    BitgetClientsCache,
-    BybitClientsCache,
-    KuCoinClientsCache,
-    OkxClientsCache,
-)
 from .clients import (
     BinanceClient,
     BingxClient,
@@ -56,19 +48,13 @@ from .clients import (
 
 __all__ = [
     "BinanceClient",
-    "BinanceClientsCache",
     "BingxClient",
-    "BingxClientsCache",
     "BitgetClient",
-    "BitgetClientsCache",
     "BybitClient",
-    "BybitClientsCache",
     "ExchangeLiteral",
     "ExchangeResponseError",
     "KuCoinClient",
-    "KuCoinClientsCache",
     "OkxClient",
-    "OkxClientsCache",
     "SharedSessionManager",
 ]
 

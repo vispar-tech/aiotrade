@@ -1,13 +1,13 @@
 from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
-from aiotrade.clients._utils import to_str_fields
 from aiotrade.types.bitget import (
     BatchCancelSpotOrderParams,
     BatchPlaceSpotOrderParams,
     PlaceSpotOrderParams,
     SpotOrdersQueryParams,
 )
+from aiotrade.utils import to_str_fields
 
 
 class TradeMixin:

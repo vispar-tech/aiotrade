@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
-from aiotrade.clients._utils import join_iterable_field
+from aiotrade.utils import join_iterable_field
 
 
 class FundingAccountMixin:

@@ -2,8 +2,8 @@ from collections.abc import Iterable
 from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
-from aiotrade.clients._utils import join_iterable_field, to_str_fields
 from aiotrade.types.okx import CancelOrderParams, PlaceOrderParams
+from aiotrade.utils import join_iterable_field, to_str_fields
 
 
 class TradeMixin:

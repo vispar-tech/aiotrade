@@ -13,8 +13,15 @@ from aiotrade.types.okx import (
     ConditionalAlgorithmOrderParams,
     TrailingStopAlgorithmOrderParams,
 )
-
-from ..types import (
+from aiotrade.unified.converters.pending_order import (
+    unified_pending_order_from_okx,
+)
+from aiotrade.unified.converters.place.futures import (
+    convert_unified_place_order_to_okx,
+)
+from aiotrade.unified.converters.position import unified_position_info_from_okx
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedPendingOrder,
@@ -22,12 +29,9 @@ from ..types import (
     UnifiedPlaceSpotOrderRequest,
     UnifiedPositionInfo,
     UnifiedSide,
-    convert_unified_to_okx,
-    unified_history_order_from_okx,
-    unified_position_info_from_okx,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("aiotrade.unified")
 
 
 class UnifiedOkxClient:
@@ -94,7 +98,7 @@ class UnifiedOkxClient:
                 "%s No posMode found in OKX account config data.", self._account_display
             )
             return None
-        return pos_mode == "long_short_mode"
+        return pos_mode == "long_short_mode"  # type: ignore[no-any-return]
 
     async def set_hedge_mode(self, enabled: bool) -> None:
         """Enable or disable hedge mode."""
@@ -102,13 +106,13 @@ class UnifiedOkxClient:
             pos_mode="long_short_mode" if enabled else "net_mode"
         )
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError(
             f"Don't use this method in {self.__class__.__name__} client"
         )
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError(
             f"Don't use this method in {self.__class__.__name__} client"
@@ -199,7 +203,7 @@ class UnifiedOkxClient:
         """Place multiple orders at once."""
         return await self._client.batch_place_order(
             orders=[
-                convert_unified_to_okx(order, self._client.broker_tag)
+                convert_unified_place_order_to_okx(order, self._client.broker_tag)
                 for order in requests
             ],
         )
@@ -225,7 +229,7 @@ class UnifiedOkxClient:
         # Regular pending orders
         orders_response = await self._client.get_orders_pending(inst_type="SWAP")
         regular_orders = [
-            unified_history_order_from_okx(x) for x in orders_response.get("data", [])
+            unified_pending_order_from_okx(x) for x in orders_response.get("data", [])
         ]
 
         # Also fetch algo orders pending
@@ -233,7 +237,7 @@ class UnifiedOkxClient:
             ord_type="move_order_stop", inst_type="SWAP"
         )
         algo_orders = [
-            unified_history_order_from_okx(x) for x in algo_resp.get("data", [])
+            unified_pending_order_from_okx(x) for x in algo_resp.get("data", [])
         ]
 
         return regular_orders + algo_orders

@@ -35,3 +35,12 @@ class BinanceHelpers:
                 except Exception:
                     return None
         return None
+
+    @staticmethod
+    def prepend_broker_id(
+        broker_id: str | None, order_link_id: str, max_length: int = 36
+    ) -> str:
+        """Add binance broker id to order link id."""
+        if broker_id is not None:
+            return ("x-" + broker_id + "-" + order_link_id)[:max_length]
+        return order_link_id

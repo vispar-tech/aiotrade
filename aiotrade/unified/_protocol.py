@@ -1,6 +1,15 @@
-from typing import Any, Literal, Protocol
+"""
+Protocol definition for exchange clients and imports for unified types.
 
-from .types import (
+Exchange clients should provide methods for managing account settings,
+margin and hedge modes, balances, and a unified interface for trading
+across exchanges via aiotrade unified types.
+"""
+
+from typing import Any, Protocol
+
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedPendingOrder,
@@ -11,7 +20,7 @@ from .types import (
 )
 
 
-class ExchangeClient(Protocol):
+class UnifiedClient(Protocol):
     """Protocol defining common interface for exchange clients."""
 
     # Account/Balance methods
@@ -33,11 +42,11 @@ class ExchangeClient(Protocol):
         """Enable or disable hedge mode."""
         ...
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         ...
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         ...
 

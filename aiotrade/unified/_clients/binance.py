@@ -11,8 +11,15 @@ from aiotrade.types.binance import (
     StopTakeProfitAlgorithmOrderParams,
     TrailingStopMarketAlgorithmOrderParams,
 )
-
-from ..types import (
+from aiotrade.unified.converters.pending_order import (
+    unified_pending_order_from_binance,
+)
+from aiotrade.unified.converters.place.futures import (
+    convert_unified_place_order_to_binance,
+)
+from aiotrade.unified.converters.position import unified_position_info_from_binance
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedOrderType,
@@ -21,13 +28,9 @@ from ..types import (
     UnifiedPlaceSpotOrderRequest,
     UnifiedPositionInfo,
     UnifiedSide,
-    convert_unified_to_binance,
-    prepend_binance_broker_id,
-    unified_history_order_from_binance,
-    unified_position_info_from_binance,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("aiotrade.unified")
 
 
 class UnifiedBinanceClient:
@@ -112,14 +115,14 @@ class UnifiedBinanceClient:
 
         hedge_mode = data.get("dualSidePosition")
         if hedge_mode is not None:
-            return hedge_mode
+            return hedge_mode  # type: ignore[no-any-return]
         return None
 
     async def set_hedge_mode(self, enabled: bool) -> None:
         """Enable or disable hedge mode."""
         await self._client.change_position_mode(dual_side_position=enabled)
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         resp = await self._client.get_multi_assets_mode()
         # Find the entry for the correct symbol and check marginType
@@ -133,7 +136,7 @@ class UnifiedBinanceClient:
             return "union" if asset_mode else "single"
         return None
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         await self._client.change_multi_assets_mode(multi_assets_margin=mode == "union")
 
@@ -166,7 +169,6 @@ class UnifiedBinanceClient:
         self, symbol: str | None = None
     ) -> list[UnifiedPositionInfo]:
         """Get current position information."""
-
         # Fetch position info from Binance
         positions_resp = await self._client.get_position_info()
         positions = positions_resp.get("result", {}).get("list", [])
@@ -222,7 +224,9 @@ class UnifiedBinanceClient:
                 quantity=position["size"],
                 reduceOnly="true",
                 newClientOrderId=(
-                    prepend_binance_broker_id(self._client.broker_id, order_uuid, 33)
+                    BinanceClient.helpers.prepend_broker_id(
+                        self._client.broker_id, order_uuid, 33
+                    )
                     + "_cl"
                 ),
             )
@@ -249,7 +253,7 @@ class UnifiedBinanceClient:
         algo_orders: list[AlgorithmOrderParams] = []
 
         for order in requests:
-            main_orders, conditional_orders = convert_unified_to_binance(
+            main_orders, conditional_orders = convert_unified_place_order_to_binance(
                 self._client.broker_id, order
             )
             all_orders.extend(main_orders)
@@ -307,7 +311,6 @@ class UnifiedBinanceClient:
         self, requests: list[UnifiedCancelOrderRequest]
     ) -> None:
         """Cancel multiple orders at once."""
-
         # Step 1: Separate conditional (algo) orders and regular orders
         regular_orders: list[UnifiedCancelOrderRequest] = []
         conditional_orders: list[UnifiedCancelOrderRequest] = []
@@ -359,11 +362,11 @@ class UnifiedBinanceClient:
         )
 
         orders = [
-            unified_history_order_from_binance(x)
+            unified_pending_order_from_binance(x)
             for x in orders_response.get("result", {}).get("list", [])
         ]
         algo_orders = [
-            unified_history_order_from_binance(x)
+            unified_pending_order_from_binance(x)
             for x in algo_orders_response.get("result", {}).get("list", [])
         ]
         return orders + algo_orders
@@ -503,7 +506,7 @@ class UnifiedBinanceClient:
                     workingType="CONTRACT_PRICE",
                     triggerPrice=take_profit,
                     closePosition="true",
-                    clientAlgoId=prepend_binance_broker_id(
+                    clientAlgoId=BinanceClient.helpers.prepend_broker_id(
                         self._client.broker_id, order_uuid, 33
                     )
                     + "_tp",
@@ -520,7 +523,7 @@ class UnifiedBinanceClient:
                     workingType="CONTRACT_PRICE",
                     triggerPrice=stop_loss,
                     closePosition="true",
-                    clientAlgoId=prepend_binance_broker_id(
+                    clientAlgoId=BinanceClient.helpers.prepend_broker_id(
                         self._client.broker_id, order_uuid, 33
                     )
                     + "_sl",
@@ -539,7 +542,7 @@ class UnifiedBinanceClient:
                     callbackRate=trailing_delivation,
                     quantity=order_qty,
                     reduceOnly="true",
-                    clientAlgoId=prepend_binance_broker_id(
+                    clientAlgoId=BinanceClient.helpers.prepend_broker_id(
                         self._client.broker_id, order_uuid, 33
                     )
                     + "_tr",

@@ -6,8 +6,16 @@ from aiohttp import ClientResponseError
 
 from aiotrade import BingxClient
 from aiotrade.types.bingx import PlaceSwapOrderParams
-
-from ..types import (
+from aiotrade.unified.converters.pending_order import unified_pending_order_from_bingx
+from aiotrade.unified.converters.place.futures import (
+    convert_unified_place_order_to_bingx,
+)
+from aiotrade.unified.converters.place.spot import (
+    convert_unified_place_spot_order_to_bingx,
+)
+from aiotrade.unified.converters.position import unified_position_info_from_bingx
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedPendingOrder,
@@ -15,13 +23,9 @@ from ..types import (
     UnifiedPlaceSpotOrderRequest,
     UnifiedPositionInfo,
     UnifiedSide,
-    convert_unified_spot_to_bingx,
-    convert_unified_to_bingx,
-    unified_history_order_from_bingx,
-    unified_position_info_from_bingx,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("aiotrade.unified")
 SET_TRADING_STOP_MAX_RETRIES = 3
 SET_TRADING_STOP_RETRY_DELAY = 2  # seconds
 
@@ -76,7 +80,6 @@ class UnifiedBingxClient:
 
         For Bingx, must specify symbol (None will update for all if supported).
         """
-
         mode_bingx = mode.to_bingx()
         if not symbol:
             raise ValueError(
@@ -92,20 +95,20 @@ class UnifiedBingxClient:
         resp = await self._client.get_swap_position_mode()
         hedge_mode = resp.get("data", {}).get("dualSidePosition")
         if hedge_mode is not None:
-            return hedge_mode == "true"
+            return hedge_mode == "true"  # type: ignore[no-any-return]
         return None
 
     async def set_hedge_mode(self, enabled: bool) -> None:
         """Enable or disable hedge mode on Bingx."""
         await self._client.set_swap_position_mode(dual_side_position=enabled)
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError(
             f"Don't use this method in {self.__class__.__name__} client"
         )
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError(
             f"Don't use this method in {self.__class__.__name__} client"
@@ -114,7 +117,6 @@ class UnifiedBingxClient:
     # Account/Balance methods
     async def get_usdt_available_balance(self) -> float | None:
         """Get wallet balance from Bingx."""
-
         usdt_balance: float | None = None
         try:
             resp = await self._client.get_swap_account_balance()
@@ -188,7 +190,7 @@ class UnifiedBingxClient:
     ) -> dict[str, Any]:
         """Place spot order on Bingx."""
         return await self._client.place_spot_order(
-            params=convert_unified_spot_to_bingx(params)
+            params=convert_unified_place_spot_order_to_bingx(params)
         )
 
     async def get_spot_order_exec_qty(self, response: dict[str, Any]) -> float:
@@ -203,7 +205,9 @@ class UnifiedBingxClient:
     ) -> dict[str, Any]:
         """Batch place orders on Bingx."""
         return await self._client.place_swap_batch_orders(
-            batch_orders=[convert_unified_to_bingx(order) for order in requests]
+            batch_orders=[
+                convert_unified_place_order_to_bingx(order) for order in requests
+            ]
         )
 
     async def batch_cancel_order(
@@ -240,7 +244,7 @@ class UnifiedBingxClient:
         """Get pending orders from Bingx."""
         orders_response = await self._client.get_swap_open_orders()
         return [
-            unified_history_order_from_bingx(x)
+            unified_pending_order_from_bingx(x)
             for x in orders_response.get("data", {}).get("orders", [])
         ]
 

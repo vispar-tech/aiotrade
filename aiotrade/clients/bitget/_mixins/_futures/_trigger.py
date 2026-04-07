@@ -1,7 +1,6 @@
 from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
-from aiotrade.clients._utils import to_str_fields
 from aiotrade.types.bitget import (
     CancelTriggerOrderItem,
     GetPendingTriggerOrdersParams,
@@ -9,6 +8,7 @@ from aiotrade.types.bitget import (
     PlaceTriggerOrderParams,
     ProductType,
 )
+from aiotrade.utils import to_str_fields
 
 
 class TriggerMixin:

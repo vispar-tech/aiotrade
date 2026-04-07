@@ -14,6 +14,8 @@ from ._url_resolver import BinanceUrlResolver
 class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, SpotMixin):
     """Binance Trading API Client with all available methods."""
 
+    helpers = BinanceHelpers  # Allow helpers to be accessed on the class
+
     def __init__(
         self,
         api_key: str | None = None,
@@ -54,8 +56,6 @@ class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, Spo
             broker_id=broker_id,
         )
 
-        # Utility class for helper methods
-        self.helpers = BinanceHelpers
         # Utility class for build urls
         self.url_resolver = BinanceUrlResolver
 

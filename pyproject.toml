@@ -44,6 +44,7 @@ ruff = "^0.14.14"
 [tool.poetry.group.examples.dependencies]
 dotenv = "^0.9.9"
 aiolimiter = "^1.2.1"
+rich = "^14.3.3"
 
 [tool.poetry]
 packages = [
@@ -110,7 +111,7 @@ select = [
     "SIM",
     "PTH",
     "ERA",
-    "PLR",
+    "PL",
     "RUF",
     "UP"
 ]

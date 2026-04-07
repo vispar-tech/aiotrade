@@ -1,15 +1,22 @@
 import contextlib
 import logging
-from typing import Any, Literal
+from typing import Any
 
 from aiotrade import BybitClient
 from aiotrade.types.bybit import (
     CancelOrderParams,
     SetTradingStopParams,
 )
-
-from ..helpers import retry_async_function
-from ..types import (
+from aiotrade.unified.converters.pending_order import unified_pending_order_from_bybit
+from aiotrade.unified.converters.place.futures import (
+    convert_unified_place_order_to_bybit,
+)
+from aiotrade.unified.converters.place.spot import (
+    convert_unified_place_spot_order_to_bybit,
+)
+from aiotrade.unified.converters.position import unified_position_info_from_bybit
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedPendingOrder,
@@ -17,13 +24,10 @@ from ..types import (
     UnifiedPlaceSpotOrderRequest,
     UnifiedPositionInfo,
     UnifiedSide,
-    convert_unified_spot_to_bybit,
-    convert_unified_to_bybit,
-    unified_history_order_from_bybit,
-    unified_position_info_from_bybit,
 )
+from aiotrade.utils import retry_async_function
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("aiotrade.unified")
 
 
 class UnifiedBybitClient:
@@ -106,13 +110,13 @@ class UnifiedBybitClient:
             mode=3 if enabled else 0,
         )
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError(
             f"Don't use this method in {self.__class__.__name__} client"
         )
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         raise NotImplementedError(
             f"Don't use this method in {self.__class__.__name__} client"
@@ -120,7 +124,6 @@ class UnifiedBybitClient:
 
     async def get_usdt_available_balance(self) -> float | None:
         """Get wallet balance from Bybit."""
-
         usdt_balance: float | None = None
         resp = await self._client.get_wallet_balance(
             account_type="UNIFIED", coin="USDT"
@@ -153,7 +156,6 @@ class UnifiedBybitClient:
 
     async def get_spot_usdt_balance(self) -> float | None:
         """Get the spot USDT balance for the account."""
-
         usdt_balance: float | None = None
         resp = await self._client.get_wallet_balance(
             account_type="UNIFIED", coin="USDT"
@@ -208,16 +210,15 @@ class UnifiedBybitClient:
     ) -> dict[str, Any]:
         """Place an order on Bybit."""
         return await self._client.place_order(
-            "linear", params=convert_unified_to_bybit(order)
+            "linear", params=convert_unified_place_order_to_bybit(order)
         )
 
     async def place_spot_order(
         self, params: UnifiedPlaceSpotOrderRequest
     ) -> dict[str, Any]:
         """Place spot order on Bybit."""
-
         return await self._client.place_order(
-            category="spot", params=convert_unified_spot_to_bybit(params)
+            category="spot", params=convert_unified_place_spot_order_to_bybit(params)
         )
 
     async def get_spot_order_exec_qty(self, response: dict[str, Any]) -> float:
@@ -245,10 +246,9 @@ class UnifiedBybitClient:
         self, has_existing_position: bool, requests: list[UnifiedPlaceOrderRequest]
     ) -> dict[str, Any]:
         """Batch place orders on Bybit."""
-
         return await self._client.batch_place_order(
             category="linear",
-            orders=[convert_unified_to_bybit(order) for order in requests],
+            orders=[convert_unified_place_order_to_bybit(order) for order in requests],
         )
 
     async def batch_cancel_order(
@@ -274,7 +274,7 @@ class UnifiedBybitClient:
             category="linear", settle_coin="USDT", limit=500
         )
         return [
-            unified_history_order_from_bybit(x)
+            unified_pending_order_from_bybit(x)
             for x in orders_response.get("result", {}).get("list", [])
         ]
 

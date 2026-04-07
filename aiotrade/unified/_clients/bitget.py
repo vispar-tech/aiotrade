@@ -11,8 +11,13 @@ from aiotrade.types.bitget import (
     PlaceTpslPlanOrderParams,
     ProductType,
 )
-
-from ..types import (
+from aiotrade.unified.converters.pending_order import unified_pending_order_from_bitget
+from aiotrade.unified.converters.place.futures import (
+    convert_unified_place_order_to_bitget,
+)
+from aiotrade.unified.converters.position import unified_position_info_from_bitget
+from aiotrade.unified.types import (
+    UnifiedAssetMode,
     UnifiedCancelOrderRequest,
     UnifiedMarginMode,
     UnifiedPendingOrder,
@@ -20,12 +25,9 @@ from ..types import (
     UnifiedPlaceSpotOrderRequest,
     UnifiedPositionInfo,
     UnifiedSide,
-    convert_unified_to_bitget,
-    unified_history_order_from_bitget,
-    unified_position_info_from_bitget,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("aiotrade.unified")
 
 TriggerPlanType = Literal[
     "normal_plan", "profit_plan", "loss_plan", "pos_profit", "pos_loss", "moving_plan"
@@ -109,7 +111,7 @@ class UnifiedBitgetClient:
         )
         hedge_mode = resp.get("data", {}).get("posMode")
         if hedge_mode is not None:
-            return hedge_mode == "hedge_mode"
+            return hedge_mode == "hedge_mode"  # type: ignore[no-any-return]
         return None
 
     async def set_hedge_mode(self, enabled: bool) -> None:
@@ -119,17 +121,17 @@ class UnifiedBitgetClient:
             pos_mode="hedge_mode" if enabled else "one_way_mode",
         )
 
-    async def get_asset_mode(self) -> Literal["single", "union"] | None:
+    async def get_asset_mode(self) -> UnifiedAssetMode | None:
         """Query the current asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         # Query account list and look for USDT marginCoin
         resp = await self._client.get_account_list(product_type="USDT-FUTURES")
         data = resp.get("data", [])
         for entry in data:
             if entry.get("marginCoin") == "USDT":
-                return entry.get("assetMode")
+                return entry.get("assetMode")  # type: ignore[no-any-return]
         return None
 
-    async def set_asset_mode(self, mode: Literal["single", "union"]) -> None:
+    async def set_asset_mode(self, mode: UnifiedAssetMode) -> None:
         """Set the asset mode (e.g., 'USDT', 'multi-asset', etc)."""
         await self._client.set_asset_mode(
             product_type="USDT-FUTURES",
@@ -138,22 +140,17 @@ class UnifiedBitgetClient:
 
     async def get_usdt_available_balance(self) -> float | None:
         """Get the available USDT balance for the account."""
-        resp = await self._client.get_account_list("USDT-FUTURES")
-        accounts = resp.get("data", [])
-        for account in accounts:
-            margin_coin = account.get("marginCoin")
-            if margin_coin == "USDT":
-                account_available = account.get("available")
-                if account_available is None:
-                    continue
-                try:
-                    return float(account_available)
-                except Exception:
-                    logger.warning(
-                        "`available` is not parseable as float: %r", account_available
-                    )
-                    return None
-        return None
+        result = await self._client.get_account_list("USDT-FUTURES")
+
+        usdt_balance = self._client.helpers.extract_wallet_balance(result, asset="USDT")
+
+        if usdt_balance is None:
+            logger.error(
+                "%s No USDT asset found at bitget account.", self._account_display
+            )
+            return None
+
+        return usdt_balance
 
     async def get_spot_usdt_balance(self) -> float | None:
         """Get the spot USDT balance for the account."""
@@ -249,7 +246,9 @@ class UnifiedBitgetClient:
         margin_mode: Literal["isolated", "crossed"] = "isolated"
         margin_coin = "USDT"
 
-        order_list = [convert_unified_to_bitget(order) for order in requests]
+        order_list = [
+            convert_unified_place_order_to_bitget(order) for order in requests
+        ]
         logger.info(
             "Bitget batch_place_futures_orders: "
             "symbol=%s, product_type=%s, margin_mode=%s, margin_coin=%s, order_list=%s",
@@ -317,7 +316,7 @@ class UnifiedBitgetClient:
         orders_list: list[dict[str, Any]] = (
             orders_response.get("data", {}).get("entrustedList") or []
         )
-        return [unified_history_order_from_bitget(x) for x in orders_list]
+        return [unified_pending_order_from_bitget(x) for x in orders_list]
 
     # Trading methods
     async def _cancel_trading_stop_orders(
