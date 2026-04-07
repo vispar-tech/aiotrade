@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.23.0 (2026-04-07)
+
+### Features
+
+- **unified**: :sparkles: add unified exchange client layer
+  ([`157cf29`](https://github.com/vispar-tech/aiotrade/commit/157cf29118b06feb4283b2eca07525d904a514b5))
+
+
 ## v0.22.0 (2026-03-23)
 
 ### Features
