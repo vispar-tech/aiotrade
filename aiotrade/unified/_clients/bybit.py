@@ -25,7 +25,7 @@ from aiotrade.unified.types import (
     UnifiedPositionInfo,
     UnifiedSide,
 )
-from aiotrade.utils import retry_async_function
+from aiotrade.utils.retry import retry_async_function
 
 logger = logging.getLogger("aiotrade.unified")
 

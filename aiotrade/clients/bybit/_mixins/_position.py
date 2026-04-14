@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bybit import SetTradingStopParams
-from aiotrade.utils import remap, to_str_fields
+from aiotrade.utils.formatters import remap, to_str_fields
 
 
 class PositionMixin:

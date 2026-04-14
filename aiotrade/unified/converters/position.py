@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from aiotrade.unified.types import UnifiedPositionInfo, UnifiedSide
-from aiotrade.utils import parse_float
+from aiotrade.utils.numbers import parse_float
 
 logger = logging.getLogger("aiotrade.unified")
 

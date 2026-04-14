@@ -4,7 +4,8 @@ from decimal import Decimal
 from typing import Any
 
 from aiotrade.unified.types import UnifiedInstrumentInfo
-from aiotrade.utils import float_to_str, parse_decimal
+from aiotrade.utils.formatters import float_to_str
+from aiotrade.utils.numbers import parse_decimal
 
 
 def unified_instrument_info_from_bingx(

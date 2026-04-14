@@ -226,7 +226,6 @@ async def test_bingx_spot_assets_and_positions() -> None:
 
     await print_spot_account_assets(client)
     await print_swap_positions(client)
-    print(json.dumps(await client.get_swap_contracts(symbol="BTC-USDT"), indent=2))
 
     if PLACE_ORDER:
         try:

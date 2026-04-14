@@ -8,7 +8,7 @@ from aiotrade.types.bitget import (
     PlaceTriggerOrderParams,
     ProductType,
 )
-from aiotrade.utils import to_str_fields
+from aiotrade.utils.formatters import to_str_fields
 
 
 class TriggerMixin:

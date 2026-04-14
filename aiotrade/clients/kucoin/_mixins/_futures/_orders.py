@@ -7,7 +7,7 @@ from aiotrade.types.kucoin import (
     PlaceOrderParams,
     TakeProfitStopLossOrderParams,
 )
-from aiotrade.utils import to_str_fields
+from aiotrade.utils.formatters import to_str_fields
 
 
 class OrdersMixin:

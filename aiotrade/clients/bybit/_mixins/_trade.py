@@ -6,7 +6,7 @@ from aiotrade.types.bybit import (
     GetOrderHistoryParams,
     PlaceOrderParams,
 )
-from aiotrade.utils import remap, to_str_fields
+from aiotrade.utils.formatters import remap, to_str_fields
 
 
 class TradeMixin:

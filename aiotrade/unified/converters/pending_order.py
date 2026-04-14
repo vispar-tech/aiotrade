@@ -8,7 +8,7 @@ from aiotrade.unified.types import (
     UnifiedPendingOrder,
     UnifiedSide,
 )
-from aiotrade.utils import parse_float
+from aiotrade.utils.numbers import parse_float
 
 
 def unified_pending_order_from_bingx(order: dict[str, Any]) -> "UnifiedPendingOrder":

@@ -8,7 +8,7 @@ from aiotrade.types.okx import (
     AlgorithmOrderParams,
     CancelAlgorithmOrderParams,
 )
-from aiotrade.utils import join_iterable_field, to_str_fields
+from aiotrade.utils.formatters import join_iterable_field, to_str_fields
 
 
 class AlgorithmTradeMixin:

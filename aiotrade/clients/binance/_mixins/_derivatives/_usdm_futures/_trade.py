@@ -2,7 +2,7 @@ from typing import Any
 
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.binance import AlgorithmOrderParams, CreateOrderParams, MarginType
-from aiotrade.utils import to_str_fields
+from aiotrade.utils.formatters import to_str_fields
 
 
 class TradeMixin:
@@ -652,6 +652,67 @@ class TradeMixin:
             params["limit"] = limit
         return await self.get(
             "/fapi/v1/allAlgoOrders",
+            params=params,
+            auth=True,
+        )
+
+    async def get_user_trades(
+        self: "HttpClientProtocol",
+        symbol: str,
+        order_id: int | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
+        from_id: int | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Get trades for a specific account and symbol.
+
+        API Docs:
+            GET /fapi/v1/userTrades
+
+        Args:
+            symbol: Trading pair symbol (required).
+            order_id: Order ID, only used with symbol (optional).
+            start_time: Start time in milliseconds (optional). Not allowed with from_id.
+            end_time: End time in milliseconds (optional). Not allowed with from_id.
+            from_id: Trade id to fetch from (optional).
+                Cannot be sent with start_time or end_time.
+            limit: Number of trades to return (default 500, max 1000) (optional).
+
+        Returns:
+            list: List of user trade dictionaries.
+
+        Notes:
+            - If startTime and endTime are both not sent,
+                then the last 7 days' data will be returned.
+            - The time between startTime and endTime cannot be longer than 7 days.
+            - The parameter fromId cannot be sent with startTime or endTime.
+            - Only support querying trade in the past 6 months
+        """
+        params: dict[str, Any] = {
+            "symbol": symbol,
+        }
+        if order_id is not None:
+            params["orderId"] = order_id
+        if start_time is not None:
+            params["startTime"] = start_time
+        if end_time is not None:
+            params["endTime"] = end_time
+        if from_id is not None:
+            params["fromId"] = from_id
+        if limit is not None:
+            params["limit"] = limit
+
+        # The parameter fromId cannot be sent with startTime or endTime.
+        if from_id is not None and (start_time is not None or end_time is not None):
+            raise ValueError(
+                "from_id cannot be sent with start_time "
+                "or end_time for /fapi/v1/userTrades"
+            )
+
+        return await self.get(
+            "/fapi/v1/userTrades",
             params=params,
             auth=True,
         )

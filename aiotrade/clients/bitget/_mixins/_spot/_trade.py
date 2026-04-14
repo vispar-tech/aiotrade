@@ -7,7 +7,7 @@ from aiotrade.types.bitget import (
     PlaceSpotOrderParams,
     SpotOrdersQueryParams,
 )
-from aiotrade.utils import to_str_fields
+from aiotrade.utils.formatters import to_str_fields
 
 
 class TradeMixin:

@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any
 
 from aiotrade.unified.types import UnifiedSpotInstrumentInfo
-from aiotrade.utils import parse_decimal
+from aiotrade.utils.numbers import parse_decimal
 
 
 def unified_spot_instrument_info_from_bingx(

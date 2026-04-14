@@ -2,7 +2,7 @@ from typing import Any, Literal
 
 from aiotrade._protocols import HttpClientProtocol
 from aiotrade.types.bingx import PlaceSpotOrderParams
-from aiotrade.utils import remap
+from aiotrade.utils.formatters import remap
 
 
 class TradeMixin:
