@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.25.0 (2026-04-14)
+
+### Features
+
+- **utils**: :sparkles: reorganize utility functions and remove unused utils.py file
+  ([`b59f092`](https://github.com/vispar-tech/aiotrade/commit/b59f0927f9760c82bfaf4a1926aa0be1b106fd1c))
+
+
 ## v0.24.0 (2026-04-07)
 
 ### Features
