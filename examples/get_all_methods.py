@@ -12,6 +12,7 @@ from aiotrade import (
     BingxClient,
     BitgetClient,
     BybitClient,
+    GateClient,
     KuCoinClient,
     OkxClient,
 )
@@ -115,7 +116,7 @@ def pretty_print_methods(title: str, methods: list[str]) -> None:
                 row.append("")
         table.append(row)
     for row in table:
-        print(" " + "".join(m.ljust(maxlen) for m in row))
+        print("    " + "".join(m.ljust(maxlen) for m in row))
 
 
 def report_duplicates(client_name: str, methods: list[str]) -> None:
@@ -138,6 +139,7 @@ def main() -> None:
         ("BitgetClient", BitgetClient),
         ("BinanceClient", BinanceClient),
         ("KuCoinClient", KuCoinClient),
+        ("GateClient", GateClient),
     ]
     for client_name, client_cls in client_data:
         methods = implemented_methods(client_cls)
