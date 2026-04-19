@@ -212,3 +212,79 @@ def unified_pending_order_from_kucoin(order: dict[str, Any]) -> "UnifiedPendingO
         qty=size,
         source="kucoin",
     )
+
+
+def unified_pending_order_from_gate(order: dict[str, Any]) -> "UnifiedPendingOrder":
+    """Create UnifiedPendingOrder from a Gate order dict."""
+    if order.get("initial") is not None:
+        created_time = int(order["create_time"])
+        updated_time = int(order["trigger_time"]) or created_time
+        order_id = str(order["id"])
+        order_link_id = str(order["batch_id"])
+        symbol = str(order["initial"]["contract"])
+
+        # Gate triggers do not always specify side. We'll try to infer from direction
+        direction = order["direction"]
+        if "long" in direction:
+            side = UnifiedSide.LONG
+        elif "short" in direction:
+            side = UnifiedSide.SHORT
+        else:
+            raise Exception(f"Can't determine 'side' in Gate order: {order}")
+
+        status = order["status"]
+        if not status:
+            raise Exception(f"Missing 'status' in Gate order: {order}")
+
+        order_status = UnifiedOrderStatus.from_exchange(status)
+        order_type = UnifiedOrderType.CONDITIONAL
+        avg_price = parse_float(order["trigger"]["price"])
+        return UnifiedPendingOrder(
+            createdTime=created_time * 1000,
+            updatedTime=updated_time * 1000,
+            orderStatus=order_status,
+            orderType=order_type,
+            orderId=order_id,
+            orderLinkId=order_link_id,
+            symbol=symbol,
+            side=side,
+            avgPrice=avg_price,
+            qty=float(order["initial"]["amount"]),
+            source="gate",
+        )
+    # parse order like sample at lines 48-78 of @1 (file_context_1)
+    # Typical "futures" order, not a trigger. See the dict structure.
+
+    created_time = int(order["create_time"])
+    updated_time = int(order["update_time"])
+    order_id = str(order["id"])
+    order_link_id = str(order["text"])
+    symbol = str(order["contract"])
+
+    side = UnifiedSide.LONG if order["size"] > 0 else UnifiedSide.SHORT
+
+    status = order.get("status")
+    if not status:
+        raise Exception(f"Missing 'status' in Gate order: {order}")
+
+    order_status = UnifiedOrderStatus.from_exchange(status)
+
+    tif = order["tif"]
+    order_type = UnifiedOrderType.LIMIT if tif == "gtc" else UnifiedOrderType.OTHER
+
+    avg_price = parse_float(order["price"])
+    qty = float(order["size"])
+
+    return UnifiedPendingOrder(
+        createdTime=created_time * 1000,
+        updatedTime=updated_time * 1000,
+        orderStatus=order_status,
+        orderType=order_type,
+        orderId=order_id,
+        orderLinkId=order_link_id,
+        symbol=symbol,
+        side=side,
+        avgPrice=avg_price,
+        qty=qty,
+        source="gate",
+    )

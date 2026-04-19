@@ -66,6 +66,7 @@ class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, Spo
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         return await super()._async_request(
@@ -74,6 +75,7 @@ class BinanceClient(BinanceHttpClient, AccountWalletMixin, UsdmFuturesMixin, Spo
             params,
             headers,
             auth,
+            use_params_as_query,
             self.url_resolver.resolve(self.demo, endpoint),
         )
 

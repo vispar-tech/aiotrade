@@ -780,3 +780,152 @@ def unified_position_info_from_kucoin(
             "matching_trailing_orders": matching_trailing,
         },
     )
+
+
+def unified_position_info_from_gate(
+    account_display: str,
+    price_trigger_orders: list[dict[str, Any]],
+    trailing_orders: list[dict[str, Any]],
+    data: dict[str, Any],
+) -> "UnifiedPositionInfo":
+    """
+    Convert OKX position dict and related algo orders to UnifiedPositionInfo.
+
+    price_trigger_orders: List from get_algo_orders_pending
+    data: single position dict from get_positions
+    """
+    symbol = data["contract"]
+    size = float(data["size"])
+    side = UnifiedSide.LONG if size > 0 else UnifiedSide.SHORT
+    position_id = f"{data['id']}:{symbol}:{side}"
+
+    avg_price = float(data["entry_price"])
+    leverage = float(data["lever"])
+    mark_price = float(data["mark_price"])
+    realized_pnl = float(data["realised_pnl"])
+    unrealized_pnl = float(data["unrealised_pnl"])
+    liq_price = parse_float(data["liq_price"])
+    margin_mode = data["pos_margin_mode"]
+    position_mode = data["mode"]
+
+    # Collect algo orders for this symbol & posSide
+    # rule 1 - tp
+    # rule 2 - sl
+
+    def _matches(ord_: dict[str, Any], rule: int) -> bool:
+        return (
+            ord_["initial"]["contract"] == symbol
+            and ord_["status"] == "open"
+            and ord_["trigger"]["rule"] == rule
+            and (
+                ord_["pos_margin_mode"] == margin_mode or ord_["pos_margin_mode"] == ""
+            )
+            and ord_["position_mode"] == position_mode
+            and ord_["trigger"]["price"] not in ("", "0")
+        )
+
+    def _matches_trailing(ord_: dict[str, Any]) -> bool:
+        return (
+            ord_["contract"] == symbol
+            and ord_["status"] == "open"
+            and ord_["reduce_only"] is True
+            and ord_["position_mode"] == position_mode
+            and (
+                ord_["pos_margin_mode"] == margin_mode or ord_["pos_margin_mode"] == ""
+            )
+            and not ord_["is_dual_mode"]
+        )
+
+    matching_tp = [o for o in price_trigger_orders if _matches(o, 1)]
+    matching_sl = [o for o in price_trigger_orders if _matches(o, 2)]
+    matching_trailing = [o for o in trailing_orders if _matches_trailing(o)]
+
+    if matching_sl and len(matching_sl) > 1:
+        logger.warning(
+            "%s Multiple stop loss orders found for symbol %s: %s",
+            account_display,
+            symbol,
+            matching_sl,
+        )
+    stop_loss = (
+        float(matching_sl[0]["trigger"]["price"])
+        if matching_sl
+        and len(matching_sl) == 1
+        and matching_sl[0]["initial"]["auto_size"] == "close"
+        else None
+    )
+
+    if matching_tp and len(matching_tp) > 1:
+        logger.warning(
+            "%s Multiple take profit orders found for symbol %s: %s",
+            account_display,
+            symbol,
+            matching_tp,
+        )
+    take_profit = (
+        float(matching_tp[0]["trigger"]["price"])
+        if matching_tp
+        and len(matching_tp) == 1
+        and matching_tp[0]["initial"]["auto_size"] == "close"
+        else None
+    )
+
+    if matching_trailing and len(matching_trailing) > 1:
+        logger.warning(
+            "%s Multiple trailing stop orders found for symbol %s: %s",
+            account_display,
+            symbol,
+            matching_trailing,
+        )
+    trailing_stop = None
+    trailing_stop_method = None
+    if (
+        matching_trailing
+        and len(matching_trailing) == 1
+        and abs(float(matching_trailing[0]["amount"])) == abs(size)
+    ):
+        # eg 'price_offset': '2%'
+        price_offset = matching_trailing[0].get("price_offset")
+        if price_offset and price_offset.endswith("%"):
+            try:
+                trailing_stop = float(price_offset.rstrip("%")) / 100.0
+                trailing_stop_method = "percent"
+            except Exception:
+                trailing_stop = None
+        else:
+            trailing_stop_method = "price"
+            trailing_stop = float(matching_trailing[0]["price_offset"])
+    trailing_activate_price = (
+        float(matching_trailing[0]["activation_price"])
+        if matching_trailing
+        and len(matching_trailing) == 1
+        and matching_trailing[0].get("activation_price")
+        and abs(float(matching_trailing[0]["amount"])) == abs(size)
+        else None
+    )
+
+    return UnifiedPositionInfo(
+        id=position_id,
+        symbol=symbol,
+        side=side,
+        size=abs(size),
+        avgPrice=avg_price,
+        leverage=leverage,
+        markPrice=mark_price,
+        realizedPnl=realized_pnl,
+        unrealisedPnl=unrealized_pnl,
+        liqPrice=liq_price,
+        stopLoss=stop_loss,
+        trailingDelivation=trailing_stop,
+        trailingActivatePrice=trailing_activate_price,
+        takeProfit=take_profit,
+        updatedTime=data["update_time"] * 1000,
+        source="gate",
+        additional={
+            "margin_mode": data["pos_margin_mode"],
+            "trailing_stop_method": trailing_stop_method,
+            "matching_sl_orders": matching_sl,
+            "matching_tp_orders": matching_tp,
+            "matching_trailing_orders": matching_trailing,
+        },
+    )

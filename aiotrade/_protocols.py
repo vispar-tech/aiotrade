@@ -15,6 +15,7 @@ class HttpClientProtocol(Protocol):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Send a GET HTTP request."""
@@ -26,6 +27,7 @@ class HttpClientProtocol(Protocol):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Send a POST HTTP request."""
@@ -37,6 +39,7 @@ class HttpClientProtocol(Protocol):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Send a PUT HTTP request."""
@@ -48,6 +51,7 @@ class HttpClientProtocol(Protocol):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Send a DELETE HTTP request."""

@@ -141,7 +141,9 @@ async def test_bybit_wallet_and_positions() -> None:
 
     await print_wallet_balance(client)
     await print_open_positions(client)
-    pprint(await client.get_open_and_closed_orders("linear", settle_coin="USDT"))
+    pprint(
+        await client.get_position_info("linear", settle_coin="USDT", symbol="BTCUSDT")
+    )
 
     if PLACE_ORDER:
         try:

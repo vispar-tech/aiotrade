@@ -42,6 +42,7 @@ from .clients import (
     BingxClient,
     BitgetClient,
     BybitClient,
+    GateClient,
     KuCoinClient,
     OkxClient,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "BybitClient",
     "ExchangeLiteral",
     "ExchangeResponseError",
+    "GateClient",
     "KuCoinClient",
     "OkxClient",
     "SharedSessionManager",

@@ -35,6 +35,7 @@ from ._clients.binance import UnifiedBinanceClient
 from ._clients.bingx import UnifiedBingxClient
 from ._clients.bitget import UnifiedBitgetClient
 from ._clients.bybit import UnifiedBybitClient
+from ._clients.gate import UnifiedGateClient
 from ._clients.kucoin import UnifiedKuCoinClient
 from ._clients.okx import UnifiedOkxClient
 from ._protocol import UnifiedClient
@@ -45,6 +46,7 @@ __all__ = [
     "UnifiedBitgetClient",
     "UnifiedBybitClient",
     "UnifiedClient",
+    "UnifiedGateClient",
     "UnifiedKuCoinClient",
     "UnifiedOkxClient",
 ]

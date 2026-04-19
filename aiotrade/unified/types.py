@@ -10,6 +10,7 @@ from aiotrade.types.binance import MarginType as BinanceMarginMode
 from aiotrade.types.bingx import MarginMode as BingxMarginMode
 from aiotrade.types.bitget import MarginMode as BitgetMarginMode
 from aiotrade.types.bybit import MarginMode as BybitMarginMode
+from aiotrade.types.gate import MarginMode as GateMarginMode
 from aiotrade.types.kucoin import MarginMode as KuCoinMarginMode
 from aiotrade.types.okx import TradeMode as OkxMarginMode
 
@@ -52,6 +53,10 @@ class UnifiedMarginMode(StrEnum):
                 UnifiedMarginMode.CROSS: "cross",
                 UnifiedMarginMode.ISOLATED: "isolated",
             },
+            "gate": {
+                UnifiedMarginMode.CROSS: "CROSS",
+                UnifiedMarginMode.ISOLATED: "ISOLATED",
+            },
         }
 
     def to_exchange(self, exchange: ExchangeLiteral) -> str:
@@ -86,6 +91,10 @@ class UnifiedMarginMode(StrEnum):
     def to_okx(self) -> OkxMarginMode:
         """Return OKX-specific margin mode string."""
         return cast(OkxMarginMode, self.to_exchange("okx"))
+
+    def to_gate(self) -> GateMarginMode:
+        """Return Gate-specific margin mode string."""
+        return cast(GateMarginMode, self.to_exchange("gate"))
 
 
 class UnifiedSide(StrEnum):

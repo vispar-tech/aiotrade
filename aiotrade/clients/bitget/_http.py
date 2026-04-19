@@ -110,6 +110,7 @@ class BitgetHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, Any] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> tuple[
         dict[str, Any],
@@ -188,6 +189,7 @@ class BitgetHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         (
@@ -197,7 +199,7 @@ class BitgetHttpClient(HttpClient):
             req_json,
             req_data,
         ) = await self._build_request_args(
-            method, endpoint, params, headers, auth, base_url
+            method, endpoint, params, headers, auth, use_params_as_query, base_url
         )
 
         async with self._session.request(

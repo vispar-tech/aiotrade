@@ -15,6 +15,15 @@ from aiotrade.types.bitget import (
     BatchPlaceOrderItemParams as BitgetBatchOrderItemParams,
 )
 from aiotrade.types.bybit import PlaceOrderParams as BybitOrderParams
+from aiotrade.types.gate import (
+    FuturesPlaceOrder as GateOrderParams,
+)
+from aiotrade.types.gate import (
+    FuturesPlaceTrailingOrder as GateTrailingOrderParams,
+)
+from aiotrade.types.gate import (
+    FuturesPriceTriggeredOrder as GatePriceTriggeredOrderParams,
+)
 from aiotrade.types.kucoin import PlaceOrderParams as KuCoinOrderParams
 from aiotrade.types.kucoin import (
     TakeProfitStopLossOrderParams as KuCoinTakeProfitStopLossOrderParams,
@@ -25,6 +34,7 @@ from aiotrade.unified.types import (
     UnifiedPlaceOrderRequest,
     UnifiedSide,
 )
+from aiotrade.utils.formatters import float_to_str
 
 
 def convert_unified_place_order_to_bingx(
@@ -328,3 +338,135 @@ def convert_unified_place_order_to_kucoin(  # noqa: C901, PLR0912
         main_params["reduceOnly"] = reduce_only
 
     return main_params, None
+
+
+def convert_unified_place_order_to_gate(  # noqa: C901, PLR0912
+    order: UnifiedPlaceOrderRequest,
+) -> tuple[
+    GateOrderParams | None,
+    list[GatePriceTriggeredOrderParams],
+    list[GateTrailingOrderParams],
+]:
+    """
+    Convert unified place order request to Gate.io format.
+
+    Returns a tuple of:
+        (main order for market, price trigger orders for limit/tp/sl, trailing orders)
+    """
+    main_order: GateOrderParams | None = None
+    price_trigger_orders: list[GatePriceTriggeredOrderParams] = []
+    trailing_orders: list[GateTrailingOrderParams] = []
+
+    symbol = order["symbol"]
+    qty = order["qty"]
+    order_price = order.get("price")
+    order_type = order["order_type"]
+    side = order["side"]
+    reduce_only = order.get("reduce_only", False)
+    order_link_id = order.get("order_link_id", None)
+
+    # Market order (fills main_order, only for "Market" type)
+    if order_type == "Market":
+        main_order = GateOrderParams(
+            contract=symbol,
+            size=qty if side == UnifiedSide.LONG else -qty,
+            price=0,
+            tif="ioc",
+        )
+        if reduce_only:
+            main_order["reduce_only"] = reduce_only
+        if order_link_id is not None:
+            main_order["text"] = "t-" + order_link_id
+
+    # Limit order (fills price_trigger_orders)
+    elif order_type == "Limit":
+        if not order_price:
+            raise ValueError("Limit order requires a price.")
+
+        limit_order: GatePriceTriggeredOrderParams = {
+            "initial": {
+                "contract": symbol,
+                "amount": str(qty if side == UnifiedSide.LONG else -qty),
+                "price": float_to_str(order_price),
+            },
+            "trigger": {
+                "price": float_to_str(order_price),
+                "price_type": 0,
+                "rule": 1 if side == UnifiedSide.LONG else 2,
+            },
+        }
+        if reduce_only:
+            limit_order["initial"]["reduce_only"] = reduce_only
+        if order_link_id is not None:
+            limit_order["initial"]["text"] = "t-" + order_link_id
+        price_trigger_orders.append(limit_order)
+
+    # Take Profit / Stop Loss triggers (always as price_trigger)
+    # Take profit (tp)
+    take_profit = order.get("take_profit")
+    if take_profit is not None:
+        tp_order: GatePriceTriggeredOrderParams = {
+            "initial": {
+                "contract": symbol,
+                "price": "0",  # market order close as string
+                "reduce_only": True,
+                "tif": "ioc",
+                "auto_size": "close",
+            },
+            "trigger": {
+                "price": float_to_str(take_profit),
+                "rule": 1 if side == UnifiedSide.LONG else 2,
+            },
+            "order_type": (
+                "close-long-position"
+                if side == UnifiedSide.LONG
+                else "close-short-position"
+            ),
+        }
+        if order_link_id is not None:
+            tp_order["initial"]["text"] = f"{order_link_id}_tp"
+        price_trigger_orders.append(tp_order)
+
+    # Stop loss (sl)
+    stop_loss = order.get("stop_loss")
+    if stop_loss is not None:
+        sl_order: GatePriceTriggeredOrderParams = {
+            "initial": {
+                "contract": symbol,
+                "price": "0",  # market order close as string
+                "reduce_only": True,
+                "tif": "ioc",
+                "auto_size": "close",
+            },
+            "trigger": {
+                "price": float_to_str(stop_loss),
+                "rule": 2 if side == UnifiedSide.LONG else 1,
+            },
+            "order_type": (
+                "close-long-position"
+                if side == UnifiedSide.LONG
+                else "close-short-position"
+            ),
+        }
+        if order_link_id is not None:
+            sl_order["initial"]["text"] = f"{order_link_id}_sl"
+        price_trigger_orders.append(sl_order)
+
+    # Trailing stop (trail)
+    trailing_activate = order.get("trailing_stop_activation", None)
+    trailing_callback = order.get("trailing_stop_callback", None)
+    if trailing_activate is not None and trailing_callback is not None:
+        trail_order = GateTrailingOrderParams(
+            contract=symbol,
+            amount=qty if side == UnifiedSide.LONG else -qty,
+            activation_price=str(trailing_activate),
+            is_gte=side == UnifiedSide.LONG,
+            price_offset=str(trailing_callback) + "%",
+            reduce_only=True,
+            position_related=True,
+        )
+        if order_link_id is not None:
+            trail_order["text"] = f"{order_link_id}_trail"
+        trailing_orders.append(trail_order)
+
+    return main_order, price_trigger_orders, trailing_orders

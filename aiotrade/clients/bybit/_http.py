@@ -122,6 +122,7 @@ class BybitHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> tuple[
         dict[str, Any],
@@ -197,6 +198,7 @@ class BybitHttpClient(HttpClient):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         (
@@ -206,13 +208,14 @@ class BybitHttpClient(HttpClient):
             req_json,
             req_data,
         ) = await self._build_request_args(
-            method, endpoint, params, headers, auth, base_url
+            method, endpoint, params, headers, auth, use_params_as_query, base_url
         )
 
         if self.verbose:
             logger.info(
-                "Request args: headers=%r, url=%r, params=%r, "
+                "Request args: method=%s, headers=%r, url=%r, params=%r, "
                 "json=%r, data=%r, base_url=%r",
+                method,
                 req_headers,
                 req_url,
                 req_params,

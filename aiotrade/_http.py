@@ -107,6 +107,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> tuple[
         dict[str, Any],
@@ -135,6 +136,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """
@@ -155,6 +157,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async GET request."""
@@ -164,6 +167,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            use_params_as_query=use_params_as_query,
             base_url=base_url,
         )
 
@@ -173,6 +177,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async POST request."""
@@ -182,6 +187,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            use_params_as_query=use_params_as_query,
             base_url=base_url,
         )
 
@@ -191,6 +197,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async PUT request."""
@@ -200,6 +207,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            use_params_as_query=use_params_as_query,
             base_url=base_url,
         )
 
@@ -209,6 +217,7 @@ class HttpClient(ABC):
         params: ParamsType | None = None,
         headers: dict[str, str] | None = None,
         auth: bool = False,
+        use_params_as_query: bool = False,
         base_url: str | None = None,
     ) -> dict[str, Any]:
         """Async DELETE request."""
@@ -218,6 +227,7 @@ class HttpClient(ABC):
             params=params,
             headers=headers,
             auth=auth,
+            use_params_as_query=use_params_as_query,
             base_url=base_url,
         )
 

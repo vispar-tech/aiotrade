@@ -220,3 +220,43 @@ def unified_instrument_info_from_kucoin(
         },
         source="kucoin",
     )
+
+
+def unified_instrument_info_from_gate(
+    instrument: dict[str, Any],
+) -> "UnifiedInstrumentInfo":
+    """Create UnifiedInstrumentInfo from a Gate swap instrument."""
+    tick_sz = float_to_str(instrument["tickSize"], use_exp=False)
+    lot_sz = float_to_str(instrument["lotSize"], use_exp=False)
+    # Determine decimal_places for qty_step (lotSz)
+    decimal_places = 0
+    if "." in lot_sz:
+        decimal_places = len(lot_sz.rstrip("0").split(".")[1])
+    price_precision = 0
+    # price_precision (decimal places of tickSz)
+    if "." in tick_sz:
+        price_precision = len(tick_sz.rstrip("0").split(".")[1])
+    qty_step = float(lot_sz)
+    return UnifiedInstrumentInfo(
+        symbol=instrument["symbol"],
+        decimal_places=decimal_places,
+        price_precision=price_precision,
+        tick_size=float(tick_sz),
+        qty_step=parse_decimal(qty_step),
+        min_order_qty=parse_decimal(lot_sz),
+        max_order_qty=parse_decimal(instrument["maxOrderQty"]),
+        max_mkt_qty=parse_decimal(instrument["marketMaxOrderQty"]),
+        min_notional=Decimal("0"),
+        max_notional=Decimal("inf"),
+        max_mkt_notional=Decimal("inf"),
+        max_absolute_margin=Decimal("inf"),
+        min_leverage=1,
+        max_leverage=float(instrument["maxLeverage"]),
+        additional={
+            "ct_mult": parse_decimal(
+                float_to_str(instrument["multiplier"], use_exp=False)
+            ),
+            "ct_val": parse_decimal(lot_sz),
+        },
+        source="gate",
+    )

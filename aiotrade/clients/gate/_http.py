@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import hmac
 import logging
@@ -13,65 +12,46 @@ from aiotrade._http import HttpClient
 from aiotrade._protocols import ParamsType
 from aiotrade._types import HttpMethod
 
-logger = logging.getLogger("aiotrade.kucoin")
+logger = logging.getLogger("aiotrade.gate")
 
 
 def _mask_headers(headers: dict[str, Any]) -> dict[str, Any]:
     masked: dict[str, Any] = {}
     for k, v in headers.items():
-        if k in (
-            "KC-API-KEY",
-            "KC-API-SIGN",
-            "KC-API-PASSPHRASE",
-            "KC-API-PARTNER-SIGN",
-        ):
+        if k in ("KEY", "SIGN"):
             masked[k] = v[:6] + "..." if isinstance(v, str) else "****"
         else:
             masked[k] = v
     return masked
 
 
-class KuCoinHttpClient(HttpClient):
-    """KuCoin HTTP client."""
+class GateHttpClient(HttpClient):
+    """Gate HTTP client."""
 
     def __init__(
         self,
         api_key: str | None = None,
         api_secret: str | None = None,
-        passphrase: str | None = None,
-        recv_window: int = 5000,
-        broker_partner: str | None = None,
-        broker_key: str | None = None,
-        broker_name: str | None = None,
+        demo: bool = False,
+        broker_tag: str | None = None,
     ) -> None:
         """Initialize HTTP client.
 
         Args:
             api_key: Trading API key
             api_secret: Trading API secret
-            passphrase: Trading API passphrase
-            recv_window: Receive window in milliseconds
-            broker_partner: KuCoin broker partner identifier (optional)
-            broker_key: KuCoin broker key (optional)
-            broker_name: KuCoin broker name (optional)
+            demo: Use demo trading
+            broker_tag: Broker tag
         """
         self.api_key = api_key
         self.api_secret = api_secret
-        self.passphrase = passphrase
-        self.broker_partner = broker_partner
-        self.broker_key = broker_key
-        self.broker_name = broker_name
+        self.demo = demo
+        self.broker_tag = broker_tag
 
-        if api_secret is not None and passphrase is not None:
-            # Encode KuCoin passphrase using HMAC SHA256, result should be Base64 str
-            hm = hmac.new(
-                api_secret.encode("utf-8"), passphrase.encode("utf-8"), hashlib.sha256
-            )
-            self.passphrase = base64.b64encode(hm.digest()).decode()
-        else:
-            self.passphrase = None
-
-        super().__init__("https://api.kucoin.com", recv_window=recv_window)
+        self._api_prefix = "/api/v4"
+        super().__init__(
+            "https://api-testnet.gateapi.io" if demo else "https://api.gateio.ws"
+        )
 
     def _generate_signature(
         self,
@@ -79,35 +59,50 @@ class KuCoinHttpClient(HttpClient):
         method: HttpMethod,
         path: str,
         payload: str,
+        query_payload: str,
         timestamp: int,
     ) -> str:
-        """KuCoin signature.
-
-        Signature is generated as:
-        Base64(HMAC_SHA256(apiSecret, prehash))
-        Where prehash = timestamp + method + requestPath + body
-        - For GET: body is the sorted query string.
-        - For POST: body is the plain JSON string.
-        All parts are concatenated as strings.
         """
-        body_str = "?" + payload if payload and method == "GET" else payload
-        prehash = f"{timestamp}{method.upper()}{path}{body_str}"
+        Generate only the sign for Gate.io API v4.
 
-        signature = hmac.new(
-            api_secret.encode("utf-8"),
-            prehash.encode("utf-8"),
-            hashlib.sha256,
-        ).digest()
-        return base64.b64encode(signature).decode()
+        Returns:
+            The signature string.
+        """
+        # Use fast local variable and avoid unnecessary string conversions
+        encoded_payload = (payload or "").encode("utf-8")
+        hashed_payload = hashlib.sha512(encoded_payload).hexdigest()
 
-    def _prepare_payload(self, method: HttpMethod, params: ParamsType) -> str:
-        if method == "GET":
+        # Preallocate and join parts to avoid redundant string formatting
+        parts = [
+            method,
+            path,
+            query_payload,
+            hashed_payload,
+            str(timestamp),
+        ]
+        sign_str = "\n".join(parts)
+
+        # Pre-encode, use memoryview to avoid copy if possible
+        encoded_sign_str = sign_str.encode("utf-8")
+        encoded_secret = api_secret.encode("utf-8")
+
+        # Use hmac directly, avoid extra allocations
+        return hmac.new(encoded_secret, encoded_sign_str, hashlib.sha512).hexdigest()
+
+    def _prepare_payload(
+        self,
+        method: HttpMethod,
+        params: ParamsType,
+        use_params_as_query: bool = False,
+    ) -> tuple[str, str]:
+        """Prepare the canonical payload body for POST/PUT, or query string for GET."""
+        if method == "GET" or use_params_as_query:
             if isinstance(params, Mapping):
-                return "&".join(
+                return "", "&".join(
                     f"{k}={v}" for k, v in sorted(params.items()) if v is not None
                 )
             raise TypeError(
-                "KuCoin client does not support list params for GET requests. "
+                "GATE client does not support list params for GET requests. "
                 "Only dict is supported."
             )
         sanitized: list[dict[str, Any]] | dict[str, Any]
@@ -115,17 +110,23 @@ class KuCoinHttpClient(HttpClient):
         if isinstance(params, Mapping):
             sanitized = {k: params[k] for k in sorted(params) if params[k] is not None}
             if not sanitized:
-                return "{}"
+                return "{}", ""
+        elif isinstance(params, list):
+            sanitized = list(params)
         else:
             sanitized = [
                 {k: v for k, v in sorted(d.items()) if v is not None} for d in params
             ]
             if not sanitized or all(not d for d in sanitized):
-                return "[]"
+                return "[]", ""
 
-        return orjson.dumps(sanitized).decode().replace(":", ": ").replace(",", ", ")
+        # Note: need Gate logic for signature
+        # serialization must match server expectations
+        return orjson.dumps(sanitized).decode().replace(":", ": ").replace(
+            ",", ", "
+        ), ""
 
-    async def _build_request_args(
+    async def _build_request_args(  # noqa: PLR0912
         self,
         method: HttpMethod,
         endpoint: str,
@@ -149,6 +150,8 @@ class KuCoinHttpClient(HttpClient):
             )
         if params is None:
             params = {}
+        elif "batch_cancel_orders" in endpoint:
+            params = list(params)  # type: ignore
         elif isinstance(params, Mapping):
             params = dict(params)
         else:
@@ -156,59 +159,51 @@ class KuCoinHttpClient(HttpClient):
 
         # Prefer local assignment for micro-speed-up
         req_headers: dict[str, str] = headers if headers is not None else {}
+        endpoint = self._api_prefix + endpoint
 
-        timestamp = int(time.time() * 1000)
+        timestamp = int(time.time())
+
+        req_headers["Timestamp"] = str(timestamp)
+        if self.demo:
+            req_headers["DEMO"] = "1"
 
         # Fast payload prep
-        req_payload = self._prepare_payload(method, params)
+        req_payload, req_query = self._prepare_payload(
+            method,
+            params,
+            use_params_as_query=use_params_as_query,
+        )
 
         # Quickly handle signature/auth
         if auth:
-            if not (self.api_key and self.api_secret and self.passphrase):
+            if not (self.api_key and self.api_secret):
                 raise ValueError(
-                    "API key, API secret and passphrase "
-                    "must be set for authenticated requests."
+                    "API key and API secret must be set for authenticated requests."
                 )
 
             signature = self._generate_signature(
-                self.api_secret, method, endpoint, req_payload, timestamp
+                self.api_secret, method, endpoint, req_payload, req_query, timestamp
             )
-            req_headers["KC-API-KEY"] = self.api_key
-            req_headers["KC-API-PASSPHRASE"] = self.passphrase
-            req_headers["KC-API-SIGN"] = signature
-            req_headers["KC-API-KEY-VERSION"] = "3"
-            req_headers["KC-API-TIMESTAMP"] = str(timestamp)
-            # Add broker headers only if all variables are not None
-            if (
-                self.broker_partner is not None
-                and self.broker_key is not None
-                and self.broker_name is not None
-            ):
-                # Set broker headers explicitly as requested in the prompt
-                req_headers["KC-BROKER-NAME"] = self.broker_name
-                req_headers["KC-API-PARTNER"] = self.broker_partner
-                req_headers["KC-API-PARTNER-SIGN"] = base64.b64encode(
-                    hmac.new(
-                        self.broker_key.encode("utf-8"),
-                        f"{timestamp}{self.broker_partner}{self.api_key}".encode(),
-                        digestmod=hashlib.sha256,
-                    ).digest()
-                ).decode("utf-8")
-                req_headers["KC-API-PARTNER-VERIFY"] = "true"
+            req_headers["KEY"] = self.api_key
+            req_headers["SIGN"] = signature
+
         else:
             signature = None
 
         req_url = f"{base_url if base_url else self.base_url}{endpoint}"
         req_json: list[dict[str, Any]] | dict[str, Any] | None
 
-        if method == "GET":
-            req_url = f"{req_url}?{req_payload}" if req_payload else req_url
+        if method == "GET" or use_params_as_query:
+            req_url = f"{req_url}?{req_query}" if req_query else req_url
             req_json = None
         elif isinstance(params, list):
-            # If params is a list[dict[str, Any]], filter Nones inside dicts
-            req_json = [
-                {k: d[k] for k in sorted(d) if d[k] is not None} for d in params
-            ]
+            if "batch_cancel_orders" in endpoint:
+                req_json = list(params)
+            else:
+                # If params is a list[dict[str, Any]], filter Nones inside dicts
+                req_json = [
+                    {k: d[k] for k in sorted(d) if d[k] is not None} for d in params
+                ]
         else:
             # Assume dict[str, Any]
             req_json = {k: params[k] for k in sorted(params) if params[k] is not None}
@@ -254,6 +249,9 @@ class KuCoinHttpClient(HttpClient):
                 base_url,
             )
 
+        wrapped: dict[str, Any]
+        response_content: dict[str, Any] | list[dict[str, Any]] | None
+
         async with self._session.request(
             method,
             req_url,
@@ -263,22 +261,36 @@ class KuCoinHttpClient(HttpClient):
             headers=req_headers,
         ) as resp:
             try:
-                content_type = resp.headers.get("Content-Type", "")
-                res_json: dict[str, Any]
-                if "application/json" in content_type:
-                    res_json = await resp.json()
-                elif "text/plain" in content_type:
-                    text = await resp.text()
-                    try:
-                        res_json = orjson.loads(text)
-                    except Exception:
-                        res_json = {"code": resp.status * 10000, "data": {"raw": text}}
-                else:
-                    # Default: try JSON, fallback error
-                    res_json = await resp.json()
-                if res_json.get("code") != "200000":
-                    raise ExchangeResponseError("kucoin", res_json)
-                return res_json
+                try:
+                    response_content = await resp.json(content_type=None)
+                except Exception:
+                    response_content = None
+
+                response_message = resp.reason if not resp.ok else "ok"
+                response_code = resp.status
+
+                error_message = None
+                label_message = None
+                if isinstance(response_content, dict) and (
+                    "label" in response_content or "message" in response_content
+                ):
+                    error_message = response_content.pop("message", None)
+                    label_message = response_content.pop("label", None)
+
+                if isinstance(response_content, list):
+                    # Always wrap lists in a result container
+                    response_content = {"list": response_content}
+
+                wrapped = {
+                    "retCode": response_code,
+                    "retMsg": (
+                        error_message or label_message or response_message or "unknown"
+                    ),
+                    "result": response_content,
+                }
+
+                if not resp.ok:
+                    raise ExchangeResponseError("gate", wrapped)
             except ExchangeResponseError as err:
                 if logger.isEnabledFor(logging.ERROR):
                     logger.error(
@@ -299,3 +311,4 @@ class KuCoinHttpClient(HttpClient):
                         f"err={err!r}"
                     )
                 raise
+            return wrapped
