@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.26.0 (2026-04-19)
+
+### Bug Fixes
+
+- **makefile**: Update check-all target to streamline code checks
+  ([`baf2a7c`](https://github.com/vispar-tech/aiotrade/commit/baf2a7c9c6a28679285ef8a8a8410d6c39714713))
+
+### Documentation
+
+- **README**: Update client methods section and add GateClient to examples
+  ([`1188f2d`](https://github.com/vispar-tech/aiotrade/commit/1188f2d998d31900a802781d0f27b68fbb5475de))
+
+### Features
+
+- **gate**: :sparkles: integrate Gate.io support into the trading framework
+  ([`9005c33`](https://github.com/vispar-tech/aiotrade/commit/9005c33d123180092f3ab8f0d768c8fcb2f49fc0))
+
+
 ## v0.25.0 (2026-04-14)
 
 ### Features
