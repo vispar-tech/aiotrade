@@ -14,6 +14,6 @@ pre-commit: ## Install pre-commit hooks
 
 check-all: ## Run all code checks
 	@echo "🔍 Running all checks..."; \
-	poetry run ruff format aiotrade && \
-	poetry run ruff check aiotrade --fix && \
-	poetry run mypy aiotrade
+	poetry run ruff format && \
+	poetry run ruff check --fix && \
+	poetry run mypy
