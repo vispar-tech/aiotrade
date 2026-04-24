@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.0 (2026-04-24)
+
+### Features
+
+- **gate**: Enhance position retrieval and instrument info handling
+  ([`9a3ea30`](https://github.com/vispar-tech/aiotrade/commit/9a3ea30d6ea47d60305bde92142b8f8cd3ddc129))
+
+
 ## v0.26.0 (2026-04-19)
 
 ### Bug Fixes
