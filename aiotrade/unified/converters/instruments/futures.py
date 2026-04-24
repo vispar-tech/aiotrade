@@ -226,37 +226,41 @@ def unified_instrument_info_from_gate(
     instrument: dict[str, Any],
 ) -> "UnifiedInstrumentInfo":
     """Create UnifiedInstrumentInfo from a Gate swap instrument."""
-    tick_sz = float_to_str(instrument["tickSize"], use_exp=False)
-    lot_sz = float_to_str(instrument["lotSize"], use_exp=False)
-    # Determine decimal_places for qty_step (lotSz)
+    min_order_qty = parse_decimal(instrument["order_size_min"])
+
+    qty_step = instrument["quanto_multiplier"]
     decimal_places = 0
-    if "." in lot_sz:
-        decimal_places = len(lot_sz.rstrip("0").split(".")[1])
+    if "." in qty_step:
+        decimal_places = len(qty_step.rstrip("0").split(".")[1])
+
     price_precision = 0
     # price_precision (decimal places of tickSz)
-    if "." in tick_sz:
-        price_precision = len(tick_sz.rstrip("0").split(".")[1])
-    qty_step = float(lot_sz)
+    order_price_round = instrument.get("order_price_round", "0")
+    if "." in order_price_round:
+        price_precision = len(order_price_round.rstrip("0").split(".")[1])
+
+    qty_step = parse_decimal(qty_step)
     return UnifiedInstrumentInfo(
-        symbol=instrument["symbol"],
+        symbol=instrument["name"],
         decimal_places=decimal_places,
         price_precision=price_precision,
-        tick_size=float(tick_sz),
-        qty_step=parse_decimal(qty_step),
-        min_order_qty=parse_decimal(lot_sz),
-        max_order_qty=parse_decimal(instrument["maxOrderQty"]),
-        max_mkt_qty=parse_decimal(instrument["marketMaxOrderQty"]),
+        tick_size=float(order_price_round),
+        qty_step=qty_step,
+        min_order_qty=min_order_qty if min_order_qty != Decimal("0") else qty_step,
+        max_order_qty=parse_decimal(instrument["order_size_max"]),
+        max_mkt_qty=(
+            parse_decimal(instrument["market_order_size_max"])
+            if instrument["market_order_size_max"] != "0"
+            else parse_decimal(instrument["order_size_max"])
+        ),
         min_notional=Decimal("0"),
         max_notional=Decimal("inf"),
         max_mkt_notional=Decimal("inf"),
         max_absolute_margin=Decimal("inf"),
-        min_leverage=1,
-        max_leverage=float(instrument["maxLeverage"]),
+        min_leverage=float(instrument["leverage_min"]),
+        max_leverage=float(instrument["leverage_max"]),
         additional={
-            "ct_mult": parse_decimal(
-                float_to_str(instrument["multiplier"], use_exp=False)
-            ),
-            "ct_val": parse_decimal(lot_sz),
+            "ct_val": parse_decimal(instrument["quanto_multiplier"]),
         },
         source="gate",
     )

@@ -3,12 +3,8 @@
 import asyncio
 import json
 import os
-from pprint import pprint
 
 from aiotrade import GateClient
-from aiotrade.unified.converters.instruments.futures import (
-    unified_instrument_info_from_gate,
-)
 
 # Set this to True to actually place a test order in the real API test
 PLACE_ORDER = False
@@ -28,23 +24,27 @@ async def print_open_positions(client: GateClient) -> None:
     """Fetch and print Gate open positions summary."""
     print("\n📈 Fetching open positions...")
     try:
-        positions = await client.list_positions("usdt")
+        response = await client.list_positions("usdt", holding=True)
         print("✅ Open positions retrieved successfully!")
         try:
-            pretty_positions = json.dumps(positions, indent=2, ensure_ascii=False)
-            print(f"Full positions:\n{pretty_positions}\n")
+            pretty_response = json.dumps(response, indent=2, ensure_ascii=False)
+            print(f"Full response:\n{pretty_response}\n")
         except Exception:
-            print(f"Full positions response:\n{positions}\n")
+            print(f"Full response:\n{response}\n")
+
+        positions = response.get("result", {}).get("list", [])
 
         if not positions:
             print("No open positions found in response.")
             return
 
         print(f"Found {len(positions)} open positions")
-        for pos in positions.get("result", {}).get("list", [])[:3]:
+        for pos in positions:
             symbol = pos.get("contract", "???")
             side = "long" if pos["size"] > 0 else "short"
             size = pos.get("size")
+            if size == 0:
+                continue
             entry_price = pos.get("entry_price")
             unrealized_pnl = pos.get("unrealised_pnl")
             margin_mode = pos.get("pos_margin_mode")
@@ -81,17 +81,8 @@ async def test_gate_wallet_and_positions() -> None:
         demo=demo,
     )
 
-    # await print_wallet_balance(client)
-    # await print_open_positions(client)
-
-    contracts_resp = await client.get_futures_contracts("usdt")
-    contracts = contracts_resp["result"]["list"]
-    btc_usdt = next((c for c in contracts if c.get("name") == "BTC_USDT"), None)
-    if btc_usdt:
-        info = unified_instrument_info_from_gate(btc_usdt)
-        pprint(info)
-    else:
-        print("BTC_USDT contract not found")
+    await print_wallet_balance(client)
+    await print_open_positions(client)
 
     await client.close()
 

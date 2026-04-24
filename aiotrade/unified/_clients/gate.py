@@ -52,13 +52,21 @@ class UnifiedGateClient:
         )
 
     # Account/Balance methods
-    async def _get_position(self, symbol: str | None) -> dict[str, Any]:
+    async def _get_position(
+        self,
+        symbol: str | None,
+        return_empty_pos: bool = True,
+    ) -> dict[str, Any]:
         """
         Fetch and unwrap position for a symbol from Gate, handling hedge/non-hedge.
 
         - If hedge_mode == False: returns result dict itself (not from ['list']!)
         - If hedge_mode == True: returns the 'dual_long' position
             dict from ['result']['list'], or raises if not present.
+
+        Args:
+            symbol: Symbol to fetch.
+            return_empty_pos: If False, only return position if size != 0.
         """
         if not symbol:
             raise ValueError("symbol is required")
@@ -74,11 +82,17 @@ class UnifiedGateClient:
                 (p for p in pos_list if p.get("mode") == "dual_long"), None
             )
             if dual_long_pos is not None:
+                if not return_empty_pos and dual_long_pos.get("size", 0) == 0:
+                    raise ValueError(
+                        "Position size is zero and return_empty_pos is False"
+                    )
                 return dual_long_pos
             raise ValueError(
                 "No 'dual_long' position found in hedge mode positions list"
             )
 
+        if not return_empty_pos and result.get("size", 0) == 0:
+            raise ValueError("Position size is zero and return_empty_pos is False")
         return result  # type: ignore[no-any-return]
 
     async def get_margin_mode(self, symbol: str | None) -> UnifiedMarginMode:
