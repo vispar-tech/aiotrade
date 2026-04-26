@@ -97,7 +97,13 @@ class UnifiedGateClient:
 
     async def get_margin_mode(self, symbol: str | None) -> UnifiedMarginMode:
         """Get margin mode for a symbol."""
-        position = await self._get_position(symbol)
+        try:
+            position = await self._get_position(symbol)
+        except ExchangeResponseError as e:
+            # Check for POSITION_NOT_FOUND (case-insensitive) and code/retCode == 400
+            if "POSITION_NOT_FOUND" in e.message.upper() and e.code == 400:
+                return UnifiedMarginMode.CROSS
+            raise
         mode = position.get("pos_margin_mode")
         if not mode:
             raise ValueError("pos_margin_mode not found in position response")
@@ -116,10 +122,9 @@ class UnifiedGateClient:
         """Set margin mode."""
         if symbol is None:
             raise ValueError("symbol is required to update margin mode")
-        if mode not in ("crossed", "isolated"):
-            raise ValueError(f"Unsupported margin mode: {mode}")
+        converted_mode = mode.to_gate()
         await self._client.update_position_cross_mode(
-            "usdt", contract=symbol, mode=mode.to_gate()
+            "usdt", contract=symbol, mode=converted_mode
         )
 
     async def get_hedge_mode(self, symbol: str | None) -> bool | None:
