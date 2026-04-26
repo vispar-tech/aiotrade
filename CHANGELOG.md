@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.4 (2026-04-26)
+
+### Bug Fixes
+
+- **futures**: Update trailing order parameters and clean up order handling
+  ([`d2d58e2`](https://github.com/vispar-tech/aiotrade/commit/d2d58e25f488a33844766ee85b91cfe7d73af13a))
+
+
 ## v0.27.3 (2026-04-26)
 
 ### Bug Fixes
