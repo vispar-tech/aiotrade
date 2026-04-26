@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.27.2 (2026-04-26)
+
+### Bug Fixes
+
+- **errors**: Simplify response handling in ExchangeResponseError
+  ([`01f17b9`](https://github.com/vispar-tech/aiotrade/commit/01f17b9ff3fc8739c511f8c8900cbc96b9be250d))
+
+### Documentation
+
+- **README**: Add Gate.io support badge to the README
+  ([`c4da399`](https://github.com/vispar-tech/aiotrade/commit/c4da399780d08e85d886984e963740bcf73cb24f))
+
+
 ## v0.27.1 (2026-04-26)
 
 ### Bug Fixes
