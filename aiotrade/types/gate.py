@@ -123,7 +123,7 @@ class FuturesPlaceTrailingOrder(TypedDict, total=False):
     # Trading quantity in contracts, positive for buy, negative for sell (required)
     amount: float
     # Activation price (0 means trigger immediately)
-    activation_price: NotRequired[str]
+    activation_price: NotRequired[float]
     # True: activate when market price >= activation price;
     # False: <= activation price
     is_gte: NotRequired[bool]

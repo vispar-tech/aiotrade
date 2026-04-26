@@ -269,8 +269,6 @@ class UnifiedPlaceOrderRequest(TypedDict):
     order_type: Literal["Market", "Limit"]
     take_profit: NotRequired[float]
     stop_loss: NotRequired[float]
-    active_price: NotRequired[float]
-    trailing_stop: NotRequired[float]
     reduce_only: NotRequired[bool]
 
 

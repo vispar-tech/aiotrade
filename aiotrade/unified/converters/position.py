@@ -888,7 +888,7 @@ def unified_position_info_from_gate(
         price_offset = matching_trailing[0].get("price_offset")
         if price_offset and price_offset.endswith("%"):
             try:
-                trailing_stop = float(price_offset.rstrip("%")) / 100.0
+                trailing_stop = float(price_offset.rstrip("%"))
                 trailing_stop_method = "percent"
             except Exception:
                 trailing_stop = None

@@ -19,9 +19,6 @@ from aiotrade.types.gate import (
     FuturesPlaceOrder as GateOrderParams,
 )
 from aiotrade.types.gate import (
-    FuturesPlaceTrailingOrder as GateTrailingOrderParams,
-)
-from aiotrade.types.gate import (
     FuturesPriceTriggeredOrder as GatePriceTriggeredOrderParams,
 )
 from aiotrade.types.kucoin import PlaceOrderParams as KuCoinOrderParams
@@ -259,7 +256,7 @@ def convert_unified_place_order_to_binance(
     return main_orders, algo_orders
 
 
-def convert_unified_place_order_to_kucoin(  # noqa: C901, PLR0912
+def convert_unified_place_order_to_kucoin(  # noqa: PLR0912
     order: UnifiedPlaceOrderRequest,
 ) -> tuple[KuCoinOrderParams | None, KuCoinTakeProfitStopLossOrderParams | None]:
     """Convert a unified order to KuCoin's order model.
@@ -275,9 +272,8 @@ def convert_unified_place_order_to_kucoin(  # noqa: C901, PLR0912
     leverage = order["leverage"]
     tp = order.get("take_profit")
     sl = order.get("stop_loss")
-    trailing_activate = order.get("active_price")
 
-    has_tp_sl = tp is not None or sl is not None or trailing_activate is not None
+    has_tp_sl = tp is not None or sl is not None
 
     if has_tp_sl:
         tp_sl_params = KuCoinTakeProfitStopLossOrderParams(
@@ -298,21 +294,15 @@ def convert_unified_place_order_to_kucoin(  # noqa: C901, PLR0912
         # For long: tp -> up, sl -> down. For short: tp -> down, sl -> up.
         if order["side"] == UnifiedSide.LONG:
             # If trailing is set, always set triggerStopUpPrice as tp (standard TP)
-            if tp is not None or trailing_activate is not None:
-                if tp is not None:
-                    tp_sl_params["triggerStopUpPrice"] = tp
-                elif trailing_activate is not None:
-                    tp_sl_params["triggerStopUpPrice"] = trailing_activate
+            if tp is not None:
+                tp_sl_params["triggerStopUpPrice"] = tp
             if sl is not None:
                 tp_sl_params["triggerStopDownPrice"] = sl
         else:
             # SHORT
             # If trailing is set, always set triggerStopDownPrice as tp (standard TP)
-            if tp is not None or trailing_activate is not None:
-                if tp is not None:
-                    tp_sl_params["triggerStopDownPrice"] = tp
-                elif trailing_activate is not None:
-                    tp_sl_params["triggerStopUpPrice"] = trailing_activate
+            if tp is not None:
+                tp_sl_params["triggerStopDownPrice"] = tp
             if sl is not None:
                 tp_sl_params["triggerStopUpPrice"] = sl
         if (reduce_only := order.get("reduce_only")) is not None:
@@ -340,22 +330,20 @@ def convert_unified_place_order_to_kucoin(  # noqa: C901, PLR0912
     return main_params, None
 
 
-def convert_unified_place_order_to_gate(  # noqa: C901, PLR0912
+def convert_unified_place_order_to_gate(
     order: UnifiedPlaceOrderRequest,
 ) -> tuple[
     GateOrderParams | None,
     list[GatePriceTriggeredOrderParams],
-    list[GateTrailingOrderParams],
 ]:
     """
     Convert unified place order request to Gate.io format.
 
     Returns a tuple of:
-        (main order for market, price trigger orders for limit/tp/sl, trailing orders)
+        (main order for market, price trigger orders for limit/tp/sl)
     """
     main_order: GateOrderParams | None = None
     price_trigger_orders: list[GatePriceTriggeredOrderParams] = []
-    trailing_orders: list[GateTrailingOrderParams] = []
 
     symbol = order["symbol"]
     qty = order["qty"]
@@ -456,21 +444,4 @@ def convert_unified_place_order_to_gate(  # noqa: C901, PLR0912
             sl_order["initial"]["text"] = f"{order_link_id}_sl"
         price_trigger_orders.append(sl_order)
 
-    # Trailing stop (trail)
-    trailing_activate = order.get("trailing_stop_activation", None)
-    trailing_callback = order.get("trailing_stop_callback", None)
-    if trailing_activate is not None and trailing_callback is not None:
-        trail_order = GateTrailingOrderParams(
-            contract=symbol,
-            amount=qty if side == UnifiedSide.LONG else -qty,
-            activation_price=str(trailing_activate),
-            is_gte=side == UnifiedSide.LONG,
-            price_offset=str(trailing_callback) + "%",
-            reduce_only=True,
-            position_related=True,
-        )
-        if order_link_id is not None:
-            trail_order["text"] = f"{order_link_id}_trail"
-        trailing_orders.append(trail_order)
-
-    return main_order, price_trigger_orders, trailing_orders
+    return main_order, price_trigger_orders

@@ -703,7 +703,7 @@ class FuturesMixin:
         """
         return await self.post(
             f"/futures/{settle}/autoorder/v1/trail/create",
-            params=to_str_fields(order, {"price", "amount"}),
+            params=to_str_fields(order, {"activation_price", "amount"}),
             auth=True,
         )
 

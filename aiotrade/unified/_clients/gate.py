@@ -307,7 +307,7 @@ class UnifiedGateClient:
             "Spot trading balance is not yet implemented for Gate."
         )
 
-    async def batch_place_order(  # noqa: C901, PLR0912
+    async def batch_place_order(  # noqa: C901
         self, has_existing_position: bool, requests: list[UnifiedPlaceOrderRequest]
     ) -> dict[str, Any]:
         """
@@ -316,26 +316,23 @@ class UnifiedGateClient:
         Handles three types of orders:
             - main (market/limit)
             - trigger (conditional, e.g. stop/TP)
-            - trail (trailing stop)
 
-        The converter returns (main, trigger, trailing orders) for each request.
-        If has_existing_position is True, trigger/trailing orders are not sent.
+        The converter returns (main, trigger) for each request.
+        If has_existing_position is True, trigger orders are not sent.
         """
         all_main_orders: list[FuturesPlaceOrder] = []
         all_trigger_orders: list[FuturesPriceTriggeredOrder] = []
-        all_trailing_orders: list[FuturesPlaceTrailingOrder] = []
 
         # Separate orders by type
         for order in requests:
-            converted_main, converted_triggers, converted_trailing = (
-                convert_unified_place_order_to_gate(order)
+            converted_main, converted_triggers = convert_unified_place_order_to_gate(
+                order
             )
             if converted_main:
                 all_main_orders.append(converted_main)
             if not has_existing_position:
                 all_trigger_orders.extend(converted_triggers)
-                all_trailing_orders.extend(converted_trailing)
-            elif converted_triggers or converted_trailing:
+            elif converted_triggers:
                 logger.info(
                     "%s has_existing_position=True, skipping trigger "
                     "and trailing orders for symbol(s): %s",
@@ -346,7 +343,6 @@ class UnifiedGateClient:
         results: dict[str, Any] = {
             "main_orders_result": None,
             "trigger_orders_result": [],
-            "trailing_orders_result": [],
         }
         main_error = None
         main_failed = False
@@ -399,32 +395,15 @@ class UnifiedGateClient:
             except ExchangeResponseError as e:
                 results["trigger_orders_result"].append({"error": e.resp})
 
-        # Sequentially place trailing orders
-        for trailing in all_trailing_orders:
-            try:
-                resp = await self._client.create_trailing_order(
-                    settle="usdt", order=trailing
-                )
-                results["trailing_orders_result"].append(resp)
-            except ExchangeResponseError as e:
-                results["trailing_orders_result"].append({"error": e.resp})
-
         all_trigger_failed = all_trigger_orders and all(
             "error" in x for x in results["trigger_orders_result"]
         )
-        all_trailing_failed = all_trailing_orders and all(
-            "error" in x for x in results["trailing_orders_result"]
-        )
 
-        if (main_error is not None or main_failed) and (
-            (not all_trigger_orders and not all_trailing_orders)
-            or (all_trigger_failed and all_trailing_failed)
-        ):
+        if (main_error is not None or main_failed) and all_trigger_failed:
             raise Exception(
                 "Batch main orders failed: "
                 + (repr(main_error) if main_error else "Unknown error")
                 + f", Trigger orders results: {results['trigger_orders_result']}"
-                + f", Trailing orders results: {results['trailing_orders_result']}"
             )
 
         return results
@@ -616,6 +595,8 @@ class UnifiedGateClient:
                 "set_trading_stop: Either 'position' or both 'side' "
                 "and 'qty' must be provided."
             )
+        if qty_val.is_integer():
+            qty_val = int(qty_val)
 
         # Construct price trigger orders for tp/sl
         trigger_orders: list[FuturesPriceTriggeredOrder] = []
@@ -669,16 +650,18 @@ class UnifiedGateClient:
 
         # Trailing stop (only one possible)
         if trailing_delivation is not None and active_price is not None:
-            trailing_order: FuturesPlaceTrailingOrder = {
-                "contract": symbol,
-                "amount": -qty_val if pos_side == UnifiedSide.LONG else qty_val,
-                "activation_price": str(active_price),
-                "price_type": 1,
-                "price_offset": f"{trailing_delivation}%",
-                "position_related": True,
-                "reduce_only": True,
-                "is_gte": pos_side == UnifiedSide.LONG,
-            }
+            trailing_order = FuturesPlaceTrailingOrder(
+                contract=symbol,
+                position_related=True,
+                amount=-qty_val if pos_side == UnifiedSide.LONG else qty_val,
+                is_gte=pos_side == UnifiedSide.LONG,
+                pos_margin_mode="isolated",
+                activation_price=active_price,
+                price_offset=f"{trailing_delivation}%",
+                price_type=1,
+                reduce_only=True,
+            )
+
             try:
                 response = await self._client.create_trailing_order(
                     settle="usdt", order=trailing_order
