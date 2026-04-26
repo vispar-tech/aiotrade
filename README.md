@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![Python versions](https://img.shields.io/pypi/pyversions/aiotrade-sdk.svg)](https://pypi.org/project/aiotrade-sdk/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/) [![Binance](https://img.shields.io/badge/Binance-supported-yellow?logo=binance)](https://www.binance.com/) [![KuCoin](https://img.shields.io/badge/KuCoin-supported-lightgreen?logo=kucoin)](https://www.kucoin.com/)
+[![BingX](https://img.shields.io/badge/BingX-supported-blue?logo=bingx)](https://bingx.com) [![Bybit](https://img.shields.io/badge/Bybit-supported-gold?logo=bybit)](https://bybit.com) [![OKX](https://img.shields.io/badge/OKX-supported-black?logo=okx)](https://okx.com) [![Bitget](https://img.shields.io/badge/Bitget-supported-teal?logo=bitget)](https://www.bitget.com/) [![Binance](https://img.shields.io/badge/Binance-supported-yellow?logo=binance)](https://www.binance.com/) [![KuCoin](https://img.shields.io/badge/KuCoin-supported-lightgreen?logo=kucoin)](https://www.kucoin.com/) [![Gate](https://img.shields.io/badge/Gate-supported-red?logo=gate)](https://www.gate.io/)
 
 High-performance async trading API client for Python supporting BingX, Bybit, OKX, Bitget, Binance and Kucoin exchanges with intelligent session and cache management.
 
