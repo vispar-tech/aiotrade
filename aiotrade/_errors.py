@@ -4,8 +4,6 @@ import orjson
 
 from aiotrade._types import Exchange
 
-ResponseType = dict[str, Any] | list[dict[str, Any]]
-
 
 class ExchangeResponseError(Exception):
     """
@@ -13,7 +11,7 @@ class ExchangeResponseError(Exception):
 
     Args:
         exchange: Exchange identifier (e.g. "binance").
-        resp: Full response returned by the exchange (dict or list of dicts).
+        resp: Full response returned by the exchange (dict).
         message: Custom human-readable error message (optional).
 
     Attributes:
@@ -27,10 +25,10 @@ class ExchangeResponseError(Exception):
     _CODE_KEYS = ("code", "retCode")
 
     def __init__(
-        self, exchange: Exchange, resp: ResponseType, message: str = ""
+        self, exchange: Exchange, resp: dict[str, Any], message: str = ""
     ) -> None:
         self.exchange: Exchange = exchange
-        self.resp: ResponseType = resp
+        self.resp: dict[str, Any] = resp
         self.code: Any = self._extract_code(resp)
         self.message: str = message or self._extract_message(resp)
         super().__init__(self.message)
@@ -55,35 +53,22 @@ class ExchangeResponseError(Exception):
         )
 
     @classmethod
-    def _extract_message(cls, resp: ResponseType) -> str:
-        if isinstance(resp, dict):
-            for key in cls._MESSAGE_KEYS:
-                val = resp.get(key)
-                if isinstance(val, str):
-                    return val
-        for entry in resp:
-            if isinstance(entry, dict):
-                for key in cls._MESSAGE_KEYS:
-                    val = entry.get(key)
-                    if isinstance(val, str):
-                        return val
+    def _extract_message(cls, resp: dict[str, Any]) -> str:
+        for key in cls._MESSAGE_KEYS:
+            val = resp.get(key)
+            if isinstance(val, str):
+                return val
         return "No error message found in response."
 
     @classmethod
-    def _extract_code(cls, resp: ResponseType) -> Any:
-        if isinstance(resp, dict):
-            for key in cls._CODE_KEYS:
-                if key in resp:
-                    return resp[key]
-        for entry in resp:
-            if isinstance(entry, dict):
-                for key in cls._CODE_KEYS:
-                    if key in entry:
-                        return entry[key]
+    def _extract_code(cls, resp: dict[str, Any]) -> Any:
+        for key in cls._CODE_KEYS:
+            if key in resp:
+                return str(resp[key])
         return None
 
     @staticmethod
-    def _format_response(resp: ResponseType) -> str:
+    def _format_response(resp: dict[str, Any]) -> str:
         # Compact single-line JSON string
         try:
             return orjson.dumps(resp, option=orjson.OPT_SORT_KEYS).decode("utf-8")

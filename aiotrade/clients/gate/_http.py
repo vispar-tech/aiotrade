@@ -164,6 +164,7 @@ class GateHttpClient(HttpClient):
         timestamp = int(time.time())
 
         req_headers["Timestamp"] = str(timestamp)
+        req_headers["X-Gate-Size-Decimal"] = "1"
         if self.demo:
             req_headers["DEMO"] = "1"
 

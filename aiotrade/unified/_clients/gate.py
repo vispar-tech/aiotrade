@@ -307,43 +307,40 @@ class UnifiedGateClient:
             "Spot trading balance is not yet implemented for Gate."
         )
 
-    async def batch_place_order(
+    async def batch_place_order(  # noqa: C901, PLR0912
         self, has_existing_position: bool, requests: list[UnifiedPlaceOrderRequest]
     ) -> dict[str, Any]:
         """
         Batch place orders on Gate.
 
-        For Gate, we have three types of orders:
+        Handles three types of orders:
             - main (market/limit)
             - trigger (conditional, e.g. stop/TP)
             - trail (trailing stop)
 
-        Our converter returns a tuple: (main_orders, trigger_orders, trailing_orders).
-        We need to collect all of them, and send each batch.
-        If has_existing_position is True, do NOT send trigger/trailing orders.
-
-        Returns a dictionary with results for each order type.
+        The converter returns (main, trigger, trailing orders) for each request.
+        If has_existing_position is True, trigger/trailing orders are not sent.
         """
         all_main_orders: list[FuturesPlaceOrder] = []
         all_trigger_orders: list[FuturesPriceTriggeredOrder] = []
         all_trailing_orders: list[FuturesPlaceTrailingOrder] = []
 
+        # Separate orders by type
         for order in requests:
-            main_order, trigger_orders, trailing_orders = (
+            converted_main, converted_triggers, converted_trailing = (
                 convert_unified_place_order_to_gate(order)
             )
-            if main_order:
-                all_main_orders.append(main_order)
-            # Only add triggers/trailing if not has_existing_position (mimic binance.py)
+            if converted_main:
+                all_main_orders.append(converted_main)
             if not has_existing_position:
-                all_trigger_orders.extend(trigger_orders)
-                all_trailing_orders.extend(trailing_orders)
-            elif trigger_orders or trailing_orders:
+                all_trigger_orders.extend(converted_triggers)
+                all_trailing_orders.extend(converted_trailing)
+            elif converted_triggers or converted_trailing:
                 logger.info(
-                    "%s has_existing_position=True, skipping "
-                    "trigger and trailing orders for symbol(s): %s",
+                    "%s has_existing_position=True, skipping trigger "
+                    "and trailing orders for symbol(s): %s",
                     self._account_display,
-                    order["symbol"],
+                    order.get("symbol"),
                 )
 
         results: dict[str, Any] = {
@@ -352,56 +349,74 @@ class UnifiedGateClient:
             "trailing_orders_result": [],
         }
         main_error = None
+        main_failed = False
 
-        # Batch place main orders
-        try:
-            if all_main_orders:
-                # Gate usually accepts single main order at a time, so place in parallel
-                main_results = await asyncio.gather(
-                    *(
-                        self._client.create_futures_order(settle="usdt", order=order)
-                        for order in all_main_orders
-                    ),
-                    return_exceptions=True,
-                )
-                results["main_orders_result"] = main_results
-        except ExchangeResponseError as e:
-            main_error = e
+        async def create_futures_orders(
+            orders: list[FuturesPlaceOrder],
+        ) -> list[dict[str, Any] | BaseException]:
+            return await asyncio.gather(
+                *[
+                    self._client.create_futures_order(settle="usdt", order=o)
+                    for o in orders
+                ],
+                return_exceptions=True,
+            )
 
-        # Place triggers one by one, collecting responses/errors
-        for trigger_order in all_trigger_orders:
+        # Place main orders in parallel; handle error format for uniformity
+        if all_main_orders:
+            try:
+                main_results = await create_futures_orders(all_main_orders)
+
+                def _to_resp(
+                    res: dict[str, Any] | BaseException,
+                ) -> dict[str, Any] | BaseException:
+                    if isinstance(res, ExchangeResponseError):
+                        return res.resp
+                    return res
+
+                results["main_orders_result"] = [_to_resp(res) for res in main_results]
+                if all(isinstance(r, BaseException) for r in main_results):
+                    main_failed = True
+            except ExchangeResponseError as e:
+                main_error = {"error": e.resp}
+                main_failed = True
+
+        # If any main order failed, abort before triggers/trails
+        if main_failed or main_error is not None:
+            raise Exception(
+                "Batch main orders failed: "
+                + (repr(main_error) if main_error else "Unknown error")
+                + f", Main orders result: {results['main_orders_result']}"
+            )
+
+        # Sequentially place trigger orders
+        for trigger in all_trigger_orders:
             try:
                 resp = await self._client.create_price_triggered_order(
-                    settle="usdt", order=trigger_order
+                    settle="usdt", order=trigger
                 )
                 results["trigger_orders_result"].append({"result": resp})
             except ExchangeResponseError as e:
                 results["trigger_orders_result"].append({"error": e.resp})
 
-        # Place trailing orders one by one, collecting responses/errors
-        for trail_order in all_trailing_orders:
+        # Sequentially place trailing orders
+        for trailing in all_trailing_orders:
             try:
                 resp = await self._client.create_trailing_order(
-                    settle="usdt", order=trail_order
+                    settle="usdt", order=trailing
                 )
                 results["trailing_orders_result"].append({"result": resp})
             except ExchangeResponseError as e:
                 results["trailing_orders_result"].append({"error": e.resp})
 
-        # Logic: if batch main and all triggers/trails failed,
-        # throw exception like in binance
-        all_trigger_failed = len(all_trigger_orders) > 0 and all(
+        all_trigger_failed = all_trigger_orders and all(
             "error" in x for x in results["trigger_orders_result"]
         )
-        all_trailing_failed = len(all_trailing_orders) > 0 and all(
+        all_trailing_failed = all_trailing_orders and all(
             "error" in x for x in results["trailing_orders_result"]
         )
-        main_failed = main_error is not None or (
-            results["main_orders_result"] is not None
-            and all(isinstance(x, Exception) for x in results["main_orders_result"])
-        )
 
-        if main_failed and (
+        if (main_error is not None or main_failed) and (
             (not all_trigger_orders and not all_trailing_orders)
             or (all_trigger_failed and all_trailing_failed)
         ):

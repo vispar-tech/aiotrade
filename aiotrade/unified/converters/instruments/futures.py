@@ -228,7 +228,7 @@ def unified_instrument_info_from_gate(
     """Create UnifiedInstrumentInfo from a Gate swap instrument."""
     min_order_qty = parse_decimal(instrument["order_size_min"])
 
-    qty_step = instrument["quanto_multiplier"]
+    qty_step = instrument["order_size_min"]
     decimal_places = 0
     if "." in qty_step:
         decimal_places = len(qty_step.rstrip("0").split(".")[1])
@@ -261,6 +261,7 @@ def unified_instrument_info_from_gate(
         max_leverage=float(instrument["leverage_max"]),
         additional={
             "ct_val": parse_decimal(instrument["quanto_multiplier"]),
+            "ct_mult": parse_decimal(instrument["order_size_min"]),
         },
         source="gate",
     )
