@@ -364,12 +364,16 @@ def convert_unified_place_order_to_gate(  # noqa: C901, PLR0912
     side = order["side"]
     reduce_only = order.get("reduce_only", False)
     order_link_id = order.get("order_link_id", None)
+    order_qty = qty if side == UnifiedSide.LONG else -qty
+    # fix for bad gate parsing size field
+    if order_qty.is_integer():
+        order_qty = int(order_qty)
 
     # Market order (fills main_order, only for "Market" type)
     if order_type == "Market":
         main_order = GateOrderParams(
             contract=symbol,
-            size=qty if side == UnifiedSide.LONG else -qty,
+            size=order_qty,
             price=0,
             tif="ioc",
         )
@@ -386,7 +390,7 @@ def convert_unified_place_order_to_gate(  # noqa: C901, PLR0912
         limit_order: GatePriceTriggeredOrderParams = {
             "initial": {
                 "contract": symbol,
-                "amount": str(qty if side == UnifiedSide.LONG else -qty),
+                "amount": float_to_str(order_qty),
                 "price": float_to_str(order_price),
             },
             "trigger": {
