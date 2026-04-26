@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.1 (2026-04-26)
+
+### Bug Fixes
+
+- **gate**: Improve error handling in get_margin_mode method
+  ([`f900d46`](https://github.com/vispar-tech/aiotrade/commit/f900d4620f2f1aa35abe083436581c845cc3a6ba))
+
+
 ## v0.27.0 (2026-04-24)
 
 ### Features
