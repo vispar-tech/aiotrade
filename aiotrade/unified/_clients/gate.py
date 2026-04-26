@@ -100,8 +100,8 @@ class UnifiedGateClient:
         try:
             position = await self._get_position(symbol)
         except ExchangeResponseError as e:
-            # Check for POSITION_NOT_FOUND (case-insensitive) and code/retCode == 400
-            if "POSITION_NOT_FOUND" in e.message.upper() and e.code == 400:
+            # Check for POSITION_NOT_FOUND (case-insensitive)
+            if "POSITION_NOT_FOUND" in e.message.upper():
                 return UnifiedMarginMode.CROSS
             raise
         mode = position.get("pos_margin_mode")

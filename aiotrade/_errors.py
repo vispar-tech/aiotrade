@@ -64,7 +64,7 @@ class ExchangeResponseError(Exception):
     def _extract_code(cls, resp: dict[str, Any]) -> Any:
         for key in cls._CODE_KEYS:
             if key in resp:
-                return str(resp[key])
+                return resp[key]
         return None
 
     @staticmethod
