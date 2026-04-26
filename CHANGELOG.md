@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.5 (2026-04-26)
+
+### Bug Fixes
+
+- **errors, gate**: Refine error handling and response extraction
+  ([`f5a04e9`](https://github.com/vispar-tech/aiotrade/commit/f5a04e9fde3be7c60f9e16a847aebb35e79cde16))
+
+
 ## v0.27.4 (2026-04-26)
 
 ### Bug Fixes
