@@ -395,7 +395,7 @@ class UnifiedGateClient:
                 resp = await self._client.create_price_triggered_order(
                     settle="usdt", order=trigger
                 )
-                results["trigger_orders_result"].append({"result": resp})
+                results["trigger_orders_result"].append(resp)
             except ExchangeResponseError as e:
                 results["trigger_orders_result"].append({"error": e.resp})
 
@@ -405,7 +405,7 @@ class UnifiedGateClient:
                 resp = await self._client.create_trailing_order(
                     settle="usdt", order=trailing
                 )
-                results["trailing_orders_result"].append({"result": resp})
+                results["trailing_orders_result"].append(resp)
             except ExchangeResponseError as e:
                 results["trailing_orders_result"].append({"error": e.resp})
 

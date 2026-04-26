@@ -396,7 +396,7 @@ def convert_unified_place_order_to_gate(  # noqa: C901, PLR0912
             "trigger": {
                 "price": float_to_str(order_price),
                 "price_type": 0,
-                "rule": 1 if side == UnifiedSide.LONG else 2,
+                "rule": 2 if side == UnifiedSide.LONG else 1,
             },
         }
         if reduce_only:
