@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.27.3 (2026-04-26)
+
+### Bug Fixes
+
+- **futures**: Correct order quantity handling in convert_unified_place_order_to_gate
+  ([`98d55ba`](https://github.com/vispar-tech/aiotrade/commit/98d55ba2103b69a2a34218b08941b03a6316bdcd))
+
+- **gate**: Streamline response structure for trigger and trailing orders
+  ([`8931547`](https://github.com/vispar-tech/aiotrade/commit/8931547bc7453ac4e57384441c3ae6dcbccc74e3))
+
+
 ## v0.27.2 (2026-04-26)
 
 ### Bug Fixes
