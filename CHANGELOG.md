@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.6 (2026-05-04)
+
+### Bug Fixes
+
+- **okx**: Filter out zero-sized positions in UnifiedOkxClient
+  ([`f74e433`](https://github.com/vispar-tech/aiotrade/commit/f74e43365f66e028123dd445282591185aa5d1b3))
+
+
 ## v0.27.5 (2026-04-26)
 
 ### Bug Fixes
