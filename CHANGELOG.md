@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.7 (2026-05-04)
+
+### Bug Fixes
+
+- **okx**: Correct position size filtering in UnifiedOkxClient
+  ([`d369d5d`](https://github.com/vispar-tech/aiotrade/commit/d369d5d08a7c8daa2e58605d4f3d7d152f99e6e5))
+
+
 ## v0.27.6 (2026-05-04)
 
 ### Bug Fixes
