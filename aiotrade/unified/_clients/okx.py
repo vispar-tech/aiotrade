@@ -169,7 +169,7 @@ class UnifiedOkxClient:
         return [
             unified_position_info_from_okx(self._account_display, algo_orders, pos)
             for pos in open_positions
-            if parse_float(pos.get("size", 0)) not in [0, None]
+            if parse_float(pos.get("pos")) not in [0, None]
         ]
 
     async def close_position(
