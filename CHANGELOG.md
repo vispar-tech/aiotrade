@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.27.8 (2026-05-05)
+
+### Bug Fixes
+
+- **bitget**: Enhance wallet balance extraction and error handling
+  ([`7c82062`](https://github.com/vispar-tech/aiotrade/commit/7c820621e907049bae28311166df5711ca1e1c9f))
+
+
 ## v0.27.7 (2026-05-04)
 
 ### Bug Fixes
