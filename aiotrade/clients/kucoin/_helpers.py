@@ -25,13 +25,13 @@ class KuCoinHelpers:
         currency = data.get("currency")
         if currency != asset:
             return None
-        account_equity = data.get("accountEquity")
-        if account_equity is None:
+        margin_balance = data.get("marginBalance")
+        if margin_balance is None:
             return None
         try:
-            return float(account_equity)
+            return float(margin_balance)
         except Exception:
             logger.warning(
-                "`accountEquity` is not parseable as float: %r", account_equity
+                "`marginBalance` is not parseable as float: %r", margin_balance
             )
             return None

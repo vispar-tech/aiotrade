@@ -142,7 +142,9 @@ class UnifiedBitgetClient:
         """Get the available USDT balance for the account."""
         result = await self._client.get_account_list("USDT-FUTURES")
 
-        usdt_balance = self._client.helpers.extract_wallet_balance(result, asset="USDT")
+        usdt_balance = self._client.helpers.extract_available_wallet_balance(
+            result, asset="USDT"
+        )
 
         if usdt_balance is None:
             logger.error(
