@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.28.0 (2026-05-07)
+
+### Features
+
+- **gate**: Integrate GATE client with RSA encryption support
+  ([`369e18e`](https://github.com/vispar-tech/aiotrade/commit/369e18e4b29ae09097f3f7d6112349c54e2cdfa1))
+
+
 ## v0.27.8 (2026-05-05)
 
 ### Bug Fixes
