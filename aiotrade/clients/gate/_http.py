@@ -165,6 +165,8 @@ class GateHttpClient(HttpClient):
 
         req_headers["Timestamp"] = str(timestamp)
         req_headers["X-Gate-Size-Decimal"] = "1"
+        if self.broker_tag:
+            req_headers["X-Gate-Channel-Id"] = self.broker_tag
         if self.demo:
             req_headers["DEMO"] = "1"
 
