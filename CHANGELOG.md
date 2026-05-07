@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.29.0 (2026-05-07)
+
+### Features
+
+- **gate**: Add broker tag support in request headers
+  ([`a1e0b9b`](https://github.com/vispar-tech/aiotrade/commit/a1e0b9b89707869457b496ee5039d243520aee58))
+
+
 ## v0.28.0 (2026-05-07)
 
 ### Features
