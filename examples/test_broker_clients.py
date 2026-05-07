@@ -1,4 +1,4 @@
-"""Test broker clients for OKX, Bitget, Bybit, and Kucoin using broker/OAuth mode."""
+"""Test broker clients for OKX, Bitget, Bybit, Kucoin, and GATE using broker/OAuth mode."""
 
 import asyncio
 import logging
@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from aiotrade import (
     BitgetClient,
     BybitClient,
+    GateClient,
     KuCoinClient,
     OkxClient,
 )
@@ -181,11 +182,67 @@ async def test_kucoin_broker() -> None:
     print("✅ Kucoin Broker test complete.\n")
 
 
+async def test_gate_broker() -> None:
+    print("=== GATE Broker ===")
+    gate_rsa_public_key_path = os.getenv("GATE_RSA_PUBLIC_KEY")
+    gate_rsa_private_key_path = os.getenv("GATE_RSA_PRIVATE_KEY")
+    gate_broker_name = os.getenv("GATE_BROKER_NAME")
+    gate_client_id, gate_client_secret, gate_redirect_uri = parse_broker_env(
+        "GATE", "GATE_CLIENT_ID", "GATE_CLIENT_SECRET", "GATE_REDIRECT_URI"
+    )
+    print(f"[DEBUG] GATE_BROKER_NAME: {gate_broker_name}")
+    print(f"[DEBUG] GATE_CLIENT_ID: {gate_client_id}")
+    print(f"[DEBUG] GATE_CLIENT_SECRET: {gate_client_secret}")
+    print(f"[DEBUG] GATE_REDIRECT_URI: {gate_redirect_uri}")
+    print(f"[DEBUG] GATE_RSA_PUBLIC_KEY: {gate_rsa_public_key_path}")
+    print(f"[DEBUG] GATE_RSA_PRIVATE_KEY: {gate_rsa_private_key_path}")
+    if not all(
+        [
+            gate_broker_name,
+            gate_client_id,
+            gate_client_secret,
+            gate_redirect_uri,
+            gate_rsa_public_key_path,
+            gate_rsa_private_key_path,
+        ]
+    ):
+        print(
+            "❌ Missing GATE broker BROKER_NAME, CLIENT_ID, CLIENT_SECRET, "
+            "REDIRECT_URI, or RSA public/private key in .env"
+        )
+        return
+
+    try:
+        gate_rsa_public_key = Path(cast(str, gate_rsa_public_key_path)).read_text()
+        gate_rsa_private_key = Path(cast(str, gate_rsa_private_key_path)).read_text()
+    except Exception as e:
+        print(f"❌ Error reading GATE RSA key files: {e}")
+        return
+
+    async with GateClient.broker(
+        cast(str, gate_broker_name),
+        cast(str, gate_client_id),
+        cast(str, gate_client_secret),
+        gate_rsa_public_key,
+        gate_rsa_private_key,
+    ) as client:
+        # Use build_authorization_url and print the result
+        print(
+            client.build_authorization_url(
+                redirect_uri=cast(str, gate_redirect_uri),
+                state="teststate",
+            )
+        )
+
+    print("✅ GATE Broker test complete.\n")
+
+
 async def main() -> None:
-    await test_okx_broker()
-    await test_bitget_broker()
-    await test_bybit_broker()
-    await test_kucoin_broker()
+    await test_gate_broker()
+    # await test_okx_broker()
+    # await test_bitget_broker()
+    # await test_bybit_broker()
+    # await test_kucoin_broker()
 
 
 if __name__ == "__main__":
