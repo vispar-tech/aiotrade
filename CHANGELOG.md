@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.30.0 (2026-05-10)
+
+### Features
+
+- **order**: Enhance order parameters and conversion logic
+  ([`7deed1a`](https://github.com/vispar-tech/aiotrade/commit/7deed1a601611f0ec33e2d977c7644fe1e2e6429))
+
+
 ## v0.29.0 (2026-05-07)
 
 ### Features
