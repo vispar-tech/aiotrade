@@ -270,6 +270,7 @@ class UnifiedPlaceOrderRequest(TypedDict):
     take_profit: NotRequired[float]
     stop_loss: NotRequired[float]
     reduce_only: NotRequired[bool]
+    use_ioc_limit: NotRequired[bool]
 
 
 class UnifiedPlaceSpotOrderRequest(TypedDict):

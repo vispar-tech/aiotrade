@@ -267,6 +267,9 @@ class PlaceOrderParams(TypedDict):
     # Valid for linear & inverse.
     trigger_by: NotRequired[OrderPriceTriggerBy]
 
+    # must be 1 for raise, 2 for fall
+    trigger_direction: NotRequired[int]
+
     # Time in force for the order.
     # Market orders will always use IOC.
     # If not passed, GTC is used by default.

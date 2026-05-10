@@ -41,6 +41,7 @@ class TradeMixin:
                 "price": "price",
                 "trigger_price": "triggerPrice",
                 "trigger_by": "triggerBy",
+                "trigger_direction": "triggerDirection",
                 "time_in_force": "timeInForce",
                 "position_idx": "positionIdx",
                 "order_link_id": "orderLinkId",

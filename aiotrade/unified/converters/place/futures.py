@@ -38,15 +38,16 @@ def convert_unified_place_order_to_bingx(
     order: UnifiedPlaceOrderRequest,
 ) -> BingxSwapOrderParams:
     """Convert unified place order request to bingx format."""
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     params = BingxSwapOrderParams(
         symbol=order["symbol"],
         side="BUY" if order["side"] == UnifiedSide.LONG else "SELL",
-        order_type="MARKET" if order["order_type"] == "Market" else "LIMIT",
+        order_type=("MARKET" if order["order_type"] == "Market" else "LIMIT"),
         quantity=order["qty"],
         position_side="BOTH",
     )
     if order["order_type"] == "Limit":
-        params["time_in_force"] = "GTC"
+        params["time_in_force"] = "IOC" if use_ioc_limit else "GTC"
     if (order_link_id := order.get("order_link_id")) is not None:
         params["client_order_id"] = order_link_id
     if (price := order.get("price")) is not None:
@@ -74,6 +75,7 @@ def convert_unified_place_order_to_bybit(
     order: UnifiedPlaceOrderRequest,
 ) -> BybitOrderParams:
     """Convert unified place order request to bybit format."""
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     params = BybitOrderParams(
         symbol=order["symbol"],
         side="Buy" if order["side"] == UnifiedSide.LONG else "Sell",
@@ -84,7 +86,7 @@ def convert_unified_place_order_to_bybit(
     )
 
     if order["order_type"] == "Limit":
-        params["time_in_force"] = "GTC"
+        params["time_in_force"] = "IOC" if use_ioc_limit else "GTC"
     if (price := order.get("price")) is not None:
         params["price"] = price
     if (order_link_id := order.get("order_link_id")) is not None:
@@ -102,13 +104,14 @@ def convert_unified_place_order_to_bitget(
     order: UnifiedPlaceOrderRequest,
 ) -> BitgetBatchOrderItemParams:
     """Convert unified place spot order request to bybit format."""
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     params = BitgetBatchOrderItemParams(
         size=order["qty"],
         side="buy" if order["side"] == UnifiedSide.LONG else "sell",
         orderType="market" if order["order_type"] == "Market" else "limit",
     )
     if order["order_type"] == "Limit":
-        params["force"] = "gtc"
+        params["force"] = "ioc" if use_ioc_limit else "gtc"
     if (price := order.get("price")) is not None:
         params["price"] = price
     if (order_link_id := order.get("order_link_id")) is not None:
@@ -128,6 +131,7 @@ def convert_unified_place_order_to_okx(
     order: UnifiedPlaceOrderRequest, broker_tag: str | None
 ) -> OkxOrderParams:
     """Convert unified place order request to okx format."""
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     params = OkxOrderParams(
         instId=order["symbol"],
         tdMode="isolated",
@@ -139,6 +143,8 @@ def convert_unified_place_order_to_okx(
     if broker_tag:
         params["tag"] = broker_tag
 
+    if use_ioc_limit:
+        params["ordType"] = "ioc"
     if (price := order.get("price")) is not None:
         params["px"] = price
     if (order_link_id := order.get("order_link_id")) is not None:
@@ -174,6 +180,7 @@ def convert_unified_place_order_to_binance(
     Returns a tuple of:
         (main simple orders, algo/conditional orders like TP/SL)
     """
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     main_orders: list[BinanceOrderParams] = []
     algo_orders: list[BinanceAlgoOrderParams] = []
 
@@ -191,7 +198,7 @@ def convert_unified_place_order_to_binance(
         "STOP_MARKET" if order["order_type"] == "Market" else "STOP"
     )
     if order["order_type"] == "Limit":
-        main_params["timeInForce"] = "GTC"
+        main_params["timeInForce"] = "IOC" if use_ioc_limit else "GTC"
         if (price := order.get("price")) is not None:
             main_params["price"] = price
     if (order_link_id := order.get("order_link_id")) is not None:
@@ -256,13 +263,14 @@ def convert_unified_place_order_to_binance(
     return main_orders, algo_orders
 
 
-def convert_unified_place_order_to_kucoin(  # noqa: PLR0912
+def convert_unified_place_order_to_kucoin(  # noqa: C901, PLR0912
     order: UnifiedPlaceOrderRequest,
 ) -> tuple[KuCoinOrderParams | None, KuCoinTakeProfitStopLossOrderParams | None]:
     """Convert a unified order to KuCoin's order model.
 
     If the order contains a trailing stop, should set standard TP.
     """
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     side: Literal["buy", "sell"] = (
         "buy" if order["side"] == UnifiedSide.LONG else "sell"
     )
@@ -289,6 +297,7 @@ def convert_unified_place_order_to_kucoin(  # noqa: PLR0912
             tp_sl_params["clientOid"] = order_link_id
 
         if order_type == "limit" and (price := order.get("price")) is not None:
+            tp_sl_params["timeInForce"] = "IOC" if use_ioc_limit else "GTC"
             tp_sl_params["price"] = price
 
         # For long: tp -> up, sl -> down. For short: tp -> down, sl -> up.
@@ -320,6 +329,8 @@ def convert_unified_place_order_to_kucoin(  # noqa: PLR0912
         positionSide="BOTH",
         leverage=int(leverage),
     )
+    if order_type == "limit":
+        main_params["timeInForce"] = "IOC" if use_ioc_limit else "GTC"
     if (order_link_id := order.get("order_link_id")) is not None:
         main_params["clientOid"] = order_link_id
     if (price := order.get("price")) is not None:
@@ -342,6 +353,7 @@ def convert_unified_place_order_to_gate(
     Returns a tuple of:
         (main order for market, price trigger orders for limit/tp/sl)
     """
+    use_ioc_limit = order["order_type"] == "Limit" and order.get("use_ioc_limit", False)
     main_order: GateOrderParams | None = None
     price_trigger_orders: list[GatePriceTriggeredOrderParams] = []
 
@@ -380,6 +392,7 @@ def convert_unified_place_order_to_gate(
                 "contract": symbol,
                 "amount": float_to_str(order_qty),
                 "price": float_to_str(order_price),
+                "tif": "ioc" if use_ioc_limit else "gtc",
             },
             "trigger": {
                 "price": float_to_str(order_price),
