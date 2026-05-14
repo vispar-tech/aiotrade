@@ -79,3 +79,29 @@ class MarketMixin:
             "/openApi/swap/v3/quote/klines",
             params=params,
         )
+
+    async def get_swap_24hr_ticker(
+        self: "HttpClientProtocol",
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Retrieve 24hr Ticker Price Change Statistics for BingX Perpetual Swap contracts.
+
+        GET /openApi/swap/v2/quote/ticker
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+
+        Args:
+            symbol: Optional; The trading pair symbol (e.g., "BTC-USDT").
+            recv_window: Optional; valid time window in ms.
+
+        Returns:
+            dict[str, Any]: API response containing 24hr ticker price change data.
+        """
+        params: dict[str, Any] = {}
+        if symbol is not None:
+            params["symbol"] = symbol
+        return await self.get(
+            "/openApi/swap/v2/quote/ticker",
+            params=params,
+        )

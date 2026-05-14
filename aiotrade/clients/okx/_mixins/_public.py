@@ -91,3 +91,48 @@ class PublicMixin:
             params=params,
             auth=False,
         )
+
+    async def get_index_tickers(
+        self: HttpClientProtocol,
+        quote_ccy: str | None = None,
+        inst_id: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Retrieve index tickers.
+
+        See:
+            https://www.okx.com/docs-v5/en/#market-data-rest-api-get-index-tickers
+
+        Rate Limit: 20 requests per 2 seconds (IP-based)
+
+        HTTP Request:
+            GET /api/v5/market/index-tickers
+
+        Args:
+            quote_ccy: Quote currency (e.g., "USDT", "USD", "BTC", "USDC").
+                Conditional: Either quote_ccy or inst_id is required.
+            inst_id: Index instrument ID, e.g., "BTC-USD".
+                Conditional: Either quote_ccy or inst_id is required.
+
+        Returns:
+            Dict with index tickers response data.
+
+        Raises:
+            ValueError: If neither quote_ccy nor inst_id is provided.
+        """
+        if not quote_ccy and not inst_id:
+            raise ValueError(
+                "At least one of `quote_ccy` or `inst_id` must be specified."
+            )
+
+        params: dict[str, str] = {}
+        if quote_ccy is not None:
+            params["quoteCcy"] = quote_ccy
+        if inst_id is not None:
+            params["instId"] = inst_id
+
+        return await self.get(
+            "/api/v5/market/index-tickers",
+            params=params,
+            auth=False,
+        )

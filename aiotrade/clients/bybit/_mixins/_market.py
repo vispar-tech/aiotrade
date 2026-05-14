@@ -130,9 +130,43 @@ class MarketMixin:
         """Get RPI orderbook."""
         raise NotImplementedError
 
-    async def get_tickers(self: HttpClientProtocol) -> dict[str, Any]:
-        """Get tickers."""
-        raise NotImplementedError
+    async def get_tickers(
+        self: HttpClientProtocol,
+        category: Literal["spot", "linear", "inverse", "option"],
+        symbol: str | None = None,
+        base_coin: str | None = None,
+        exp_date: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Query for the latest ticker snapshot.
+
+        See:
+            https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        Args:
+            category: Product type. One of: "spot", "linear", "inverse", "option".
+            symbol: Symbol name, e.g., "BTCUSDT", uppercase only.
+            base_coin: Base coin, uppercase only. Applies to 'option' only.
+            exp_date: Expiry date, e.g., "25DEC22". Applies to 'option' only.
+
+        Returns:
+            Dict with tickers response as received from Bybit API.
+
+        Raises:
+            Any exception raised by the underlying HTTP request.
+        """
+        params: dict[str, str] = {"category": category}
+        if symbol is not None:
+            params["symbol"] = symbol
+        if base_coin is not None:
+            params["baseCoin"] = base_coin
+        if exp_date is not None:
+            params["expDate"] = exp_date
+
+        return await self.get(
+            "/v5/market/tickers",
+            params=params,
+        )
 
     async def get_funding_rate_history(self: HttpClientProtocol) -> dict[str, Any]:
         """Get funding rate history."""

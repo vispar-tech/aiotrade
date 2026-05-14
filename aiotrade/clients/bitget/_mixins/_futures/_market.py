@@ -35,3 +35,26 @@ class MarketMixin:
             "/api/v2/mix/market/contracts",
             params=params,
         )
+
+    async def get_tickers(
+        self: HttpClientProtocol,
+        product_type: ProductType,
+    ) -> dict[str, Any]:
+        """
+        Get all ticker data for the given product type.
+
+        GET /api/v2/mix/market/tickers
+
+        https://www.bitget.com/api-doc/contract/market/Get-All-Ticker-Information
+
+        Args:
+            product_type: Product type
+
+        Returns:
+            dict[str, Any]: API response containing array of tickers.
+        """
+        params = {"productType": product_type}
+        return await self.get(
+            "/api/v2/mix/market/tickers",
+            params=params,
+        )

@@ -86,3 +86,38 @@ class MarketMixin:
             "/fapi/v1/klines",
             params=params,
         )
+
+    async def get_24hr_ticker(
+        self: HttpClientProtocol,
+        symbol: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        24hr Ticker Price Change Statistics.
+
+        24 hour rolling window price change statistics.
+
+        API Docs:
+            GET /fapi/v1/ticker/24hr
+
+        Request Weight:
+            - 1 for a single symbol
+            - 40 when the symbol parameter is omitted
+
+        Args:
+            symbol: Symbol name (e.g., BTCUSDT).
+            If omitted, tickers for all symbols will be returned (list).
+
+        Returns:
+            dict: 24hr ticker statistics for one symbol
+            OR
+            list[dict]: Array of ticker statistics for all symbols
+
+        Example:
+            await client.get_24hr_ticker(symbol="BTCUSDT")
+            await client.get_24hr_ticker()  # all symbols
+        """
+        params: dict[str, Any] = {}
+        if symbol is not None:
+            params["symbol"] = symbol
+
+        return await self.get("/fapi/v1/ticker/24hr", params=params)
