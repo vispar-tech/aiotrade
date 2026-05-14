@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.31.0 (2026-05-14)
+
+### Features
+
+- **market**: Add 24hr ticker retrieval methods for multiple exchanges
+  ([`2522a94`](https://github.com/vispar-tech/aiotrade/commit/2522a9458370573ebd79b23c135505057721667e))
+
+
 ## v0.30.0 (2026-05-10)
 
 ### Features
