@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.31.1 (2026-05-24)
+
+### Bug Fixes
+
+- **position**: Update price trigger order matching logic
+  ([`c1a78f7`](https://github.com/vispar-tech/aiotrade/commit/c1a78f7f4f12be31216e7833711e9ab0597117eb))
+
+
 ## v0.31.0 (2026-05-14)
 
 ### Features
