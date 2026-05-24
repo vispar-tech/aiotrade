@@ -836,8 +836,12 @@ def unified_position_info_from_gate(
             and not ord_["is_dual_mode"]
         )
 
-    matching_tp = [o for o in price_trigger_orders if _matches(o, 1)]
-    matching_sl = [o for o in price_trigger_orders if _matches(o, 2)]
+    tp_rule = 1 if side == UnifiedSide.LONG else 2
+    sl_rule = 2 if side == UnifiedSide.LONG else 1
+
+    matching_tp = [o for o in price_trigger_orders if _matches(o, tp_rule)]
+    matching_sl = [o for o in price_trigger_orders if _matches(o, sl_rule)]
+
     matching_trailing = [o for o in trailing_orders if _matches_trailing(o)]
 
     if matching_sl and len(matching_sl) > 1:
