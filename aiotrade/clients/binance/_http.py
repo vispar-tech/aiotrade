@@ -4,7 +4,6 @@ import json
 import logging
 import time
 from collections.abc import Mapping
-from operator import itemgetter
 from typing import Any
 from urllib import parse
 
@@ -112,29 +111,11 @@ class BinanceHttpClient(HttpClient):
                 items.append((k, str(v)))
         return "&".join(f"{k}={v!s}" for k, v in items)
 
-    @staticmethod
-    def _order_params(data: dict[str, Any]) -> list[tuple[str, str]]:
-        """Convert params to list with signature as last element."""
-        data = dict(filter(lambda el: el[1] is not None, data.items()))
-        has_signature = False
-        params: list[tuple[str, str]] = []
-        for key, value in data.items():
-            if key == "signature":
-                has_signature = True
-            else:
-                params.append((key, str(value)))
-        # sort parameters by key
-        params.sort(key=itemgetter(0))
-        if has_signature:
-            params.append(("signature", data["signature"]))
-        return params
-
     def _fix_batch_orders_request(self, params: dict[str, Any]) -> dict[str, Any]:
-        params["batchOrders"] = [
-            self._order_params(order) for order in params["batchOrders"]
-        ]
-        query_string = parse.urlencode(params).replace("%40", "@").replace("%27", "%22")
-        params["batchOrders"] = query_string[12:]
+        params["batchOrders"] = json.dumps(
+            params["batchOrders"],
+            separators=(",", ":"),
+        )
         return params
 
     async def _build_request_args(
