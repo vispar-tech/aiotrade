@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.31.2 (2026-05-25)
+
+### Bug Fixes
+
+- **binance**: :wrench: simplify batch order parameter handling
+  ([`bdfe0c5`](https://github.com/vispar-tech/aiotrade/commit/bdfe0c583a50d8ccffdda1ccbdd05e69bc9884d4))
+
+
 ## v0.31.1 (2026-05-24)
 
 ### Bug Fixes
