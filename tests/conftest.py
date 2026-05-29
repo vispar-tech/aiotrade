@@ -1,11 +1,38 @@
 """Pytest config, fixtures, and shared test utilities for the test suite."""
 
 import logging
+import os
 from collections.abc import Generator
+from pathlib import Path
 from typing import Any
 
 import pytest
 from pytest import LogCaptureFixture
+
+env_path = Path(".env.pytest")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_pytest_env() -> None:
+    """Automatically load .env.pytest file into os.environ before any tests run."""
+    if env_path.exists():
+        with env_path.open("r") as f:
+            for raw_line in f:
+                clean_line = raw_line.strip()
+                if (
+                    not clean_line
+                    or clean_line.startswith("#")
+                    or "=" not in clean_line
+                ):
+                    continue
+                key, val = clean_line.split("=", 1)
+                os.environ.setdefault(key.strip(), val.strip())
+
+
+@pytest.fixture(scope="session")
+def proxy_url() -> str:
+    """Fixture providing the PROXY_URL from environment (after loading .env.pytest)."""
+    return os.environ.get("PROXY_URL", "")
 
 
 @pytest.fixture(scope="session")

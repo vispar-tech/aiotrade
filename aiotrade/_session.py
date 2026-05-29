@@ -16,10 +16,37 @@ Example:
 """
 
 import logging
+from urllib.parse import urlparse
 
 import aiohttp
+from aiohttp_socks import ProxyConnector
 
 logger = logging.getLogger("aiotrade.session")
+
+
+def _mask_proxy_url(proxy: str | None) -> str | None:
+    if not proxy:
+        return None
+    try:
+        parsed = urlparse(proxy)
+        netloc = parsed.hostname or ""
+        if parsed.port:
+            netloc += f":{parsed.port}"
+        masked = f"{parsed.scheme}://"
+        if parsed.username or parsed.password:
+            masked += "****:****@"
+        masked += netloc
+        if parsed.path:
+            masked += parsed.path
+        if parsed.params:
+            masked += f";{parsed.params}"
+        if parsed.query:
+            masked += f"?{parsed.query}"
+        if parsed.fragment:
+            masked += f"#{parsed.fragment}"
+        return masked
+    except Exception:
+        return "****"
 
 
 class SharedSessionManager:
@@ -38,30 +65,41 @@ class SharedSessionManager:
 
         Args:
             max_connections: Maximum total connections in pool (default 2000).
-            proxy: Optional. Proxy URL for all outgoing requests (http/https).
+            proxy: Optional. Proxy URL for all outgoing requests (http/https/socks).
         """
         if cls._session is not None and not cls._session.closed:
             logger.warning("Shared session already initialized - skipping setup")
             return
 
+        masked_proxy = _mask_proxy_url(proxy)
         logger.info(
             "Initializing shared session (max connections: %d, proxy: %s)",
             max_connections,
-            proxy,
+            masked_proxy,
         )
         cls._max_connections = max_connections
         cls._proxy = proxy
+        connector: aiohttp.BaseConnector
 
-        connector = aiohttp.TCPConnector(
-            limit=max_connections,
-            limit_per_host=max_connections // 2,
-            ttl_dns_cache=300,
-            use_dns_cache=True,
-            keepalive_timeout=60,
-            enable_cleanup_closed=True,
-        )
-
-        timeout = aiohttp.ClientTimeout(total=60)
+        if proxy is not None:
+            connector = ProxyConnector.from_url(
+                proxy,
+                limit=max_connections,
+                limit_per_host=max_connections // 2,
+                ttl_dns_cache=300,
+                use_dns_cache=True,
+                keepalive_timeout=60,
+                enable_cleanup_closed=True,
+            )
+        else:
+            connector = aiohttp.TCPConnector(
+                limit=max_connections,
+                limit_per_host=max_connections // 2,
+                ttl_dns_cache=300,
+                use_dns_cache=True,
+                keepalive_timeout=60,
+                enable_cleanup_closed=True,
+            )
 
         cls._session = aiohttp.ClientSession(
             connector=connector,
@@ -69,8 +107,7 @@ class SharedSessionManager:
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             },
-            proxy=proxy,
-            timeout=timeout,
+            timeout=aiohttp.ClientTimeout(total=60),
         )
 
     @classmethod
