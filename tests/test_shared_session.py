@@ -5,6 +5,7 @@ import os
 import warnings
 
 import aiohttp
+import pytest
 
 from aiotrade._session import SharedSessionManager
 from aiotrade.clients import BingxClient, BybitClient, OkxClient
@@ -57,6 +58,7 @@ async def test_clients_share_session() -> None:
     assert not SharedSessionManager.is_initialized()
 
 
+@pytest.mark.external
 async def test_shared_session_with_proxy() -> None:
     """Test that shared session correctly applies proxy settings."""
     proxy_url = os.environ["PROXY_URL"]
