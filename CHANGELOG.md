@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.32.0 (2026-05-29)
+
+### Features
+
+- **proxy**: :sparkles: add aiohttp-socks support and enhance session management
+  ([`32b4dd1`](https://github.com/vispar-tech/aiotrade/commit/32b4dd1432f09a0e9471a8a1d0aa959facf0933b))
+
+- **session**: :sparkles: add global proxy support for shared session management
+  ([`2483427`](https://github.com/vispar-tech/aiotrade/commit/2483427a1153003d824357596061ef5f7808d3c3))
+
+
 ## v0.31.2 (2026-05-25)
 
 ### Bug Fixes
