@@ -4,6 +4,9 @@ Example:
     # Initialize at application startup
     SharedSessionManager.setup(max_connections=2000)
 
+    # Or, with global proxy:
+    SharedSessionManager.setup(max_connections=2000, proxy="http://localhost:7890")
+
     # Create trading clients; all share the same session
     client1 = HttpClient(api_key="...", api_secret="...")
     client2 = HttpClient(api_key="...", api_secret="...")
@@ -24,9 +27,10 @@ class SharedSessionManager:
 
     _session: aiohttp.ClientSession | None = None
     _max_connections: int = 2000
+    _proxy: str | None = None
 
     @classmethod
-    def setup(cls, max_connections: int = 2000) -> None:
+    def setup(cls, max_connections: int = 2000, proxy: str | None = None) -> None:
         """
         Initialize the shared aiohttp session and connection pool.
 
@@ -34,15 +38,19 @@ class SharedSessionManager:
 
         Args:
             max_connections: Maximum total connections in pool (default 2000).
+            proxy: Optional. Proxy URL for all outgoing requests (http/https).
         """
         if cls._session is not None and not cls._session.closed:
             logger.warning("Shared session already initialized - skipping setup")
             return
 
         logger.info(
-            "Initializing shared session (max connections: %d)", max_connections
+            "Initializing shared session (max connections: %d, proxy: %s)",
+            max_connections,
+            proxy,
         )
         cls._max_connections = max_connections
+        cls._proxy = proxy
 
         connector = aiohttp.TCPConnector(
             limit=max_connections,
@@ -53,12 +61,16 @@ class SharedSessionManager:
             enable_cleanup_closed=True,
         )
 
+        timeout = aiohttp.ClientTimeout(total=60)
+
         cls._session = aiohttp.ClientSession(
             connector=connector,
             headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             },
+            proxy=proxy,
+            timeout=timeout,
         )
 
     @classmethod
@@ -74,6 +86,11 @@ class SharedSessionManager:
         return cls._session  # type: ignore[return-value]
 
     @classmethod
+    def get_proxy(cls) -> str | None:
+        """Get the global proxy URL if set, otherwise None."""
+        return cls._proxy
+
+    @classmethod
     async def close(cls) -> None:
         """
         Gracefully close the shared session.
@@ -84,5 +101,6 @@ class SharedSessionManager:
             logger.info("Closing shared aiohttp session")
             await cls._session.close()
             cls._session = None
+            cls._proxy = None
         else:
             logger.debug("Shared session already closed or not initialized")
