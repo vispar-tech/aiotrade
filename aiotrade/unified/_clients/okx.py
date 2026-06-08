@@ -397,9 +397,11 @@ class UnifiedOkxClient:
         if position is not None:
             order_side = "sell" if position["side"] == UnifiedSide.LONG else "buy"
             order_qty = position["size"]
+            td_mode = position.get("additional", {}).get("margin_mode", "isolated")
         elif side is not None and qty is not None:
             order_side = "sell" if side == UnifiedSide.LONG else "buy"
             order_qty = qty
+            td_mode = "isolated"
         else:
             raise ValueError(
                 "set_trading_stop: Either a valid 'position' or both 'side' "
@@ -416,7 +418,7 @@ class UnifiedOkxClient:
                 cxlOnClosePos=True,
                 closeFraction=1,
                 reduceOnly=True,
-                tdMode="isolated",
+                tdMode=td_mode,
             )
             if take_profit is not None:
                 algo_params["tpTriggerPx"] = take_profit
@@ -437,7 +439,7 @@ class UnifiedOkxClient:
         if trailing_delivation is not None and active_price is not None:
             trailing_algo_params = TrailingStopAlgorithmOrderParams(
                 instId=symbol,
-                tdMode="isolated",
+                tdMode=td_mode,
                 ordType="move_order_stop",
                 side=order_side,
                 callbackRatio=trailing_delivation,
