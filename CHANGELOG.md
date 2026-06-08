@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.32.1 (2026-06-08)
+
+### Bug Fixes
+
+- **okx**: :wrench: update trading stop logic to use dynamic margin mode
+  ([`1e62bd3`](https://github.com/vispar-tech/aiotrade/commit/1e62bd3a26aec668b7494d15de2f6e45b1e1b54d))
+
+
 ## v0.32.0 (2026-05-29)
 
 ### Features
